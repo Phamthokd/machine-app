@@ -58,7 +58,7 @@ class RepairTicketController extends Controller
     }
 public function index()
 {
-    $repairs = RepairTicket::with(['machine.department'])
+    $repairs = RepairTicket::with(['machine.department', 'createdBy'])
     ->orderByDesc('id')
     ->simplePaginate(20);
 

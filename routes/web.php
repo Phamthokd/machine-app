@@ -29,7 +29,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/repairs', [RepairTicketController::class, 'index']);
     Route::get('/repairs/create', [RepairTicketController::class, 'create']);
     Route::post('/repairs', [RepairTicketController::class, 'store']);
-    Route::get('/repairs/{repair}', [RepairTicketController::class, 'show']);
+    Route::get('/repairs/{repair}', [RepairTicketController::class, 'show'])->whereNumber('repair');
 });
 
 Route::middleware(['auth'])->group(function () {
@@ -47,7 +47,7 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['role:admin|repair_tech|endline_qc|inline_qc_triumph|qa_supervisor_triumph'])->group(function () {
         Route::get('/repairs', [RepairTicketController::class, 'index']);
         Route::get('/repairs/export', [RepairTicketController::class, 'export']);
-        Route::get('/repairs/{repair}', [RepairTicketController::class, 'show']);
+        Route::get('/repairs/{repair}', [RepairTicketController::class, 'show'])->whereNumber('repair');
     });
 });
 Route::middleware(['auth'])->group(function () {
