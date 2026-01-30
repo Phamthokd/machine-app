@@ -46,6 +46,7 @@ Route::middleware(['auth'])->group(function () {
     // Ai được xem danh sách? (admin + QC/QA + repair)
     Route::middleware(['role:admin|repair_tech|endline_qc|inline_qc_triumph|qa_supervisor_triumph'])->group(function () {
         Route::get('/repairs', [RepairTicketController::class, 'index']);
+        Route::get('/repairs/export', [RepairTicketController::class, 'export']);
         Route::get('/repairs/{repair}', [RepairTicketController::class, 'show']);
     });
 });
