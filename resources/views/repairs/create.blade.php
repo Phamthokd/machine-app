@@ -67,12 +67,13 @@
 
       <div class="mb-3">
         <label class="form-label">Giờ bắt đầu</label>
-        <input class="form-control" type="datetime-local" name="started_at" value="{{ old('started_at') }}" required>
+        <input class="form-control" type="datetime-local" name="started_at" value="{{ old('started_at', now()->format('Y-m-d\\TH:i')) }}" required>
       </div>
 
       <div class="mb-3">
         <label class="form-label">Giờ kết thúc</label>
-        <input class="form-control" type="datetime-local" name="ended_at" value="{{ old('ended_at') }}" required>
+        <input class="form-control" type="text" value="Tự động khi lưu" readonly>
+        <div class="form-text">Hệ thống sẽ ghi nhận thời điểm bạn bấm “Lưu phiếu sửa”.</div>
       </div>
 
       <hr>
