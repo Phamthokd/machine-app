@@ -67,7 +67,14 @@
 
       <div class="mb-3">
         <label class="form-label">Giờ bắt đầu</label>
-        <input class="form-control" type="datetime-local" name="started_at" value="{{ old('started_at', now()->format('Y-m-d\\TH:i')) }}" required>
+        <input
+          class="form-control"
+          type="datetime-local"
+          name="started_at"
+          value="{{ old('started_at', now(config('app.timezone'))->format('Y-m-d\\TH:i')) }}"
+          required
+          data-auto-now
+        >
       </div>
 
       <div class="mb-3">
@@ -119,4 +126,15 @@
     </form>
   </div>
 </div>
+
+<script>
+  const startedAtField = document.querySelector('[data-auto-now]');
+  if (startedAtField && !startedAtField.value) {
+    const now = new Date();
+    const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
+      .toISOString()
+      .slice(0, 16);
+    startedAtField.value = local;
+  }
+</script>
 @endsection

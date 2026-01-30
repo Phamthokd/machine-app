@@ -47,7 +47,7 @@ class RepairTicketController extends Controller
         $validated['created_by'] = auth()->id();
         $validated['status'] = 'submitted';
         $validated['code'] = 'RM-' . now()->format('Ymd') . '-' . str_pad((string) random_int(1, 9999), 4, '0', STR_PAD_LEFT);
-        $validated['ended_at'] = now();
+        $validated['ended_at'] = now(config('app.timezone'));
 
         $ticket = RepairTicket::create($validated);
 
