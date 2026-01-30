@@ -56,7 +56,7 @@ class RepairTicketController extends Controller
         return redirect("/m/{$machine->ma_thiet_bi}")
             ->with('success', "Đã tạo phiếu sửa: {$ticket->code}");
     }
-    public function index()
+public function index()
 {
     $repairs = RepairTicket::with(['machine.department'])
     ->orderByDesc('id')
@@ -69,6 +69,45 @@ public function show(RepairTicket $repair)
 {
     $repair->load(['machine.department', 'createdBy']);
     return view('repairs.show', compact('repair'));
+}
+
+public function export()
+{
+    $repairs = RepairTicket::with(['machine.department'])
+        ->orderByDesc('id')
+        ->get();
+
+    $fileName = 'repair-tickets-' . now()->format('Ymd-His') . '.csv';
+
+    return response()->streamDownload(function () use ($repairs) {
+        $output = fopen('php://output', 'w');
+        fwrite($output, "\xEF\xBB\xBF");
+        fputcsv($output, [
+            'Ma phieu',
+            'Ma thiet bi',
+            'Ten thiet bi',
+            'To',
+            'Bat dau',
+            'Ket thuc',
+            'Trang thai',
+        ]);
+
+        foreach ($repairs as $repair) {
+            fputcsv($output, [
+                $repair->code,
+                $repair->machine->ma_thiet_bi ?? '',
+                $repair->machine->ten_thiet_bi ?? '',
+                $repair->machine->department->name ?? '',
+                $repair->started_at,
+                $repair->ended_at,
+                $repair->status,
+            ]);
+        }
+
+        fclose($output);
+    }, $fileName, [
+        'Content-Type' => 'text/csv; charset=UTF-8',
+    ]);
 }
 
 }
