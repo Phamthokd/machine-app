@@ -67,12 +67,20 @@
 
       <div class="mb-3">
         <label class="form-label">Giờ bắt đầu</label>
-        <input class="form-control" type="datetime-local" name="started_at" value="{{ old('started_at') }}" required>
+        <input
+          class="form-control"
+          type="datetime-local"
+          name="started_at"
+          value="{{ old('started_at', now(config('app.timezone'))->format('Y-m-d\\TH:i')) }}"
+          required
+          data-auto-now
+        >
       </div>
 
       <div class="mb-3">
         <label class="form-label">Giờ kết thúc</label>
-        <input class="form-control" type="datetime-local" name="ended_at" value="{{ old('ended_at') }}" required>
+        <input class="form-control" type="text" value="Tự động khi lưu" readonly>
+        <div class="form-text">Hệ thống sẽ ghi nhận thời điểm bạn bấm “Lưu phiếu sửa”.</div>
       </div>
 
       <hr>
@@ -118,4 +126,15 @@
     </form>
   </div>
 </div>
+
+<script>
+  const startedAtField = document.querySelector('[data-auto-now]');
+  if (startedAtField && !startedAtField.value) {
+    const now = new Date();
+    const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
+      .toISOString()
+      .slice(0, 16);
+    startedAtField.value = local;
+  }
+</script>
 @endsection

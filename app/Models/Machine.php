@@ -21,4 +21,15 @@ class Machine extends Model
         'ngay_vao_kho',
         'ngay_ra_kho',
     ];
+
+    
+    public function department()
+    {
+        return $this->belongsTo(Department::class, 'current_department_id');
+    }
+
+    public function repairTickets()
+    {
+        return $this->hasMany(RepairTicket::class);
+    }
 }

@@ -37,7 +37,7 @@ class RepairTicketController extends Controller
             'noi_dung_sua_chua' => ['required', 'string'],
 
             'started_at' => ['required', 'date'],
-            'ended_at' => ['required', 'date', 'after_or_equal:started_at'],
+            'ended_at' => ['nullable', 'date', 'after_or_equal:started_at'],
 
             'endline_qc_user_id' => ['required', 'exists:users,id'],
             'inline_qc_user_id' => ['required', 'exists:users,id'],
@@ -47,6 +47,7 @@ class RepairTicketController extends Controller
         $validated['created_by'] = auth()->id();
         $validated['status'] = 'submitted';
         $validated['code'] = 'RM-' . now()->format('Ymd') . '-' . str_pad((string) random_int(1, 9999), 4, '0', STR_PAD_LEFT);
+        $validated['ended_at'] = now();
 
         $ticket = RepairTicket::create($validated);
 
