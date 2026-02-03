@@ -32,4 +32,9 @@ class Machine extends Model
     {
         return $this->hasMany(RepairTicket::class);
     }
+
+    public function movements()
+    {
+        return $this->hasMany(MachineMovement::class);
+    }
 }

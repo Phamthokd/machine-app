@@ -6,61 +6,80 @@ use App\Http\Controllers\MachinePublicController;
 use App\Http\Controllers\RepairTicketController;
 use App\Http\Controllers\QrScanController;
 use App\Http\Controllers\MachineCsvImportController;
+use App\Http\Controllers\MachineMovementController;
+use App\Http\Controllers\UserController;
 
+/*
+|--------------------------------------------------------------------------
+| Web Routes
+|--------------------------------------------------------------------------
+|
+| Role Definitions:
+| 1. admin: All access
+| 2. warehouse: All access EXCEPT User Creation/Delete
+| 3. team_leader: Move Machine, View Move History
+| 4. repair_tech: Repair Machine, View Repair History
+*/
 
 Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/dashboard', function () {
+        return view('dashboard');
+    })->name('dashboard');
 
-Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-});
-Route::middleware(['auth'])->group(function () {
-    Route::get('/repairs/create', [RepairTicketController::class, 'create']);
-    Route::post('/repairs', [RepairTicketController::class, 'store']);
-});
-Route::middleware(['auth'])->group(function () {
-    Route::get('/repairs', [RepairTicketController::class, 'index']);
-    Route::get('/repairs/create', [RepairTicketController::class, 'create']);
-    Route::post('/repairs', [RepairTicketController::class, 'store']);
-    Route::get('/repairs/{repair}', [RepairTicketController::class, 'show'])->whereNumber('repair');
-});
 
-Route::middleware(['auth'])->group(function () {
-
-    // Ai cũng được xem trang máy sau khi login
+    // Common: Scan QR & View Machine
+    Route::get('/scan', [QrScanController::class, 'index']);
     Route::get('/m/{ma_thiet_bi}', [MachinePublicController::class, 'show']);
 
-    // Chỉ người sửa máy (hoặc admin) được tạo phiếu sửa
-    Route::middleware(['role:admin|repair_tech'])->group(function () {
+    // REPAIR GROUP: Admin, Warehouse, Repair Tech, Contractor, Team Leader
+    Route::middleware(['role:admin|warehouse|repair_tech|contractor|team_leader'])->group(function () {
+        Route::get('/repairs/contractor/export', [RepairTicketController::class, 'exportContractor']);
+        Route::get('/repairs/contractor', [RepairTicketController::class, 'contractorIndex']);
+        Route::get('/repair-requests', [RepairTicketController::class, 'requestsIndex']);
+        Route::get('/repairs', [RepairTicketController::class, 'index']);
         Route::get('/repairs/create', [RepairTicketController::class, 'create']);
         Route::post('/repairs', [RepairTicketController::class, 'store']);
-    });
-
-    // Ai được xem danh sách? (admin + QC/QA + repair)
-    Route::middleware(['role:admin|repair_tech|endline_qc|inline_qc_triumph|qa_supervisor_triumph'])->group(function () {
-        Route::get('/repairs', [RepairTicketController::class, 'index']);
+        Route::get('/repairs/{repair}/edit', [RepairTicketController::class, 'edit']);
+        Route::put('/repairs/{repair}', [RepairTicketController::class, 'update']);
         Route::get('/repairs/export', [RepairTicketController::class, 'export']);
         Route::get('/repairs/{repair}', [RepairTicketController::class, 'show'])->whereNumber('repair');
     });
+
+    // MOVEMENT GROUP: Admin, Warehouse, Team Leader
+    Route::middleware(['role:admin|warehouse|team_leader'])->group(function () {
+        Route::get('/machines/{id}/move', [MachineMovementController::class, 'edit']);
+        Route::post('/machines/{id}/move', [MachineMovementController::class, 'update']);
+        Route::get('/movement-history', [MachineMovementController::class, 'index']);
+        Route::get('/movement-history/export', [MachineMovementController::class, 'export']);
+    });
+
+    // WAREHOUSE EXTRA: Import CSV (Admin + Warehouse)
+    Route::middleware(['role:admin|warehouse'])->group(function () {
+        Route::get('/machines/import-csv', [MachineCsvImportController::class, 'form']);
+        Route::post('/machines/import-csv', [MachineCsvImportController::class, 'import']);
+        
+        // Machine Management List
+        Route::resource('machines', App\Http\Controllers\MachineController::class)->except(['show']);
+
+        // Warehouse can VIEW users, but not create (restricted in Controller/Policy ideally, but strictly restricted via routes here)
+        Route::get('/users', [UserController::class, 'index']);
+    });
+
+    // USER MANAGEMENT: Admin Only (Create, Edit, Delete)
+    Route::middleware(['role:admin'])->group(function () {
+        Route::get('/users/create', [UserController::class, 'create']);
+        Route::post('/users', [UserController::class, 'store']);
+        Route::get('/users/{user}/edit', [UserController::class, 'edit']);
+        Route::put('/users/{user}', [UserController::class, 'update']);
+        Route::delete('/users/{user}', [UserController::class, 'destroy']);
+    });
 });
-Route::middleware(['auth'])->group(function () {
-    Route::get('/scan', [QrScanController::class, 'index']);
-});
-Route::middleware(['auth'])->group(function () {
-    Route::get('/machines/import-csv', [MachineCsvImportController::class, 'form']);
-    Route::post('/machines/import-csv', [MachineCsvImportController::class, 'import']);
-});
-
-
-
-
-Route::get('/m/{ma_thiet_bi}', [MachinePublicController::class, 'show']);
 
 require __DIR__.'/auth.php';

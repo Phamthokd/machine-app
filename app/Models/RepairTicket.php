@@ -16,11 +16,13 @@ class RepairTicket extends Model
         'noi_dung_sua_chua',
         'started_at',
         'ended_at',
-        'endline_qc_user_id',
-        'inline_qc_user_id',
-        'qa_supervisor_user_id',
+        'endline_qc_name',
+        'inline_qc_name',
+        'qa_supervisor_name',
         'created_by',
         'status',
+        'nguoi_ho_tro',
+        'type', // mechanic, contractor
     ];
         public function machine()
     {
@@ -36,6 +38,8 @@ class RepairTicket extends Model
     {
         return $this->belongsTo(User::class, 'created_by');
     }
+
+
 
 }
 
