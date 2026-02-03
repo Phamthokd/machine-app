@@ -22,7 +22,7 @@ use App\Http\Controllers\UserController;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route('login');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -64,6 +64,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware(['role:admin|warehouse'])->group(function () {
         Route::get('/machines/import-csv', [MachineCsvImportController::class, 'form']);
         Route::post('/machines/import-csv', [MachineCsvImportController::class, 'import']);
+        
+        // Print QR
+        Route::get('/machines/department/{department}/print-qr', [App\Http\Controllers\MachineController::class, 'printDepartmentQr'])->name('machines.print_department_qr');
+        Route::get('/machines/{machine}/print-qr', [App\Http\Controllers\MachineController::class, 'printQr'])->name('machines.print_qr');
         
         // Machine Management List
         Route::resource('machines', App\Http\Controllers\MachineController::class)->except(['show']);

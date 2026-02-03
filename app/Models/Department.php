@@ -11,4 +11,9 @@ class Department extends Model
         'code',
         'type',
     ];
+
+    public function machines()
+    {
+        return $this->hasMany(Machine::class, 'current_department_id');
+    }
 }

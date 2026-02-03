@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Machine;
 use App\Models\Department;
 use Illuminate\Http\Request;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class MachineController extends Controller
 {
@@ -69,5 +70,17 @@ class MachineController extends Controller
         
         return redirect()->route('machines.index')
             ->with('success', 'Đã xoá máy và dữ liệu liên quan: ' . $machine->ma_thiet_bi);
+    }
+
+    public function printQr(Machine $machine)
+    {
+        $qrCode = QrCode::size(200)->generate($machine->ma_thiet_bi);
+        return view('machines.print_qr', compact('machine', 'qrCode'));
+    }
+
+    public function printDepartmentQr(Department $department)
+    {
+        $machines = $department->machines()->orderBy('ma_thiet_bi')->get();
+        return view('machines.print_batch_qr', compact('department', 'machines'));
     }
 }

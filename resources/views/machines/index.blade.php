@@ -40,6 +40,15 @@
             {{ session('success') }}
         </div>
     @endif
+    
+    @if(request('department_id'))
+        <div class="mb-4 d-flex justify-content-end">
+            <a href="{{ route('machines.print_department_qr', request('department_id')) }}" target="_blank" class="btn btn-dark d-flex align-items-center gap-2 shadow-sm tap">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                In QR Cả Tổ
+            </a>
+        </div>
+    @endif
 
     <!-- List -->
     <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
@@ -60,7 +69,7 @@
                         <th class="py-2 px-2">DEPARTMENT (TXT)</th>
                         <th class="py-2 px-2">NGÀY VÀO KHO</th>
                         <th class="py-2 px-2">NGÀY RA KHO</th>
-                        <th class="py-2 px-2 text-center" style="width: 50px;">SỬA</th>
+                        <th class="py-2 px-2 text-center" style="width: 80px;">HÀNH ĐỘNG</th>
                     </tr>
                 </thead>
                 <tbody class="border-top-0">
@@ -82,9 +91,14 @@
                         <td class="px-2">{{ $m->ngay_vao_kho ? \Carbon\Carbon::parse($m->ngay_vao_kho)->format('d/m/Y') : '' }}</td>
                         <td class="px-2">{{ $m->ngay_ra_kho ? \Carbon\Carbon::parse($m->ngay_ra_kho)->format('d/m/Y') : '' }}</td>
                         <td class="px-2 text-center">
-                            <a href="{{ route('machines.edit', $m->id) }}" class="btn btn-sm btn-outline-secondary border-0 p-1" title="Chỉnh sửa">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                            </a>
+                            <div class="d-flex justify-content-center gap-2">
+                                <a href="{{ route('machines.print_qr', $m->id) }}" target="_blank" class="btn btn-sm btn-outline-dark border-0 p-1" title="In mã QR">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                                </a>
+                                <a href="{{ route('machines.edit', $m->id) }}" class="btn btn-sm btn-outline-secondary border-0 p-1" title="Chỉnh sửa">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                </a>
+                            </div>
                         </td>
                     </tr>
                     @empty
