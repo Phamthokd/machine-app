@@ -1,5 +1,5 @@
 @extends('layouts.app-simple', ['maxWidth' => '100%'])
-@section('title', 'Yêu cầu sửa chữa')
+@section('title', __('messages.repair_requests_title'))
 
 @section('content')
 <div class="d-flex align-items-center justify-content-between mb-4">
@@ -8,8 +8,8 @@
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
         </a>
         <div>
-            <h4 class="mb-0 fw-bold">Yêu cầu sửa chữa</h4>
-            <div class="text-secondary small">Danh sách máy báo hỏng cần tiếp nhận</div>
+            <h4 class="mb-0 fw-bold">{{ __('messages.repair_requests_title') }}</h4>
+            <div class="text-secondary small">{{ __('messages.repair_requests_subtitle') }}</div>
         </div>
     </div>
 </div>
@@ -19,13 +19,13 @@
         <table class="table table-hover align-middle mb-0" style="min-width: 800px; font-size: 0.9rem;">
             <thead class="bg-light text-secondary">
                 <tr class="text-uppercase text-xs fw-bold">
-                    <th class="py-3 px-3">Mã máy</th>
-                    <th class="py-3 px-3">Tên máy</th>
-                    <th class="py-3 px-3">Tổ</th>
-                    <th class="py-3 px-3">Sự cố / Hư hỏng</th>
-                    <th class="py-3 px-3">Người báo</th>
-                    <th class="py-3 px-3">Thời gian báo</th>
-                    <th class="py-3 px-3 text-end">Hành động</th>
+                    <th class="py-3 px-3">{{ __('messages.machine_code_header') }}</th>
+                    <th class="py-3 px-3">{{ __('messages.machine_name_header') }}</th>
+                    <th class="py-3 px-3">{{ __('messages.dept_header') }}</th>
+                    <th class="py-3 px-3">{{ __('messages.issue_header') }}</th>
+                    <th class="py-3 px-3">{{ __('messages.reporter_header') }}</th>
+                    <th class="py-3 px-3">{{ __('messages.report_time_header') }}</th>
+                    <th class="py-3 px-3 text-end">{{ __('messages.action_header') }}</th>
                 </tr>
             </thead>
             <tbody class="border-top-0">
@@ -44,7 +44,7 @@
                              <div class="avatar-sm rounded-circle bg-light text-secondary d-flex align-items-center justify-content-center fw-bold" style="width: 30px; height: 30px; font-size: 0.75rem;">
                                 {{ substr($r->createdBy->name ?? 'U', 0, 1) }}
                             </div>
-                            <span class="fw-medium">{{ $r->createdBy->name ?? 'Unknown' }}</span>
+                            <span class="fw-medium">{{ $r->createdBy->name ?? __('messages.unknown_user') }}</span>
                         </div>
                     </td>
                     <td class="px-3 text-secondary">
@@ -52,7 +52,7 @@
                     </td>
                     <td class="px-3 text-end">
                         <a href="/repairs/{{ $r->id }}/edit" class="btn btn-sm btn-primary rounded-pill px-3">
-                            Tiếp nhận
+                            {{ __('messages.process_btn') }}
                         </a>
                     </td>
                 </tr>
@@ -62,7 +62,7 @@
                         <div class="mb-3 opacity-50">
                             <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                         </div>
-                        Hiện không có yêu cầu sửa chữa nào
+                        {{ __('messages.no_requests') }}
                     </td>
                 </tr>
                 @endforelse

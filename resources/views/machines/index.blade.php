@@ -1,5 +1,5 @@
 @extends('layouts.app-simple', ['maxWidth' => '100%'])
-@section('title', 'Danh sách máy')
+@section('title', __('messages.machine_list_title'))
 
 @section('content')
 <div class="container-fluid px-4">
@@ -12,20 +12,20 @@
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
                     </a>
                     <div>
-                        <h4 class="mb-0 fw-bold">Danh sách thiết bị</h4>
-                        <div class="text-secondary small">Quản lý toàn bộ hồ sơ máy, lịch sử và thông số</div>
+                        <h4 class="mb-0 fw-bold">{{ __('messages.machine_list_title') }}</h4>
+                        <div class="text-secondary small">{{ __('messages.machine_list_subtitle') }}</div>
                     </div>
                 </div>
                 
                 <form class="d-flex gap-2 w-100 w-lg-auto" method="GET">
                     <select class="form-select form-select-lg fs-6 shadow-sm border-0 bg-light" name="department_id" onchange="this.form.submit()" style="min-width: 200px;">
-                        <option value="">-- Tất cả tổ --</option>
+                        <option value="">{{ __('messages.all_departments') }}</option>
                         @foreach($departments as $d)
                             <option value="{{ $d->id }}" @selected(request('department_id') == $d->id)>{{ $d->name }}</option>
                         @endforeach
                     </select>
                     <div class="input-group shadow-sm border-0 rounded-3 overflow-hidden">
-                        <input type="text" class="form-control form-control-lg fs-6 border-0 bg-light" name="search" placeholder="Tìm theo Mã, Tên, Serial..." value="{{ request('search') }}" style="min-width: 300px;">
+                        <input type="text" class="form-control form-control-lg fs-6 border-0 bg-light" name="search" placeholder="{{ __('messages.search_placeholder') }}" value="{{ request('search') }}" style="min-width: 300px;">
                         <button class="btn btn-primary px-4" type="submit">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
                         </button>
@@ -45,7 +45,7 @@
         <div class="mb-4 d-flex justify-content-end">
             <a href="{{ route('machines.print_department_qr', request('department_id')) }}" target="_blank" class="btn btn-dark d-flex align-items-center gap-2 shadow-sm tap">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-                In QR Cả Tổ
+                {{ __('messages.print_batch_qr') }}
             </a>
         </div>
     @endif
@@ -56,20 +56,20 @@
             <table class="table table-hover table-bordered table-striped align-middle mb-0 text-nowrap" style="min-width: 100%; font-size: 0.85rem;">
                 <thead class="bg-primary text-white">
                     <tr>
-                        <th class="py-2 px-2">MÃ THIẾT BỊ</th>
-                        <th class="py-2 px-2">TÊN THIẾT BỊ</th>
-                        <th class="py-2 px-2">TỔ HIỆN TẠI</th>
-                        <th class="py-2 px-2">BRAND</th>
-                        <th class="py-2 px-2">MODEL</th>
-                        <th class="py-2 px-2">SERIAL</th>
-                        <th class="py-2 px-2">INVOICE/CD</th>
-                        <th class="py-2 px-2">YEAR</th>
-                        <th class="py-2 px-2">COUNTRY</th>
-                        <th class="py-2 px-2">STOCK-IN DATE</th>
-                        <th class="py-2 px-2">DEPARTMENT (TXT)</th>
-                        <th class="py-2 px-2">NGÀY VÀO KHO</th>
-                        <th class="py-2 px-2">NGÀY RA KHO</th>
-                        <th class="py-2 px-2 text-center" style="width: 80px;">HÀNH ĐỘNG</th>
+                        <th class="py-2 px-2">{{ __('messages.machine_code') }}</th>
+                        <th class="py-2 px-2">{{ __('messages.machine_name') }}</th>
+                        <th class="py-2 px-2">{{ __('messages.current_department') }}</th>
+                        <th class="py-2 px-2">{{ __('messages.brand') }}</th>
+                        <th class="py-2 px-2">{{ __('messages.model') }}</th>
+                        <th class="py-2 px-2">{{ __('messages.serial') }}</th>
+                        <th class="py-2 px-2">{{ __('messages.invoice_cd') }}</th>
+                        <th class="py-2 px-2">{{ __('messages.year') }}</th>
+                        <th class="py-2 px-2">{{ __('messages.country') }}</th>
+                        <th class="py-2 px-2">{{ __('messages.stock_in_date') }}</th>
+                        <th class="py-2 px-2">{{ __('messages.location_txt') }}</th>
+                        <th class="py-2 px-2">{{ __('messages.warehouse_in_date') }}</th>
+                        <th class="py-2 px-2">{{ __('messages.warehouse_out_date') }}</th>
+                        <th class="py-2 px-2 text-center" style="width: 80px;">{{ __('messages.actions') }}</th>
                     </tr>
                 </thead>
                 <tbody class="border-top-0">
@@ -92,10 +92,10 @@
                         <td class="px-2">{{ $m->ngay_ra_kho ? \Carbon\Carbon::parse($m->ngay_ra_kho)->format('d/m/Y') : '' }}</td>
                         <td class="px-2 text-center">
                             <div class="d-flex justify-content-center gap-2">
-                                <a href="{{ route('machines.print_qr', $m->id) }}" target="_blank" class="btn btn-sm btn-outline-dark border-0 p-1" title="In mã QR">
+                                <a href="{{ route('machines.print_qr', $m->id) }}" target="_blank" class="btn btn-sm btn-outline-dark border-0 p-1" title="{{ __('messages.print_qr_action') }}">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
                                 </a>
-                                <a href="{{ route('machines.edit', $m->id) }}" class="btn btn-sm btn-outline-secondary border-0 p-1" title="Chỉnh sửa">
+                                <a href="{{ route('machines.edit', $m->id) }}" class="btn btn-sm btn-outline-secondary border-0 p-1" title="{{ __('messages.edit') }}">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                                 </a>
                             </div>
@@ -104,7 +104,7 @@
                     @empty
                     <tr>
                         <td colspan="14" class="text-center py-5 text-secondary">
-                            Chưa có dữ liệu máy
+                            {{ __('messages.no_data_found') }}
                         </td>
                     </tr>
                     @endforelse

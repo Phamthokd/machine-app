@@ -1,12 +1,12 @@
 @extends('layouts.app-simple')
-@section('title', 'Lịch sử chuyển tổ')
+@section('title', __('messages.movement_history_title'))
 
 @section('content')
 <div class="d-flex align-items-center justify-content-between mb-4">
-    <h4 class="mb-0 fw-bold">Lịch sử chuyển tổ</h4>
+    <h4 class="mb-0 fw-bold">{{ __('messages.movement_history_title') }}</h4>
     <a href="/movement-history/export" class="btn btn-success text-white shadow-sm tap d-flex align-items-center gap-2">
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        <span class="d-none d-sm-inline">Xuất Excel</span>
+        <span class="d-none d-sm-inline">{{ __('messages.movement_history_export') }}</span>
     </a>
 </div>
 
@@ -16,12 +16,12 @@
         <table class="table table-hover align-middle mb-0">
             <thead class="bg-light">
                 <tr>
-                    <th class="py-3 ps-4 text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Thời gian</th>
-                    <th class="py-3 text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Thiết bị</th>
-                    <th class="py-3 text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Từ tổ</th>
-                    <th class="py-3 text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Đến tổ</th>
-                    <th class="py-3 text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Người chuyển</th>
-                    <th class="py-3 text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Ghi chú</th>
+                    <th class="py-3 ps-4 text-uppercase text-secondary text-xs font-weight-bolder opacity-7">{{ __('messages.time_header') }}</th>
+                    <th class="py-3 text-uppercase text-secondary text-xs font-weight-bolder opacity-7">{{ __('messages.machine') }}</th>
+                    <th class="py-3 text-uppercase text-secondary text-xs font-weight-bolder opacity-7">{{ __('messages.from_dept') }}</th>
+                    <th class="py-3 text-uppercase text-secondary text-xs font-weight-bolder opacity-7">{{ __('messages.to_dept') }}</th>
+                    <th class="py-3 text-uppercase text-secondary text-xs font-weight-bolder opacity-7">{{ __('messages.mover') }}</th>
+                    <th class="py-3 text-uppercase text-secondary text-xs font-weight-bolder opacity-7">{{ __('messages.note') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -51,7 +51,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="6" class="text-center py-5 text-muted">Chưa có lịch sử chuyển tổ nào.</td>
+                    <td colspan="6" class="text-center py-5 text-muted">{{ __('messages.no_movement_history') }}</td>
                 </tr>
                 @endforelse
             </tbody>
@@ -85,7 +85,7 @@
             @endif
         </div>
         @empty
-        <div class="text-center py-5 text-muted">Chưa có lịch sử chuyển tổ nào.</div>
+        <div class="text-center py-5 text-muted">{{ __('messages.no_movement_history') }}</div>
         @endforelse
     </div>
 

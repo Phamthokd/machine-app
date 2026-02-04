@@ -1,21 +1,21 @@
 @extends('layouts.app-simple')
-@section('title','Quét QR')
+@section('title', __('messages.scan_title'))
 
 @section('content')
 <div class="card shadow-sm">
   <div class="card-body">
-    <h5 class="mb-2">Quét QR thiết bị</h5>
-    <div class="text-muted small mb-3">Đưa QR vào khung. Hệ thống sẽ tự chuyển tới trang máy.</div>
+    <h5 class="mb-2">{{ __('messages.scan_instruction') }}</h5>
+    <div class="text-muted small mb-3">{{ __('messages.scan_hint') }}</div>
 
     <div id="reader" style="width:100%; max-width:420px; margin:auto;"></div>
 
     <div class="mt-3">
-      <label class="form-label">Hoặc nhập mã thiết bị</label>
+      <label class="form-label">{{ __('messages.or_enter_code') }}</label>
       <div class="input-group">
-        <input id="manual" class="form-control" placeholder="VD: MAY-001">
-        <button class="btn btn-primary" id="goBtn">Đi</button>
+        <input id="manual" class="form-control" placeholder="{{ __('messages.enter_code_placeholder') }}">
+        <button class="btn btn-primary" id="goBtn">{{ __('messages.go_btn') }}</button>
       </div>
-      <div class="form-text">Nếu camera bị chặn, dùng cách nhập mã.</div>
+      <div class="form-text">{{ __('messages.camera_blocked_hint') }}</div>
     </div>
 
     <div id="msg" class="alert alert-warning mt-3 d-none"></div>
@@ -68,7 +68,7 @@
 
   Html5Qrcode.getCameras().then(cameras => {
     if (!cameras || cameras.length === 0) {
-      showMsg('Không tìm thấy camera. Hãy dùng ô nhập mã.');
+      showMsg('{{ __('messages.camera_not_found') }}');
       return;
     }
 
@@ -85,11 +85,11 @@
       },
       (errorMessage) => { /* ignore */ }
     ).catch(err => {
-      showMsg('Không mở được camera: ' + err);
+      showMsg('{{ __('messages.camera_error') }}: ' + err);
     });
 
   }).catch(err => {
-    showMsg('Lỗi camera: ' + err);
+    showMsg('{{ __('messages.camera_error') }}: ' + err);
   });
 </script>
 @endsection

@@ -116,8 +116,12 @@
     </a>
 
     <!-- Actions -->
-    <!-- Actions Removed as requested -->
-    <!-- <div class="d-flex gap-2"> ... </div> -->
+    <!-- Language Switcher -->
+    <div class="d-flex gap-2">
+        <a href="{{ route('lang.switch', 'vi') }}" class="btn btn-sm {{ app()->getLocale() == 'vi' ? 'btn-primary' : 'btn-outline-secondary' }}">VN</a>
+        <a href="{{ route('lang.switch', 'zh') }}" class="btn btn-sm {{ app()->getLocale() == 'zh' ? 'btn-primary' : 'btn-outline-secondary' }}">CN</a>
+        <a href="{{ route('lang.switch', 'en') }}" class="btn btn-sm {{ app()->getLocale() == 'en' ? 'btn-primary' : 'btn-outline-secondary' }}">EN</a>
+    </div>
 
   </div>
 </nav>

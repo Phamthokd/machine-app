@@ -159,12 +159,12 @@
 
 <div class="page-header d-flex flex-wrap align-items-center justify-content-between gap-3">
     <div>
-        <h2 class="page-title h3 mb-1">📋 Danh sách phiếu sửa</h2>
-        <div class="text-muted">Quản lý và theo dõi lịch sử sửa chữa thiết bị</div>
+        <h2 class="page-title h3 mb-1">📋 {{ __('messages.repair_history_list') }}</h2>
+        <div class="text-muted">{{ __('messages.repair_history_subtitle') }}</div>
     </div>
     <a href="/repairs/export" class="btn-export text-decoration-none">
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        <span>Xuất Excel</span>
+        <span>{{ __('messages.export_excel') }}</span>
     </a>
 </div>
 
@@ -173,14 +173,16 @@
         <table class="modern-table mb-0">
             <thead>
                 <tr>
+                <tr>
                     <th class="text-center" width="50">#</th>
-                    <th>Thiết bị</th>
-                    <th>Tổ</th>
-                    <th>Thông tin hàng</th>
-                    <th class="col-min-200">Vấn đề</th>
-                    <th class="col-min-200">Khắc phục</th>
-                    <th>Thời gian</th>
-                    <th>Nhân sự liên quan</th>
+                    <th>{{ __('messages.machine') }}</th>
+                    <th>{{ __('messages.department') }}</th>
+                    <th>{{ __('messages.product_info') }}</th>
+                    <th class="col-min-200">{{ __('messages.issue') }}</th>
+                    <th class="col-min-200">{{ __('messages.fix') }}</th>
+                    <th>{{ __('messages.time') }}</th>
+                    <th>{{ __('messages.related_personnel') }}</th>
+                </tr>
                 </tr>
             </thead>
             <tbody>
@@ -200,8 +202,8 @@
                     </td>
                     <td>
                         <div class="small">
-                            <div><span class="text-muted">Mã:</span> <span class="fw-medium">{{ $r->ma_hang }}</span></div>
-                            <div><span class="text-muted">CĐ:</span> {{ $r->cong_doan }}</div>
+                            <div><span class="text-muted">{{ __('messages.code_label') }}</span> <span class="fw-medium">{{ $r->ma_hang }}</span></div>
+                            <div><span class="text-muted">{{ __('messages.step_label') }}</span> {{ $r->cong_doan }}</div>
                         </div>
                     </td>
                     <td>
@@ -212,30 +214,30 @@
                     </td>
                     <td>
                         <div class="d-flex flex-column small" style="white-space: nowrap;">
-                            <span class="text-secondary" title="Thời gian báo hỏng">Report: {{ $r->created_at->format('H:i d/m') }}</span>
+                            <span class="text-secondary" title="Thời gian báo hỏng">{{ __('messages.report_time') }} {{ $r->created_at->format('H:i d/m') }}</span>
                             
                             @if($r->started_at)
-                                <span class="text-success" title="Thời gian tiếp nhận">Start: &nbsp;&nbsp;{{ \Carbon\Carbon::parse($r->started_at)->format('H:i d/m') }}</span>
+                                <span class="text-success" title="Thời gian tiếp nhận">{{ __('messages.start_time') }} &nbsp;&nbsp;{{ \Carbon\Carbon::parse($r->started_at)->format('H:i d/m') }}</span>
                                 
                                 @php
                                     $waitTime = $r->created_at->diffInMinutes(\Carbon\Carbon::parse($r->started_at));
                                 @endphp
-                                <span class="badge bg-light text-dark border mt-1" title="Thời gian chờ từ lúc báo đến lúc tiếp nhận">Wait: {{ $waitTime }} min</span>
+                                <span class="badge bg-light text-dark border mt-1" title="Thời gian chờ từ lúc báo đến lúc tiếp nhận">{{ __('messages.wait_time') }} {{ $waitTime }} {{ __('messages.minutes_unit') }}</span>
                             @endif
 
                             @if($r->ended_at)
-                                <span class="text-secondary mt-1" title="Thời gian hoàn thành">End: &nbsp;&nbsp;&nbsp;&nbsp;{{ \Carbon\Carbon::parse($r->ended_at)->format('H:i d/m') }}</span>
+                                <span class="text-secondary mt-1" title="Thời gian hoàn thành">{{ __('messages.end_time') }} &nbsp;&nbsp;&nbsp;&nbsp;{{ \Carbon\Carbon::parse($r->ended_at)->format('H:i d/m') }}</span>
                             @else
-                                <span class="badge bg-warning text-dark mt-1">Đang sửa</span>
+                                <span class="badge bg-warning text-dark mt-1">{{ __('messages.status_repairing') }}</span>
                             @endif
                         </div>
                     </td>
                     <td>
                         <div class="d-flex flex-column gap-1 small">
-                            <div title="Người tạo">🛠 {{ $r->createdBy->name ?? '...' }}</div>
-                            <div class="text-muted" title="Inline QC">👀 {{ $r->inlineQc->name ?? '—' }} (QC)</div>
-                            <div class="text-muted" title="Endline QC">check {{ $r->endlineQc->name ?? '—' }} (Endline)</div>
-                            <div class="text-muted" title="QA Chủ quản">recheck {{ $r->qaSupervisor->name ?? '—' }} (QA)</div>
+                            <div title="{{ __('messages.creator') }}">🛠 {{ $r->createdBy->name ?? '...' }}</div>
+                            <div class="text-muted" title="{{ __('messages.inline_qc') }}">👀 {{ $r->inlineQc->name ?? '—' }} (QC)</div>
+                            <div class="text-muted" title="{{ __('messages.endline_qc') }}">check {{ $r->endlineQc->name ?? '—' }} (Endline)</div>
+                            <div class="text-muted" title="{{ __('messages.qa_supervisor') }}">recheck {{ $r->qaSupervisor->name ?? '—' }} (QA)</div>
                         </div>
                     </td>
                 </tr>
@@ -260,17 +262,17 @@
         </div>
 
         <div class="info-row">
-            <span class="info-label">Mã hàng:</span>
+            <span class="info-label">{{ __('messages.code_label') }}</span>
             <span class="info-value">{{ $r->ma_hang }} ({{ $r->cong_doan }})</span>
         </div>
 
         <div class="info-row">
-            <span class="info-label">Ng.nhân:</span>
+            <span class="info-label">{{ __('messages.repair_card_issue_label') }}</span>
             <span class="info-value text-danger">{{ $r->nguyen_nhan }}</span>
         </div>
 
         <div class="info-row">
-            <span class="info-label">K.phục:</span>
+            <span class="info-label">{{ __('messages.repair_card_fix_label') }}</span>
             <span class="info-value text-success">{{ $r->noi_dung_sua_chua }}</span>
         </div>
 
@@ -283,9 +285,9 @@
             </div>
             
             @if(!$r->ended_at)
-                <span class="badge bg-warning text-dark">Đang sửa</span>
+                <span class="badge bg-warning text-dark">{{ __('messages.status_repairing') }}</span>
             @else
-                <span class="text-muted small">Done {{ \Carbon\Carbon::parse($r->ended_at)->format('H:i d/m') }}</span>
+                <span class="text-muted small">{{ __('messages.status_done') }} {{ \Carbon\Carbon::parse($r->ended_at)->format('H:i d/m') }}</span>
             @endif
         </div>
     </div>
