@@ -26,7 +26,7 @@ class MachineController extends Controller
         }
 
         $machines = $query->orderBy('ma_thiet_bi')->simplePaginate(20);
-        $departments = Department::orderBy('name')->get();
+        $departments = Department::has('machines')->orderBy('name')->get();
 
         return view('machines.index', compact('machines', 'departments'));
     }
