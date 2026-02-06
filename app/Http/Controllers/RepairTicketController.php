@@ -124,6 +124,7 @@ public function show(RepairTicket $repair)
     {
         $repairs = RepairTicket::with(['machine.department', 'createdBy'])
             ->where('type', 'mechanic')
+            ->where('status', '!=', 'pending')
             ->orderByDesc('id')
             ->get();
 
@@ -136,7 +137,7 @@ public function show(RepairTicket $repair)
         $headers = [
             'Mã thiết bị', 'Tên thiết bị', 'Tổ',
             'Mã hàng', 'Công đoạn', 'Nguyên nhân', 'Nội dung sửa',
-            'Bắt đầu', 'Kết thúc',
+            'Thời gian báo', 'Bắt đầu', 'Kết thúc',
             'Người tạo', 'Inline QC', 'Endline QC', 'Chủ quản QA'
         ];
 
@@ -150,6 +151,7 @@ public function show(RepairTicket $repair)
                 $r->cong_doan,
                 $r->nguyen_nhan,
                 $r->noi_dung_sua_chua,
+                $r->created_at,
                 $r->started_at,
                 $r->ended_at,
                 $r->createdBy->name ?? '',
@@ -241,7 +243,7 @@ public function show(RepairTicket $repair)
             'Mã phiếu',
             'Mã thiết bị', 'Tên thiết bị', 'Tổ',
             'Sự cố', 'Khắc phục', 'Người hỗ trợ',
-            'Bắt đầu', 'Kết thúc',
+            'Thời gian báo', 'Bắt đầu', 'Kết thúc',
             'Người tạo'
         ];
 
@@ -255,6 +257,7 @@ public function show(RepairTicket $repair)
                 $r->nguyen_nhan,
                 $r->noi_dung_sua_chua,
                 $r->nguoi_ho_tro,
+                $r->created_at,
                 $r->started_at,
                 $r->ended_at,
                 $r->createdBy->name ?? '',

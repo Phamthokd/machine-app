@@ -17,15 +17,15 @@
                     </div>
                 </div>
                 
-                <form class="d-flex gap-2 w-100 w-lg-auto" method="GET">
-                    <select class="form-select form-select-lg fs-6 shadow-sm border-0 bg-light" name="department_id" onchange="this.form.submit()" style="min-width: 200px;">
+                <form class="d-flex flex-column flex-md-row gap-3 w-100 w-lg-auto" method="GET">
+                    <select class="form-select form-select-lg fs-6 shadow-sm border-0 bg-light w-100 w-md-auto" name="department_id" onchange="this.form.submit()" style="min-width: 200px;">
                         <option value="">{{ __('messages.all_departments') }}</option>
                         @foreach($departments as $d)
                             <option value="{{ $d->id }}" @selected(request('department_id') == $d->id)>{{ $d->name }}</option>
                         @endforeach
                     </select>
-                    <div class="input-group shadow-sm border-0 rounded-3 overflow-hidden">
-                        <input type="text" class="form-control form-control-lg fs-6 border-0 bg-light" name="search" placeholder="{{ __('messages.search_placeholder') }}" value="{{ request('search') }}" style="min-width: 300px;">
+                    <div class="input-group shadow-sm border-0 rounded-3 overflow-hidden w-100 w-md-auto">
+                        <input type="text" class="form-control form-control-lg fs-6 border-0 bg-light" name="search" placeholder="{{ __('messages.search_placeholder') }}" value="{{ request('search') }}" style="min-width: 200px; width: 300px; max-width: 100%;">
                         <button class="btn btn-primary px-4" type="submit">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
                         </button>
