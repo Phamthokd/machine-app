@@ -26,14 +26,11 @@ jobs:
           # Pull latest code from main branch
           git pull origin main
 
-          # Install dependencies
-          # composer install --optimize-autoloader --no-interaction
-          # npm install --silent
+          composer install --no-dev --prefer-dist --optimize-autoloader
 
-          # Clear Laravel cache
-          # php artisan storage:link
+          php artisan migrate --force
+
           php artisan optimize:clear
-
           php artisan optimize
 
           # Fix permissions
