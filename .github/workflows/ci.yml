@@ -1,0 +1,40 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy-staging:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Deploy to staging server
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ secrets.STAGING_HOST }}
+        username: ${{ secrets.STAGING_USERNAME }}
+        key: ${{ secrets.STAGING_SSH_KEY }}
+        port: ${{ secrets.STAGING_PORT }}
+        script: |
+          cd /var/www/machine-app
+
+          # Pull latest code from main branch
+          git pull origin main
+
+          # Install dependencies
+          # composer install --optimize-autoloader --no-interaction
+          # npm install --silent
+
+          # Clear Laravel cache
+          # php artisan storage:link
+          php artisan optimize:clear
+
+          # Fix permissions
+          # chmod -R 777 storage lang bootstrap/cache
+
+          echo "✅ Staging deployment completed!"
