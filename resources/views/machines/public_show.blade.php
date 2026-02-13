@@ -216,7 +216,7 @@
                 🏢 {{ __('messages.hero_card_dept_prefix') }}: {{ $machine->department->name ?? __('messages.not_assigned') }}
             </div>
         </div>
-        @role('admin|repair_tech|team_leader')
+        @role('admin|repair_tech|team_leader|warehouse')
         <a href="/machines/{{ $machine->id }}/move" class="btn btn-light btn-sm fw-bold text-primary shadow-sm tap" style="border-radius: 8px; position: relative; z-index: 10;">
             {{ __('messages.move_action') }}
         </a>
