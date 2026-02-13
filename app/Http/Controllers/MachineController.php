@@ -45,7 +45,7 @@ class MachineController extends Controller
             'brand' => 'nullable|string|max:255',
             'model' => 'nullable|string|max:255',
             'serial' => 'nullable|string|max:255',
-            'year' => 'nullable|string|max:4',
+            'year' => 'nullable|string|max:50',
             'country' => 'nullable|string|max:255',
             'invoice_cd' => 'nullable|string|max:255',
             'stock_in_date' => 'nullable|date',
