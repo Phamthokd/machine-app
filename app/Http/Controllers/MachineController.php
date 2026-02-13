@@ -33,7 +33,7 @@ class MachineController extends Controller
 
     public function edit(Machine $machine)
     {
-        $departments = Department::orderBy('name')->get();
+        $departments = Department::has('machines')->orderBy('name')->get();
         return view('machines.edit', compact('machine', 'departments'));
     }
 

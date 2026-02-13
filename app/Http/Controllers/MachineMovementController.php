@@ -23,7 +23,7 @@ class MachineMovementController extends Controller
     public function edit($id)
     {
         $machine = Machine::with('department')->findOrFail($id);
-        $departments = Department::orderBy('name')->get();
+        $departments = Department::has('machines')->orderBy('name')->get();
         return view('machines.move', compact('machine', 'departments'));
     }
 
