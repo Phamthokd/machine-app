@@ -51,9 +51,13 @@
                         {{ $r->created_at->format('H:i d/m/Y') }}
                     </td>
                     <td class="px-3 text-end">
-                        <a href="/repairs/{{ $r->id }}/edit" class="btn btn-sm btn-primary rounded-pill px-3">
-                            {{ __('messages.process_btn') }}
-                        </a>
+                        @role('team_leader')
+                            <span class="badge bg-light text-secondary border px-3 py-2">Chỉ xem</span>
+                        @else
+                            <a href="/repairs/{{ $r->id }}/edit" class="btn btn-sm btn-primary rounded-pill px-3">
+                                {{ __('messages.process_btn') }}
+                            </a>
+                        @endrole
                     </td>
                 </tr>
                 @empty
