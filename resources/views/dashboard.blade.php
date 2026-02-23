@@ -2,7 +2,7 @@
     $maxWidth = '1200px';
 @endphp
 @extends('layouts.app-simple')
-@section('title', 'Trang chủ')
+@section('title', __('messages.dashboard'))
 
 @section('content')
 <div class="row g-4">
@@ -14,7 +14,11 @@
                     {{ substr(Auth::user()->name, 0, 1) }}
                 </div>
                 <h3 class="fw-bold mb-1">{{ Auth::user()->name }}</h3>
-                <div class="opacity-75 fs-5">{{ Auth::user()->roles->pluck('name')->implode(', ') ?: __('messages.employee') }}</div>
+                <div class="opacity-75 fs-5">
+                    @foreach(Auth::user()->roles as $role)
+                        {{ __('messages.role_' . $role->name) }}{{ !$loop->last ? ', ' : '' }}
+                    @endforeach
+                </div>
             </div>
             <div class="card-body p-4 d-flex flex-column">
                 <div class="p-3 bg-light rounded-3 text-center mb-4">
@@ -37,7 +41,7 @@
         <h5 class="fw-bold text-secondary mb-3">{{ __('messages.management_functions') }}</h5>
         
         <div class="row row-cols-2 row-cols-md-3 g-3">
-            @hasanyrole('admin|repair_tech|contractor')
+            @hasanyrole('admin|repair_tech|contractor|team_leader')
             <div class="col">
                 <a href="/repair-requests" class="btn btn-white border border-danger border-opacity-25 w-100 py-4 rounded-4 shadow-sm fw-semibold d-flex flex-column align-items-center justify-content-center h-100 tap hover-shadow transition">
                     <div class="bg-danger bg-opacity-10 text-danger p-3 rounded-circle mb-3">

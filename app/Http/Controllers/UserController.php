@@ -9,10 +9,16 @@ use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $users = User::with('roles')->orderBy('id', 'desc')->paginate(20);
-        return view('users.index', compact('users'));
+        $search = $request->input('search');
+        $users = User::with('roles')
+            ->when($search, fn($q) => $q->where('name', 'like', "%{$search}%")
+                                        ->orWhere('username', 'like', "%{$search}%"))
+            ->orderBy('id', 'desc')
+            ->paginate(20)
+            ->appends(['search' => $search]);
+        return view('users.index', compact('users', 'search'));
     }
 
     public function create()
