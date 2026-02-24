@@ -148,6 +148,15 @@ public function show(RepairTicket $repair)
 
         // 3. Helper to render a Row
         $renderRow = function ($r) {
+            $creator = $r->createdBy->name ?? '';
+            $mechanic = $r->mechanic->name ?? '';
+            
+            // Theo yêu cầu: nếu người tạo phiếu và thợ sửa là 1 người thì thời gian báo = thời gian bắt đầu
+            $reportedTime = $r->created_at;
+            if ($creator !== '' && $creator === $mechanic && $r->started_at) {
+                $reportedTime = $r->started_at;
+            }
+
             $cells = [
                 $r->machine->ma_thiet_bi ?? '',
                 $r->machine->ten_thiet_bi ?? '',
@@ -156,11 +165,11 @@ public function show(RepairTicket $repair)
                 $r->cong_doan,
                 $r->nguyen_nhan,
                 $r->noi_dung_sua_chua,
-                $r->created_at,
+                $reportedTime,
                 $r->started_at,
                 $r->ended_at,
-                $r->createdBy->name ?? '',
-                $r->mechanic->name ?? '',
+                $creator,
+                $mechanic,
                 $r->inline_qc_name ?? '',
                 $r->endline_qc_name ?? '',
                 $r->qa_supervisor_name ?? '',
