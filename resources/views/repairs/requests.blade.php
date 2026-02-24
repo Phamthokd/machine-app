@@ -51,7 +51,7 @@
                         {{ $r->created_at->format('H:i d/m/Y') }}
                     </td>
                     <td class="px-3 text-end">
-                        @role('team_leader')
+                        @role('team_leader|audit')
                             <span class="badge bg-light text-secondary border px-3 py-2">Chỉ xem</span>
                         @else
                             <a href="/repairs/{{ $r->id }}/edit" class="btn btn-sm btn-primary rounded-pill px-3">

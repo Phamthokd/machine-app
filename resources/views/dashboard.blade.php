@@ -41,7 +41,7 @@
         <h5 class="fw-bold text-secondary mb-3">{{ __('messages.management_functions') }}</h5>
         
         <div class="row row-cols-2 row-cols-md-3 g-3">
-            @hasanyrole('admin|repair_tech|contractor|team_leader')
+            @hasanyrole('admin|repair_tech|contractor|team_leader|audit')
             <div class="col">
                 <a href="/repair-requests" class="btn btn-white border border-danger border-opacity-25 w-100 py-4 rounded-4 shadow-sm fw-semibold d-flex flex-column align-items-center justify-content-center h-100 tap hover-shadow transition">
                     <div class="bg-danger bg-opacity-10 text-danger p-3 rounded-circle mb-3">
@@ -52,7 +52,7 @@
             </div>
             @endhasanyrole
 
-            @hasanyrole('admin|warehouse|repair_tech')
+            @hasanyrole('admin|warehouse|repair_tech|audit')
             <div class="col">
                 <a href="/repairs" class="btn btn-white border w-100 py-4 rounded-4 shadow-sm fw-semibold d-flex flex-column align-items-center justify-content-center h-100 tap hover-shadow transition">
                     <div class="bg-primary bg-opacity-10 text-primary p-3 rounded-circle mb-3">
@@ -63,7 +63,7 @@
             </div>
             @endhasanyrole
 
-            @hasanyrole('admin|warehouse|contractor')
+            @hasanyrole('admin|warehouse|contractor|audit')
             <div class="col">
                 <a href="/repairs/contractor" class="btn btn-white border w-100 py-4 rounded-4 shadow-sm fw-semibold d-flex flex-column align-items-center justify-content-center h-100 tap hover-shadow transition">
                     <div class="bg-info bg-opacity-10 text-info p-3 rounded-circle mb-3">
@@ -74,7 +74,7 @@
             </div>
             @endhasanyrole
 
-            @hasanyrole('admin|warehouse|team_leader')
+            @hasanyrole('admin|warehouse|team_leader|audit')
             <div class="col">
                 <a href="/movement-history" class="btn btn-white border w-100 py-4 rounded-4 shadow-sm fw-semibold d-flex flex-column align-items-center justify-content-center h-100 tap hover-shadow transition">
                     <div class="bg-warning bg-opacity-10 text-warning p-3 rounded-circle mb-3">
@@ -96,6 +96,17 @@
             </div>
             @endhasanyrole
 
+            @hasanyrole('admin|warehouse|audit')
+            <div class="col">
+                <a href="/machines" class="btn btn-white border w-100 py-4 rounded-4 shadow-sm fw-semibold d-flex flex-column align-items-center justify-content-center h-100 tap hover-shadow transition">
+                    <div class="bg-secondary bg-opacity-10 text-secondary p-3 rounded-circle mb-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                    </div>
+                    <span>{{ __('messages.machine_list') }}</span>
+                </a>
+            </div>
+            @endhasanyrole
+
             @hasanyrole('admin|warehouse')
             <div class="col">
                 <a href="/machines/import-csv" class="btn btn-white border w-100 py-4 rounded-4 shadow-sm fw-semibold d-flex flex-column align-items-center justify-content-center h-100 tap hover-shadow transition">
@@ -105,14 +116,7 @@
                     <span>{{ __('messages.import_csv') }}</span>
                 </a>
             </div>
-            <div class="col">
-                <a href="/machines" class="btn btn-white border w-100 py-4 rounded-4 shadow-sm fw-semibold d-flex flex-column align-items-center justify-content-center h-100 tap hover-shadow transition">
-                    <div class="bg-secondary bg-opacity-10 text-secondary p-3 rounded-circle mb-3">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-                    </div>
-                    <span>{{ __('messages.machine_list') }}</span>
-                </a>
-            </div>
+
             @endhasanyrole
 
             <div class="col">

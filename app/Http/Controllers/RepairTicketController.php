@@ -63,6 +63,11 @@ class RepairTicketController extends Controller
         $validated['created_by'] = auth()->id();
         $validated['code'] = 'RM-' . now()->format('Ymd') . '-' . str_pad((string) random_int(1, 9999), 4, '0', STR_PAD_LEFT);
 
+        // If not a team leader and not a contractor, the creator is implicitly the mechanic
+        if (!$isTeamLeader && !$isContractor) {
+            $validated['mechanic_id'] = auth()->id();
+        }
+
         // Determine Type
         if ($isContractor) {
             $validated['type'] = 'contractor';
@@ -97,7 +102,7 @@ class RepairTicketController extends Controller
     }
     public function index()
     {
-        $repairs = RepairTicket::with(['machine.department', 'createdBy'])
+        $repairs = RepairTicket::with(['machine.department', 'createdBy', 'mechanic'])
             ->where('type', 'mechanic')
             ->orderByDesc('id')
             ->simplePaginate(20);
@@ -107,7 +112,7 @@ class RepairTicketController extends Controller
 
     public function contractorIndex()
     {
-        $repairs = RepairTicket::with(['machine.department', 'createdBy'])
+        $repairs = RepairTicket::with(['machine.department', 'createdBy', 'mechanic'])
             ->where('type', 'contractor')
             ->orderByDesc('id')
             ->simplePaginate(20);
@@ -122,7 +127,7 @@ public function show(RepairTicket $repair)
 }
     public function export()
     {
-        $repairs = RepairTicket::with(['machine.department', 'createdBy'])
+        $repairs = RepairTicket::with(['machine.department', 'createdBy', 'mechanic'])
             ->where('type', 'mechanic')
             ->where('status', '!=', 'pending')
             ->orderByDesc('id')
@@ -138,7 +143,7 @@ public function show(RepairTicket $repair)
             'Mã thiết bị', 'Tên thiết bị', 'Tổ',
             'Mã hàng', 'Công đoạn', 'Nguyên nhân', 'Nội dung sửa',
             'Thời gian báo', 'Bắt đầu', 'Kết thúc',
-            'Người tạo', 'Inline QC', 'Endline QC', 'Chủ quản QA'
+            'Người tạo phiếu', 'Thợ sửa', 'Inline QC', 'Endline QC', 'Chủ quản QA'
         ];
 
         // 3. Helper to render a Row
@@ -155,6 +160,7 @@ public function show(RepairTicket $repair)
                 $r->started_at,
                 $r->ended_at,
                 $r->createdBy->name ?? '',
+                $r->mechanic->name ?? '',
                 $r->inline_qc_name ?? '',
                 $r->endline_qc_name ?? '',
                 $r->qa_supervisor_name ?? '',
@@ -233,7 +239,7 @@ public function show(RepairTicket $repair)
 
     public function exportContractor()
     {
-        $repairs = RepairTicket::with(['machine.department', 'createdBy'])
+        $repairs = RepairTicket::with(['machine.department', 'createdBy', 'mechanic'])
             ->where('type', 'contractor')
             ->orderByDesc('id')
             ->get();
@@ -244,7 +250,7 @@ public function show(RepairTicket $repair)
             'Mã thiết bị', 'Tên thiết bị', 'Tổ',
             'Sự cố', 'Khắc phục', 'Người hỗ trợ',
             'Thời gian báo', 'Bắt đầu', 'Kết thúc',
-            'Người tạo'
+            'Người tạo phiếu', 'Người sửa (Nhà thầu)'
         ];
 
         // 2. Helper to render a Row
@@ -261,6 +267,7 @@ public function show(RepairTicket $repair)
                 $r->started_at,
                 $r->ended_at,
                 $r->createdBy->name ?? '',
+                $r->mechanic->name ?? '',
             ];
             
             $xml = "    <Row>\n";
@@ -346,6 +353,7 @@ public function show(RepairTicket $repair)
 
         $validated['status'] = 'submitted';
         $validated['ended_at'] = now();
+        $validated['mechanic_id'] = auth()->id();
 
         $repair->update($validated);
 
@@ -354,7 +362,7 @@ public function show(RepairTicket $repair)
 
     public function requestsIndex()
     {
-        $query = RepairTicket::with(['machine.department', 'createdBy'])
+        $query = RepairTicket::with(['machine.department', 'createdBy', 'mechanic'])
             ->where('status', 'pending');
 
         // Filter based on role

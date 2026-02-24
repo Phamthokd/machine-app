@@ -30,6 +30,7 @@ return [
     'role_team_leader' => 'Tổ trưởng',
     'role_repair_tech' => 'Sửa máy',
     'role_contractor' => 'Thầu phụ',
+    'role_audit' => 'Bộ phận Audit',
 
     // Machine List
     'machine_code' => 'MÃ THIẾT BỊ',

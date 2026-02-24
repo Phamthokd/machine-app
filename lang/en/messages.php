@@ -30,6 +30,7 @@ return [
     'role_team_leader' => 'Team Leader',
     'role_repair_tech' => 'Repair Tech',
     'role_contractor' => 'Contractor',
+    'role_audit' => 'Audit',
     
     // Machine List
     'machine_code' => 'Machine Code',

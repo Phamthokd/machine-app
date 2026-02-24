@@ -30,6 +30,7 @@ return [
     'role_team_leader' => '组长',
     'role_repair_tech' => '机修',
     'role_contractor' => '分包商',
+    'role_audit' => '审计',
 
     // Machine List
     'machine_code' => '设备编号',

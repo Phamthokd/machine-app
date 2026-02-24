@@ -54,16 +54,8 @@
                     </td>
                     <td>{{ $user->username }}</td>
                     <td>
-                        @php
-                            $roleMap = [
-                                'admin' => 'Admin',
-                                'warehouse' => 'Kho',
-                                'team_leader' => 'Tổ trưởng',
-                                'repair_tech' => 'Sửa máy',
-                            ];
-                        @endphp
                         @foreach($user->roles as $role)
-                            <span class="badge bg-info bg-opacity-10 text-info">{{ $roleMap[$role->name] ?? $role->name }}</span>
+                            <span class="badge bg-info bg-opacity-10 text-info">{{ __('messages.role_' . $role->name) }}</span>
                         @endforeach
                     </td>
                     <td class="text-end pe-4">

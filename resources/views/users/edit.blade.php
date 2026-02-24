@@ -35,22 +35,10 @@
                 <label class="form-label fw-bold">Chức vụ <span class="text-danger">*</span></label>
                 <select class="form-select" name="role" required>
                     <option value="">-- Chọn chức vụ --</option>
-                    @php
-                        $roleMap = [
-                            'admin' => 'Admin (Quản trị)',
-                            'warehouse' => 'Kho',
-                            'team_leader' => 'Tổ trưởng',
-                            'repair_tech' => 'Thợ sửa máy',
-                            'contractor' => 'Công trình',
-                        ];
-                    @endphp
                     @foreach($roles as $role)
-                        @if(array_key_exists($role->name, $roleMap))
-                            <option value="{{ $role->name }}" 
-                                @selected($user->hasRole($role->name))>
-                                {{ $roleMap[$role->name] }}
-                            </option>
-                        @endif
+                        <option value="{{ $role->name }}" @selected($user->hasRole($role->name))>
+                            {{ __('messages.role_' . $role->name) }}
+                        </option>
                     @endforeach
                 </select>
             </div>

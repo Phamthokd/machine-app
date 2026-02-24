@@ -23,8 +23,10 @@ class RepairTicket extends Model
         'status',
         'nguoi_ho_tro',
         'type', // mechanic, contractor
+        'mechanic_id',
     ];
-        public function machine()
+
+    public function machine()
     {
         return $this->belongsTo(Machine::class);
     }
@@ -39,7 +41,9 @@ class RepairTicket extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
-
-
+    public function mechanic()
+    {
+        return $this->belongsTo(User::class, 'mechanic_id');
+    }
 }
 

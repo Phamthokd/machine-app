@@ -234,7 +234,10 @@
                     </td>
                     <td>
                         <div class="d-flex flex-column gap-1 small">
-                            <div title="{{ __('messages.creator') }}">🛠 {{ $r->createdBy->name ?? '...' }}</div>
+                            <div title="{{ __('messages.creator') }}">📝 <span class="text-muted">Báo:</span> {{ $r->createdBy->name ?? '...' }}</div>
+                            @if($r->mechanic)
+                            <div title="Người sửa" class="text-primary fw-medium">🔧 <span class="text-muted">Sửa:</span> {{ $r->mechanic->name }}</div>
+                            @endif
                             <div class="text-muted" title="{{ __('messages.inline_qc') }}">👀 {{ $r->inlineQc->name ?? '—' }} (QC)</div>
                             <div class="text-muted" title="{{ __('messages.endline_qc') }}">check {{ $r->endlineQc->name ?? '—' }} (Endline)</div>
                             <div class="text-muted" title="{{ __('messages.qa_supervisor') }}">recheck {{ $r->qaSupervisor->name ?? '—' }} (QA)</div>
@@ -281,7 +284,10 @@
         <div class="d-flex justify-content-between align-items-end">
             <div class="footer-info">
                 <div>🕒 {{ \Carbon\Carbon::parse($r->started_at)->format('H:i d/m') }}</div>
-                <div>👤 {{ $r->createdBy->name ?? '...' }}</div>
+                <div>📝 {{ $r->createdBy->name ?? '...' }}</div>
+                @if($r->mechanic)
+                <div class="text-primary">🔧 {{ $r->mechanic->name }}</div>
+                @endif
             </div>
             
             @if(!$r->ended_at)
