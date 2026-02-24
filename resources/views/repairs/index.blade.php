@@ -214,15 +214,25 @@
                     </td>
                     <td>
                         <div class="d-flex flex-column small" style="white-space: nowrap;">
-                            <span class="text-secondary" title="Thời gian báo hỏng">{{ __('messages.report_time') }} {{ $r->created_at->format('H:i d/m') }}</span>
+                            @php
+                                $creatorName = $r->createdBy->name ?? '';
+                                $mechanicName = $r->mechanic->name ?? '';
+                                $reportedTime = $r->created_at;
+                                if ($creatorName !== '' && $creatorName === $mechanicName && $r->started_at) {
+                                    $reportedTime = \Carbon\Carbon::parse($r->started_at);
+                                }
+                            @endphp
+                            <span class="text-secondary" title="Thời gian báo hỏng">{{ __('messages.report_time') }} {{ $reportedTime->format('H:i d/m') }}</span>
                             
                             @if($r->started_at)
                                 <span class="text-success" title="Thời gian tiếp nhận">{{ __('messages.start_time') }} &nbsp;&nbsp;{{ \Carbon\Carbon::parse($r->started_at)->format('H:i d/m') }}</span>
                                 
                                 @php
-                                    $waitTime = $r->created_at->diffInMinutes(\Carbon\Carbon::parse($r->started_at));
+                                    $waitTime = $reportedTime->diffInMinutes(\Carbon\Carbon::parse($r->started_at));
                                 @endphp
-                                <span class="badge bg-light text-dark border mt-1" title="Thời gian chờ từ lúc báo đến lúc tiếp nhận">{{ __('messages.wait_time') }} {{ $waitTime }} {{ __('messages.minutes_unit') }}</span>
+                                @if($waitTime > 0)
+                                    <span class="badge bg-light text-dark border mt-1" title="Thời gian chờ từ lúc báo đến lúc tiếp nhận">{{ __('messages.wait_time') }} {{ $waitTime }} {{ __('messages.minutes_unit') }}</span>
+                                @endif
                             @endif
 
                             @if($r->ended_at)
@@ -283,7 +293,15 @@
 
         <div class="d-flex justify-content-between align-items-end">
             <div class="footer-info">
-                <div>🕒 {{ \Carbon\Carbon::parse($r->started_at)->format('H:i d/m') }}</div>
+                @php
+                    $mCreator = $r->createdBy->name ?? '';
+                    $mMechanic = $r->mechanic->name ?? '';
+                    $mReportedTime = $r->created_at;
+                    if ($mCreator !== '' && $mCreator === $mMechanic && $r->started_at) {
+                        $mReportedTime = \Carbon\Carbon::parse($r->started_at);
+                    }
+                @endphp
+                <div>🕒 {{ $mReportedTime->format('H:i d/m') }}</div>
                 <div>📝 {{ $r->createdBy->name ?? '...' }}</div>
                 @if($r->mechanic)
                 <div class="text-primary">🔧 {{ $r->mechanic->name }}</div>
