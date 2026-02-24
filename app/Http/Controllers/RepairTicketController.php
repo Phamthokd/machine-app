@@ -333,7 +333,7 @@ public function show(RepairTicket $repair)
             'noi_dung_sua_chua' => ['required', 'string'],
             'started_at' => ['required', 'date'],
             'ended_at' => ['nullable', 'date', 'after_or_equal:started_at'],
-            'endline_qc_name' => ['required', 'string', 'max:255'],
+            'endline_qc_name' => ['nullable', 'string', 'max:255'],
             'inline_qc_name' => ['nullable', 'string', 'max:255'],
             'qa_supervisor_name' => ['nullable', 'string', 'max:255'],
         ];
