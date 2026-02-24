@@ -1,0 +1,15 @@
+{
+    "Đánh giá bộ phận BTP": "BTP Department Evaluation",
+    "Chi tiết đánh giá bộ phận BTP (Bán thành phẩm)": "BTP (Semi-finished Product) Department Evaluation Details",
+    "BTP": "BTP",
+    "Sau khi nhận bán thành phẩm đã in/thêu về, có kiểm lại 100% không?": "After receiving printed/embroidered semi-finished products, is 100% re-inspection performed?",
+    "Với các lỗi nhẹ có thể chấp nhận được, có tiêu chuẩn được ký duyệt bởi khách hoặc quản lý QA không?": "For acceptable minor defects, are there standards signed and approved by the customer or QA manager?",
+    "Có báo số lượng lên cho đơn hàng để cắt bù bán thành phẩm lỗi không? Nếu không cắt bù, có xác nhận giảm số lượng của đơn hàng không?": "Is the quantity reported to cutting to make up for defective semi-finished products? If not, is the reduction in order quantity confirmed?",
+    "Trước khi in mác/ép mex/dập mác, có đầy đủ tài liệu, tiêu chuẩn để làm không? (Tài liệu kỹ thuật, mẫu thẻ xanh từ KHSX, dưỡng từ bộ phận kỹ thuật và mẫu tiêu chuẩn từ đơn hàng)": "Before printing/pressing tags, are there complete documents and standards to work from? (Tech packs, green tag samples from planning, templates from tech dept, and standard samples from the order)",
+    "Đối với cắt viền, có tài liệu về canh cắt, mặt trái, mặt phải, lực kéo vải và độ co không?": "For bias cutting, are there documents on cutting grain, wrong/right side, fabric tension, and shrinkage?",
+    "Có cắt thử viền chuyển chuyền may xác nhận trước khi cắt đại trà không?": "Is a sample bias cut transferred to the sewing line for confirmation before mass cutting?",
+    "Các tài liệu, báo cáo, tiêu chuẩn có đầy đủ thông tin, chữ ký, đóng dấu của bộ phận phụ trách không?": "Do documents, reports, and standards have complete information, signatures, and stamps from the department in charge?",
+    "Số liệu, thông tin trên các tài liệu, bảng biểu có đúng và khớp với thực tế không?": "Are the data and information on documents and charts correct and matching reality?",
+    "Có đầy đủ các SOP của bộ phận và được cập nhật khi có thay đổi không?": "Are there complete SOPs for the department, and are they updated when changes occur?",
+    "Có loại bỏ những tài liệu quá hạn theo quy định về thời gian lưu trữ không?": "Are expired documents disposed of according to the retention period regulations?"
+}

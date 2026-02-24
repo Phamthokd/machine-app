@@ -1,22 +1,22 @@
 @extends('layouts.app-simple')
-@section('title', 'Thực hiện đánh giá')
+@section('title', __('messages.perform_audit'))
 
 @section('content')
 <div class="container-fluid px-0">
     <div class="mb-4">
         <a href="/audits" class="text-decoration-none text-secondary d-flex align-items-center gap-1 mb-2">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-            Quay lại
+            {{ __('messages.back') }}
         </a>
-        <h3 class="fw-bold mb-1">{{ $template->name }}</h3>
-        <p class="text-secondary mb-0">Bộ phận đánh giá: <span class="badge bg-primary">{{ $template->department_name }}</span></p>
+        <h3 class="fw-bold mb-1">{{ __($template->name) }}</h3>
+        <p class="text-secondary mb-0">{{ __('messages.department') }}: <span class="badge bg-primary">{{ __($template->department_name) }}</span></p>
     </div>
 
     @if ($errors->any())
         <div class="alert alert-danger rounded-3 shadow-sm border-0 mb-4">
             <div class="d-flex align-items-center gap-2 mb-2">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-danger"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                <div class="fw-bold">Vui lòng kiểm tra lại:</div>
+                <div class="fw-bold">{{ __('messages.please_check_again') }}</div>
             </div>
             <ul class="mb-0 small">
                 @foreach ($errors->all() as $error)
@@ -37,7 +37,7 @@
                         <div class="mb-3">
                             <h5 class="fw-bold text-dark lh-base">
                                 <span class="bg-light text-secondary rounded px-2 py-1 me-2 fs-6">{{ $index + 1 }}</span>
-                                {{ $criterion->content }}
+                                {{ __($criterion->content) }}
                             </h5>
                         </div>
 
@@ -51,7 +51,7 @@
                                 @if(old("results.{$index}.is_passed") === "1") checked @endif required>
                             <label class="audit-btn btn btn-outline-primary d-flex align-items-center gap-2 flex-grow-1 justify-content-center py-3" for="pass_{{ $index }}" style="max-width: 200px; border-radius: 12px;">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                                <span class="fw-bold fs-5">ĐẠT (V)</span>
+                                <span class="fw-bold fs-5">{{ __('messages.audit_pass') }}</span>
                             </label>
 
                             <!-- Nút Không Đạt (X) -->
@@ -59,7 +59,7 @@
                                 @if(old("results.{$index}.is_passed") === "0") checked @endif required>
                             <label class="audit-btn btn btn-outline-danger d-flex align-items-center gap-2 flex-grow-1 justify-content-center py-3" for="fail_{{ $index }}" style="max-width: 200px; border-radius: 12px;">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                                <span class="fw-bold fs-5">LỖI (X)</span>
+                                <span class="fw-bold fs-5">{{ __('messages.audit_fail') }}</span>
                             </label>
                         </div>
 
@@ -69,27 +69,27 @@
                             <div class="mb-3">
                                 <label class="form-label text-danger fw-semibold d-flex align-items-center gap-1 mb-2">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-                                    Ghi chú lỗi (Bắt buộc)
+                                    {{ __('messages.error_note_required') }}
                                 </label>
-                                <textarea class="form-control bg-light" name="results[{{ $index }}][note]" rows="2" placeholder="Nhập chi tiết về tình trạng phát hiện được...">{{ old("results.{$index}.note") }}</textarea>
+                                <textarea class="form-control bg-light" name="results[{{ $index }}][note]" rows="2" placeholder="{{ __('messages.error_note_placeholder') }}">{{ old("results.{$index}.note") }}</textarea>
                             </div>
 
                             <!-- Ảnh đính kèm (Option) -->
                             <div class="mb-2">
                                 <label class="form-label fw-semibold text-secondary d-flex align-items-center gap-1 mb-2">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-                                    Ảnh đính kèm lỗi (Tuỳ chọn)
+                                    {{ __('messages.attached_image_optional') }}
                                 </label>
                                 <div class="position-relative">
                                     <input type="file" class="form-control bg-light file-input" name="results[{{ $index }}][image]" accept="image/*" capture="environment">
                                 </div>
-                                <div class="form-text mt-1"><small>Bấm để chọn file hoặc chụp ảnh trực tiếp trên điện thoại.</small></div>
+                                <div class="form-text mt-1"><small>{{ __('messages.attached_image_hint') }}</small></div>
                             </div>
                         </div>
                     </div>
                 @empty
                     <div class="p-5 text-center text-muted">
-                        Bộ đánh giá này chưa có câu hỏi nào được định nghĩa.
+                        {{ __('messages.no_questions_defined') }}
                     </div>
                 @endforelse
             </div>
@@ -102,7 +102,7 @@
         <div class="fixed-bottom container p-3 bg-white border-top shadow-lg" style="max-width: 600px;">
             <button type="submit" class="btn btn-primary w-100 py-3 rounded-pill fw-bold fs-5 text-uppercase d-flex align-items-center justify-content-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-                Lưu kết quả đánh giá
+                {{ __('messages.save_audit_result') }}
             </button>
         </div>
     </form>
