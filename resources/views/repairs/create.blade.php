@@ -263,8 +263,8 @@
 
         <!-- Static QC Fields -->
         <div class="mb-3">
-            <label class="form-label">Tổ trưởng Endline QC <span class="text-danger">*</span></label>
-            <select class="form-select" name="endline_qc_name" required>
+            <label class="form-label">Tổ trưởng Endline QC <span class="text-secondary small fw-normal ms-1">(Không bắt buộc)</span></label>
+            <select class="form-select" name="endline_qc_name">
                 <option value="">-- Chọn Endline QC --</option>
                 <option value="Ánh" @selected(old('endline_qc_name') == 'Ánh')>Ánh</option>
                 <option value="Thuỷ" @selected(old('endline_qc_name') == 'Thuỷ')>Thuỷ</option>

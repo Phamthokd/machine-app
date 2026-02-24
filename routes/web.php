@@ -62,6 +62,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/movement-history/export', [MachineMovementController::class, 'export']);
     });
 
+    // AUDIT GROUP: Admin, Audit
+    Route::middleware(['role:admin|audit'])->group(function () {
+        Route::get('/audits', [\App\Http\Controllers\AuditController::class, 'index'])->name('audits.index');
+        Route::get('/audits/create', [\App\Http\Controllers\AuditController::class, 'create'])->name('audits.create');
+        Route::post('/audits', [\App\Http\Controllers\AuditController::class, 'store'])->name('audits.store');
+        Route::get('/audits/{audit}', [\App\Http\Controllers\AuditController::class, 'show'])->name('audits.show');
+    });
+
     // WAREHOUSE EXTRA: Import CSV (Admin + Warehouse)
     Route::middleware(['role:admin|warehouse'])->group(function () {
         Route::get('/machines/import-csv', [MachineCsvImportController::class, 'form']);

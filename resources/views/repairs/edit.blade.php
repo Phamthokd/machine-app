@@ -120,8 +120,9 @@
             @if($repair->type != 'contractor')
                 <!-- Static QC Fields (Only for Mechanics) -->
                 <div class="mb-3">
-                    <label class="form-label">Tổ trưởng Endline QC <span class="text-danger">*</span></label>
-                    <select class="form-select" name="endline_qc_name" required>
+                    <label class="form-label">Tổ trưởng Endline QC </label>
+                    <span class="badge bg-light text-secondary fw-normal">Không bắt buộc</span>
+                    <select class="form-select" name="endline_qc_name">
                         <option value="">-- Chọn Endline QC --</option>
                         <option value="Ánh" @selected(old('endline_qc_name') == 'Ánh')>Ánh</option>
                         <option value="Thuỷ" @selected(old('endline_qc_name') == 'Thuỷ')>Thuỷ</option>
