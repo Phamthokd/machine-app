@@ -47,17 +47,17 @@
                             <input type="hidden" name="results[{{ $index }}][audit_criterion_id]" value="{{ $criterion->id }}">
                             
                             <!-- Nút Đạt (V) -->
-                            <label class="audit-btn btn btn-outline-success d-flex align-items-center gap-2 flex-grow-1 justify-content-center py-3" style="max-width: 200px; border-radius: 12px;">
-                                <input type="radio" class="btn-check audit-radio-pass" name="results[{{ $index }}][is_passed]" value="1" autocomplete="off" 
-                                    @if(old("results.{$index}.is_passed") === "1") checked @endif required>
+                            <input type="radio" class="btn-check audit-radio-pass" id="pass_{{ $index }}" name="results[{{ $index }}][is_passed]" value="1" autocomplete="off" 
+                                @if(old("results.{$index}.is_passed") === "1") checked @endif required>
+                            <label class="audit-btn btn btn-outline-primary d-flex align-items-center gap-2 flex-grow-1 justify-content-center py-3" for="pass_{{ $index }}" style="max-width: 200px; border-radius: 12px;">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
                                 <span class="fw-bold fs-5">ĐẠT (V)</span>
                             </label>
 
                             <!-- Nút Không Đạt (X) -->
-                            <label class="audit-btn btn btn-outline-danger d-flex align-items-center gap-2 flex-grow-1 justify-content-center py-3" style="max-width: 200px; border-radius: 12px;">
-                                <input type="radio" class="btn-check audit-radio-fail" name="results[{{ $index }}][is_passed]" value="0" autocomplete="off"
-                                    @if(old("results.{$index}.is_passed") === "0") checked @endif required>
+                            <input type="radio" class="btn-check audit-radio-fail" id="fail_{{ $index }}" name="results[{{ $index }}][is_passed]" value="0" autocomplete="off"
+                                @if(old("results.{$index}.is_passed") === "0") checked @endif required>
+                            <label class="audit-btn btn btn-outline-danger d-flex align-items-center gap-2 flex-grow-1 justify-content-center py-3" for="fail_{{ $index }}" style="max-width: 200px; border-radius: 12px;">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                                 <span class="fw-bold fs-5">LỖI (X)</span>
                             </label>
@@ -148,9 +148,9 @@ document.addEventListener('DOMContentLoaded', function() {
     border-color: #cbd5e1;
     color: #64748b;
 }
-.btn-check:not(:checked) + .btn-outline-success:hover {
-    color: #198754;
-    border-color: #198754;
+.btn-check:not(:checked) + .btn-outline-primary:hover {
+    color: #0d6efd;
+    border-color: #0d6efd;
     opacity: 0.8;
 }
 .btn-check:not(:checked) + .btn-outline-danger:hover {
