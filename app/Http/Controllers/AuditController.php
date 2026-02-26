@@ -168,6 +168,19 @@ class AuditController extends Controller
         ]);
     }
 
+    public function exportDetail($id)
+    {
+        $audit = AuditRecord::with(['template', 'auditor', 'results.criterion'])->findOrFail($id);
+        
+        $html = view('audits.export_detail', compact('audit'))->render();
+
+        $fileName = 'phieu-danh-gia-' . $audit->id . '-' . now()->format('Ymd-His') . '.xls';
+
+        return response($html)
+            ->header('Content-Type', 'application/vnd.ms-excel; charset=utf-8')
+            ->header('Content-Disposition', 'attachment; filename="' . $fileName . '"');
+    }
+
     public function show($id)
     {
         $audit = AuditRecord::with(['template', 'auditor', 'results.criterion'])->findOrFail($id);
