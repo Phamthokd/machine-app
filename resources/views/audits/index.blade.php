@@ -2,11 +2,35 @@
 @section('title', __('messages.internal_audit'))
 
 @section('content')
+<style>
+    .btn-export {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: #10b981;
+        color: white;
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+    .btn-export:hover {
+        background: #059669;
+        color: white;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+    }
+</style>
+
 <div class="page-header d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
     <div>
         <h2 class="page-title h3 mb-1">📋 {{ __('messages.internal_audit') }}</h2>
         <div class="text-muted">{{ __('messages.manage_audits_subtitle') }}</div>
     </div>
+    <a href="/audits/export" class="btn-export text-decoration-none">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <span>Xuất Excel</span>
+    </a>
 </div>
 
 @if(session('success'))

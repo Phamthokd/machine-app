@@ -86,6 +86,88 @@ class AuditController extends Controller
         return redirect('/audits')->with('success', "Đã đánh giá thành công bộ phận {$template->department_name}! Điểm số đạt: {$record->score}%");
     }
 
+    public function export()
+    {
+        $audits = AuditRecord::with(['template', 'auditor', 'results'])
+            ->orderByDesc('created_at')
+            ->get();
+
+        $headers = [
+            'ID', 'Tên đánh giá', 'Tổ', 'Người đánh giá', 'Thời gian', 'Điểm số (%)', 'Tổng mục', 'Đạt', 'Lỗi'
+        ];
+
+        $renderRow = function ($a) {
+            $total = $a->results->count();
+            $passed = $a->results->where('is_passed', true)->count();
+            $failed = $total - $passed;
+            
+            $cells = [
+                $a->id,
+                $a->template->name ?? '',
+                $a->template->department_name ?? '',
+                $a->auditor->name ?? '',
+                $a->created_at ? $a->created_at->format('Y-m-d H:i:s') : '',
+                $a->score,
+                $total,
+                $passed,
+                $failed,
+            ];
+            
+            $xml = "    <Row>\n";
+            foreach ($cells as $cell) {
+                // Escape XML special chars
+                $safe = htmlspecialchars((string)$cell, ENT_XML1, 'UTF-8');
+                $xml .= "     <Cell><Data ss:Type=\"String\">{$safe}</Data></Cell>\n";
+            }
+            $xml .= "    </Row>\n";
+            return $xml;
+        };
+
+        $startSheet = function ($name) use ($headers) {
+            $safeName = preg_replace('/[\\\\\\/?*:\\[\\]]/', ' ', $name);
+            if (mb_strlen($safeName) > 31) $safeName = mb_substr($safeName, 0, 31);
+            
+            $xml = " <Worksheet ss:Name=\"{$safeName}\">\n";
+            $xml .= "  <Table>\n";
+            $xml .= "   <Row>\n";
+            foreach ($headers as $h) {
+                $xml .= "    <Cell><Data ss:Type=\"String\">{$h}</Data></Cell>\n";
+            }
+            $xml .= "   </Row>\n";
+            return $xml;
+        };
+
+        $endSheet = "  </Table>\n </Worksheet>\n";
+
+        $fileName = 'audits-' . now()->format('Ymd-His') . '.xls';
+
+        return response()->streamDownload(function () use ($audits, $renderRow, $startSheet, $endSheet) {
+            $output = fopen('php://output', 'w');
+            
+            $preamble = '<?xml version="1.0"?>' . "\n";
+            $preamble .= '<?mso-application progid="Excel.Sheet"?>' . "\n";
+            $preamble .= '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" ' . "\n";
+            $preamble .= ' xmlns:o="urn:schemas-microsoft-com:office:office" ' . "\n";
+            $preamble .= ' xmlns:x="urn:schemas-microsoft-com:office:excel" ' . "\n";
+            $preamble .= ' xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet" ' . "\n";
+            $preamble .= ' xmlns:html="http://www.w3.org/TR/REC-html40">' . "\n";
+            
+            fwrite($output, $preamble);
+
+            fwrite($output, $startSheet('Lịch sử đánh giá'));
+            foreach ($audits as $a) {
+                fwrite($output, $renderRow($a));
+            }
+            fwrite($output, $endSheet);
+
+            fwrite($output, "</Workbook>");
+            fclose($output);
+
+        }, $fileName, [
+            'Content-Type' => 'application/vnd.ms-excel',
+        ]);
+    }
+
     public function show($id)
     {
         $audit = AuditRecord::with(['template', 'auditor', 'results.criterion'])->findOrFail($id);

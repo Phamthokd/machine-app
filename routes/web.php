@@ -64,6 +64,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // AUDIT GROUP: Admin, Audit
     Route::middleware(['role:admin|audit'])->group(function () {
+        Route::get('/audits/export', [\App\Http\Controllers\AuditController::class, 'export'])->name('audits.export');
         Route::get('/audits', [\App\Http\Controllers\AuditController::class, 'index'])->name('audits.index');
         Route::get('/audits/create', [\App\Http\Controllers\AuditController::class, 'create'])->name('audits.create');
         Route::post('/audits', [\App\Http\Controllers\AuditController::class, 'store'])->name('audits.store');
