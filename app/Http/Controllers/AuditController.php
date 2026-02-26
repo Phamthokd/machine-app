@@ -82,7 +82,8 @@ class AuditController extends Controller
             ]);
         }
 
-        return redirect('/audits')->with('success', "Đã đánh giá thành công bộ phận {$template->department_name}!");
+        $record->load('results');
+        return redirect('/audits')->with('success', "Đã đánh giá thành công bộ phận {$template->department_name}! Điểm số đạt: {$record->score}%");
     }
 
     public function show($id)

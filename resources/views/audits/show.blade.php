@@ -27,7 +27,11 @@
                 </div>
                 <div class="col-md-4 text-md-end mt-3 mt-md-0">
                     <div class="text-white-50 text-uppercase fw-bold text-xs mb-1">{{ __('messages.department') }}</div>
-                    <div class="h5 fw-bold mb-0 text-info">{{ __($audit->template->department_name) }}</div>
+                    <div class="h5 fw-bold mb-2 text-info">{{ __($audit->template->department_name) }}</div>
+                    <div class="d-inline-flex align-items-center gap-2 bg-white bg-opacity-10 px-3 py-2 rounded-3 border border-white border-opacity-10">
+                        <span class="text-white-50 text-uppercase fw-bold text-xs">Điểm số:</span>
+                        <span class="fs-5 fw-bold {{ $audit->score == 100 ? 'text-success' : ($audit->score >= 80 ? 'text-warning' : 'text-danger') }}">{{ $audit->score }}%</span>
+                    </div>
                 </div>
             </div>
         </div>

@@ -55,6 +55,7 @@
                         <tr>
                             <th class="py-3 px-4 text-secondary fw-semibold">ID</th>
                             <th class="py-3 px-4 text-secondary fw-semibold">{{ __('messages.audit_template') }}</th>
+                            <th class="py-3 px-4 text-secondary fw-semibold">Điểm số</th>
                             <th class="py-3 px-4 text-secondary fw-semibold">{{ __('messages.auditor') }}</th>
                             <th class="py-3 px-4 text-secondary fw-semibold">{{ __('messages.time') }}</th>
                             <th class="py-3 px-4 text-secondary fw-semibold text-center">{{ __('messages.actions') }}</th>
@@ -67,6 +68,11 @@
                                 <td class="py-3 px-4">
                                     <div class="fw-bold text-dark">{{ __($audit->template->name) }}</div>
                                     <div class="small text-muted">{{ __($audit->template->department_name) }}</div>
+                                </td>
+                                <td class="py-3 px-4">
+                                    <span class="badge {{ $audit->score == 100 ? 'bg-success' : ($audit->score >= 80 ? 'bg-warning' : 'bg-danger') }} bg-opacity-10 text-{{ $audit->score == 100 ? 'success' : ($audit->score >= 80 ? 'warning' : 'danger') }} border border-{{ $audit->score == 100 ? 'success' : ($audit->score >= 80 ? 'warning' : 'danger') }}">
+                                        {{ $audit->score }}%
+                                    </span>
                                 </td>
                                 <td class="py-3 px-4">
                                     <div class="d-flex align-items-center gap-2">

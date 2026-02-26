@@ -26,4 +26,13 @@ class AuditRecord extends Model
     {
         return $this->hasMany(AuditResult::class);
     }
+
+    public function getScoreAttribute()
+    {
+        $total = $this->results->count();
+        if ($total === 0) return 0;
+        
+        $passed = $this->results->where('is_passed', true)->count();
+        return round(($passed / $total) * 100, 2);
+    }
 }
