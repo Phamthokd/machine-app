@@ -51,13 +51,25 @@
                         {{ $r->created_at->format('H:i d/m/Y') }}
                     </td>
                     <td class="px-3 text-end">
-                        @role('team_leader|audit')
-                            <span class="badge bg-light text-secondary border px-3 py-2">Chỉ xem</span>
-                        @else
-                            <a href="/repairs/{{ $r->id }}/edit" class="btn btn-sm btn-primary rounded-pill px-3">
-                                {{ __('messages.process_btn') }}
-                            </a>
-                        @endrole
+                        <div class="d-flex align-items-center justify-content-end gap-2">
+                            @role('team_leader|audit')
+                                <span class="badge bg-light text-secondary border px-3 py-2">Chỉ xem</span>
+                            @else
+                                <a href="/repairs/{{ $r->id }}/edit" class="btn btn-sm btn-primary rounded-pill px-3">
+                                    {{ __('messages.process_btn') }}
+                                </a>
+                            @endrole
+
+                            @role('admin')
+                            <form action="/repairs/{{ $r->id }}" method="POST" onsubmit="return confirm('Bạn có chắc chắn muốn xóa phiếu báo sửa này không?');" class="d-inline">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-sm btn-danger rounded-pill px-3">
+                                    Xóa
+                                </button>
+                            </form>
+                            @endrole
+                        </div>
                     </td>
                 </tr>
                 @empty

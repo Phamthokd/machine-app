@@ -408,4 +408,11 @@ public function show(RepairTicket $repair)
 
         return view('repairs.requests', compact('requests'));
     }
+
+    public function destroy(RepairTicket $repair)
+    {
+        abort_unless(auth()->user()->hasRole('admin'), 403, 'Bạn không có quyền xoá phiếu này.');
+        $repair->delete();
+        return back()->with('success', 'Đã xoá thành công phiếu báo hỏng.');
+    }
 }

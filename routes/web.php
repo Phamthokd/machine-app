@@ -52,6 +52,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('/repairs/{repair}', [RepairTicketController::class, 'update']);
         Route::get('/repairs/export', [RepairTicketController::class, 'export']);
         Route::get('/repairs/{repair}', [RepairTicketController::class, 'show'])->whereNumber('repair');
+        Route::delete('/repairs/{repair}', [RepairTicketController::class, 'destroy'])->whereNumber('repair');
     });
 
     // MOVEMENT GROUP: Admin, Warehouse, Team Leader
