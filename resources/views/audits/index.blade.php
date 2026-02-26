@@ -39,7 +39,7 @@
     </div>
 @endif
 
-@if(auth()->check() && auth()->user()->managed_department !== 'Bán thành phẩm')
+@if(auth()->check() && empty(auth()->user()->managed_department))
 <div class="row mb-5">
     <div class="col-12">
         <h4 class="h5 mb-3 fw-bold text-dark">{{ __('messages.start_new_audit') }}</h4>

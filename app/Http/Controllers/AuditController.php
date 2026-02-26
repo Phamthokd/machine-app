@@ -25,6 +25,8 @@ class AuditController extends Controller
 
     public function create(Request $request)
     {
+        abort_unless(empty(auth()->user()->managed_department), 403, 'Bạn không có quyền thực hiện chức năng này vì đã được phân công bộ phận.');
+
         $templateId = $request->query('template_id');
         abort_unless($templateId, 400, 'Thiếu ID bộ đánh giá');
 
@@ -35,6 +37,8 @@ class AuditController extends Controller
 
     public function store(Request $request)
     {
+        abort_unless(empty(auth()->user()->managed_department), 403, 'Bạn không có quyền thực hiện chức năng này vì đã được phân công bộ phận.');
+
         $templateId = $request->input('audit_template_id');
         $template = AuditTemplate::findOrFail($templateId);
         
