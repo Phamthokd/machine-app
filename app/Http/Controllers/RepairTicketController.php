@@ -53,7 +53,7 @@ class RepairTicketController extends Controller
             $rules['ma_hang'] = ['required', 'string', 'max:255'];
             $rules['cong_doan'] = ['required', 'string', 'max:255'];
             $rules['noi_dung_sua_chua'] = ['required', 'string'];
-            $rules['endline_qc_name'] = ['required', 'string', 'max:255'];
+            $rules['endline_qc_name'] = ['nullable', 'string', 'max:255'];
             $rules['inline_qc_name'] = ['nullable', 'string', 'max:255'];
             $rules['qa_supervisor_name'] = ['nullable', 'string', 'max:255'];
         }
