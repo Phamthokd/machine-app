@@ -15,6 +15,7 @@ class AuditResult extends Model
         'root_cause',
         'corrective_action',
         'improvement_deadline',
+        'improver_name',
     ];
 
     public function record()

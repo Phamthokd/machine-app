@@ -206,6 +206,7 @@ class AuditController extends Controller
                     'root_cause' => $improvementData['root_cause'],
                     'corrective_action' => $improvementData['corrective_action'],
                     'improvement_deadline' => $improvementData['improvement_deadline'],
+                    'improver_name' => auth()->user()->name,
                 ]);
             }
         }

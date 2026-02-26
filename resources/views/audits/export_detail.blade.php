@@ -44,6 +44,9 @@
                         <br style="mso-data-placement:same-cell;"><b>NN gốc rễ:</b> {{ $result->root_cause }}
                         <br style="mso-data-placement:same-cell;"><b>BP khắc phục:</b> {{ $result->corrective_action }}
                         <br style="mso-data-placement:same-cell;"><b>Hạn:</b> {{ \Carbon\Carbon::parse($result->improvement_deadline)->format('d/m/Y') }}
+                        @if($result->improver_name)
+                            <br style="mso-data-placement:same-cell;"><b>Người cải thiện:</b> {{ $result->improver_name }}
+                        @endif
                     @endif
                 @endif
             </td>

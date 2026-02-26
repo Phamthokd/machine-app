@@ -140,6 +140,12 @@
                                                 <div class="text-muted small fw-bold mb-1">Thời gian cải thiện xong</div>
                                                 <div>{{ \Carbon\Carbon::parse($result->improvement_deadline)->format('d/m/Y') }}</div>
                                             </div>
+                                            @if($result->improver_name)
+                                                <div class="col-md-12">
+                                                    <div class="text-muted small fw-bold mb-1">Người cải thiện</div>
+                                                    <div class="fw-bold text-dark">{{ $result->improver_name }}</div>
+                                                </div>
+                                            @endif
                                         </div>
                                     </div>
                                 @endif
