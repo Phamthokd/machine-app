@@ -17,6 +17,19 @@ class RepairTicketController extends Controller
 
         $machine = Machine::with('department')->where('ma_thiet_bi', $ma)->firstOrFail();
         
+        // Prevent duplicate creation for Team Leader if machine is already pending today
+        if (auth()->check() && auth()->user()->hasRole('team_leader')) {
+            $hasPendingToday = RepairTicket::where('machine_id', $machine->id)
+                ->whereNull('ended_at')
+                ->whereDate('created_at', now()->toDateString())
+                ->exists();
+            
+            if ($hasPendingToday) {
+                return redirect("/m/{$machine->ma_thiet_bi}")
+                    ->with('error', 'Máy này đã được báo trước đó trong hôm nay. Vui lòng chờ thợ sửa máy tới sửa trước khi tạo báo lỗi mới!');
+            }
+        }
+
         // Fetch contractors for the support dropdown
         $contractors = User::role('contractor')->get();
 
@@ -80,6 +93,15 @@ class RepairTicketController extends Controller
         }
 
         if ($isTeamLeader) {
+            $hasPendingToday = RepairTicket::where('machine_id', $validated['machine_id'])
+                ->whereNull('ended_at')
+                ->whereDate('created_at', now()->toDateString())
+                ->exists();
+
+            if ($hasPendingToday) {
+                return back()->withInput()->with('error', 'Máy này đã được báo trước đó trong hôm nay. Vui lòng chờ thợ sửa máy tới sửa trước khi tạo báo lỗi mới!');
+            }
+
             $validated['status'] = 'pending';
             $validated['ended_at'] = null; // Open ticket
         } else {
