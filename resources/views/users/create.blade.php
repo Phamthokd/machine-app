@@ -30,12 +30,22 @@
                 <input type="password" class="form-control" name="password" required placeholder="******">
             </div>
 
-            <div class="mb-4">
+            <div class="mb-3">
                 <label class="form-label fw-bold">Chức vụ <span class="text-danger">*</span></label>
                 <select class="form-select" name="role" required>
                     <option value="">-- Chọn chức vụ --</option>
                     @foreach($roles as $role)
                         <option value="{{ $role->name }}">{{ __('messages.role_' . $role->name) }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label fw-bold">Bộ phận phụ trách <span class="text-secondary fw-normal small">(Tùy chọn)</span></label>
+                <select class="form-select" name="managed_department">
+                    <option value="">-- Chọn bộ phận --</option>
+                    @foreach($departments as $dept)
+                        <option value="{{ $dept }}" @selected(old('managed_department') == $dept)>{{ $dept }}</option>
                     @endforeach
                 </select>
             </div>

@@ -37,6 +37,7 @@
                 <tr>
                     <th class="py-3 ps-4 text-secondary text-xs uppercase font-weight-bolder opacity-7">{{ __('messages.full_name') }}</th>
                     <th class="py-3 text-secondary text-xs uppercase font-weight-bolder opacity-7">{{ __('messages.username') }}</th>
+                    <th class="py-3 text-secondary text-xs uppercase font-weight-bolder opacity-7">BỘ PHẬN</th>
                     <th class="py-3 text-secondary text-xs uppercase font-weight-bolder opacity-7">{{ __('messages.role') }}</th>
                     <th class="py-3 text-end pe-4 text-secondary text-xs uppercase font-weight-bolder opacity-7">{{ __('messages.actions') }}</th>
                 </tr>
@@ -53,6 +54,13 @@
                         </div>
                     </td>
                     <td>{{ $user->username }}</td>
+                    <td>
+                        @if($user->managed_department)
+                            <span class="badge bg-secondary bg-opacity-10 text-secondary">{{ $user->managed_department }}</span>
+                        @else
+                            <span class="text-muted small">N/A</span>
+                        @endif
+                    </td>
                     <td>
                         @foreach($user->roles as $role)
                             <span class="badge bg-info bg-opacity-10 text-info">{{ __('messages.role_' . $role->name) }}</span>
