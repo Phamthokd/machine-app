@@ -16,7 +16,7 @@ class AuditController extends Controller
         $templates = AuditTemplate::where('is_active', true)->get();
         
         // Get recent audit history
-        $audits = AuditRecord::with('template', 'auditor')
+        $audits = AuditRecord::with('template', 'auditor', 'results')
             ->orderByDesc('created_at')
             ->paginate(20);
 

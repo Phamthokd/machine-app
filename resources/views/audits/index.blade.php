@@ -39,6 +39,7 @@
     </div>
 @endif
 
+@if(auth()->check() && auth()->user()->managed_department !== 'Bán thành phẩm')
 <div class="row mb-5">
     <div class="col-12">
         <h4 class="h5 mb-3 fw-bold text-dark">{{ __('messages.start_new_audit') }}</h4>
@@ -68,6 +69,7 @@
         </div>
     </div>
 </div>
+@endif
 
 <div class="row">
     <div class="col-12">
@@ -90,7 +92,15 @@
                             <tr>
                                 <td class="py-3 px-4 text-muted small">#{{ $audit->id }}</td>
                                 <td class="py-3 px-4">
-                                    <div class="fw-bold text-dark">{{ __($audit->template->name) }}</div>
+                                    <div class="fw-bold text-dark d-flex align-items-center gap-2">
+                                        {{ __($audit->template->name) }}
+                                        @if($audit->results->contains(fn($r) => !empty($r->improver_name)))
+                                            <span class="badge bg-warning bg-opacity-10 text-warning border border-warning" title="Đã có người gửi cải thiện">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                                                Đã cải thiện
+                                            </span>
+                                        @endif
+                                    </div>
                                     <div class="small text-muted">{{ __($audit->template->department_name) }}</div>
                                 </td>
                                 <td class="py-3 px-4">
