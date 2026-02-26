@@ -302,15 +302,12 @@
 <!-- Floating Action Button -->
 @role('admin|repair_tech|team_leader|contractor')
 @php
-    $hasPendingToday = false;
-    if (auth()->user()->hasRole('team_leader')) {
-        $hasPendingToday = $machine->repairTickets->contains(function ($t) {
-            return empty($t->ended_at) && $t->created_at->isToday();
-        });
-    }
+    $hasPending = $machine->repairTickets->contains(function ($t) {
+        return empty($t->ended_at);
+    });
 @endphp
 
-@if($hasPendingToday)
+@if($hasPending)
 <div class="floating-action">
     <button class="btn-create-ticket shadow-lg" style="background: #fbbf24; color: #78350f; cursor: not-allowed; border: 1px solid #f59e0b;" disabled>
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>

@@ -17,16 +17,15 @@ class RepairTicketController extends Controller
 
         $machine = Machine::with('department')->where('ma_thiet_bi', $ma)->firstOrFail();
         
-        // Prevent duplicate creation for Team Leader if machine is already pending today
-        if (auth()->check() && auth()->user()->hasRole('team_leader')) {
-            $hasPendingToday = RepairTicket::where('machine_id', $machine->id)
+        // Prevent duplicate creation if machine is already pending
+        if (auth()->check()) {
+            $hasPending = RepairTicket::where('machine_id', $machine->id)
                 ->whereNull('ended_at')
-                ->whereDate('created_at', now()->toDateString())
                 ->exists();
             
-            if ($hasPendingToday) {
+            if ($hasPending) {
                 return redirect("/m/{$machine->ma_thiet_bi}")
-                    ->with('error', 'Máy này đã được báo trước đó trong hôm nay. Vui lòng chờ thợ sửa máy tới sửa trước khi tạo báo lỗi mới!');
+                    ->with('error', 'Máy này đã được báo trước đó. Vui lòng hoàn tất phiếu báo cũ trước khi tạo báo lỗi mới!');
             }
         }
 
@@ -92,16 +91,15 @@ class RepairTicketController extends Controller
             $validated['type'] = 'mechanic';
         }
 
+        $hasPending = RepairTicket::where('machine_id', $validated['machine_id'])
+            ->whereNull('ended_at')
+            ->exists();
+
+        if ($hasPending) {
+            return back()->withInput()->with('error', 'Máy này đã được báo trước đó. Vui lòng hoàn tất phiếu báo cũ trước khi tạo lỗi mới!');
+        }
+
         if ($isTeamLeader) {
-            $hasPendingToday = RepairTicket::where('machine_id', $validated['machine_id'])
-                ->whereNull('ended_at')
-                ->whereDate('created_at', now()->toDateString())
-                ->exists();
-
-            if ($hasPendingToday) {
-                return back()->withInput()->with('error', 'Máy này đã được báo trước đó trong hôm nay. Vui lòng chờ thợ sửa máy tới sửa trước khi tạo báo lỗi mới!');
-            }
-
             $validated['status'] = 'pending';
             $validated['ended_at'] = null; // Open ticket
         } else {
