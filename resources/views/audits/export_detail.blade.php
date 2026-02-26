@@ -40,6 +40,11 @@
                     Đạt
                 @else
                     Không, {{ $result->note }}
+                    @if($result->root_cause)
+                        <br style="mso-data-placement:same-cell;"><b>NN gốc rễ:</b> {{ $result->root_cause }}
+                        <br style="mso-data-placement:same-cell;"><b>BP khắc phục:</b> {{ $result->corrective_action }}
+                        <br style="mso-data-placement:same-cell;"><b>Hạn:</b> {{ \Carbon\Carbon::parse($result->improvement_deadline)->format('d/m/Y') }}
+                    @endif
                 @endif
             </td>
             <td align="center">{{ $result->is_passed ? '1' : '0' }}</td>

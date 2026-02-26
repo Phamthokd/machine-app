@@ -12,6 +12,9 @@ class AuditResult extends Model
         'is_passed',
         'note',
         'image_path',
+        'root_cause',
+        'corrective_action',
+        'improvement_deadline',
     ];
 
     public function record()

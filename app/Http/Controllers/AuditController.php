@@ -188,4 +188,28 @@ class AuditController extends Controller
         return view('audits.show', compact('audit'));
     }
 
+    public function updateImprovements(Request $request, $id)
+    {
+        $audit = AuditRecord::with('results')->findOrFail($id);
+
+        $validated = $request->validate([
+            'improvements' => 'required|array',
+            'improvements.*.root_cause' => 'required|string',
+            'improvements.*.corrective_action' => 'required|string',
+            'improvements.*.improvement_deadline' => 'required|date',
+        ]);
+
+        foreach ($validated['improvements'] as $resultId => $improvementData) {
+            $result = $audit->results->where('id', $resultId)->first();
+            if ($result) {
+                $result->update([
+                    'root_cause' => $improvementData['root_cause'],
+                    'corrective_action' => $improvementData['corrective_action'],
+                    'improvement_deadline' => $improvementData['improvement_deadline'],
+                ]);
+            }
+        }
+
+        return redirect()->back()->with('success', 'Đã lưu thông tin cải thiện thành công.');
+    }
 }
