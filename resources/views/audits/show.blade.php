@@ -3,6 +3,30 @@
     $canImprove = auth()->user()->managed_department === 'Bán thành phẩm' 
         && $audit->template->name === 'Đánh giá bộ phận BTP'
         && $failedResults->isNotEmpty();
+        
+    // Kiểm tra xe người dùng hiện tại có quyền đánh giá lại hay không
+    $canReview = \Illuminate\Support\Facades\Auth::check() 
+        && (auth()->user()->hasRole('audit') || auth()->user()->hasRole('admin'))
+        && empty(auth()->user()->managed_department);
+    
+    // Lấy danh sách các câu hỏi đã được báo cải thiện xong nhưng chưa được review
+    // (Và điều kiện bổ sung: phải đến hoặc qua ngày deadline thì mới được Đánh giá lại)
+    $reviewableResults = $audit->results->filter(function($r) {
+        if (empty($r->improver_name) || !empty($r->reviewer_name)) {
+            return false;
+        }
+        
+        // Nếu không có deadline (lý do nào đó), mặc định cho phép đánh giá luôn
+        if (empty($r->improvement_deadline)) {
+            return true;
+        }
+
+        // So sánh ngày hiện tại với ngày deadline (bỏ qua giờ phút)
+        $today = \Carbon\Carbon::now()->startOfDay();
+        $deadline = \Carbon\Carbon::parse($r->improvement_deadline)->startOfDay();
+        
+        return $today->gte($deadline);
+    });
 @endphp
 
 @extends('layouts.app-simple', ['maxWidth' => '100%'])
@@ -122,7 +146,7 @@
                                 </div>
                                 
                                 @if($result->root_cause)
-                                    <div class="bg-warning bg-opacity-10 border border-warning border-opacity-25 rounded p-3 text-dark">
+                                    <div class="bg-warning bg-opacity-10 border border-warning border-opacity-25 rounded p-3 text-dark mb-3">
                                         <h6 class="fw-bold text-warning mb-3 d-flex align-items-center gap-2">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
                                             Kế hoạch cải thiện
@@ -148,6 +172,40 @@
                                             @endif
                                         </div>
                                     </div>
+                                    
+                                    @if($result->reviewer_name)
+                                        <div class="bg-info bg-opacity-10 border border-info border-opacity-25 rounded p-3 text-dark">
+                                            <h6 class="fw-bold text-info mb-3 d-flex align-items-center gap-2">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+                                                Kết quả Đánh giá lại
+                                            </h6>
+                                            <div class="row g-3">
+                                                @if($result->review_note)
+                                                    <div class="col-md-12">
+                                                        <div class="text-muted small fw-bold mb-1">Nhận xét của Audit</div>
+                                                        <div style="white-space: pre-wrap;">{{ $result->review_note }}</div>
+                                                    </div>
+                                                @endif
+                                                @if($result->review_image_path)
+                                                    <div class="col-md-12 mt-3">
+                                                        <div class="text-muted small fw-bold mb-2">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+                                                            Hình ảnh sau cải thiện
+                                                        </div>
+                                                        <a href="{{ Storage::url($result->review_image_path) }}" target="_blank" class="d-inline-block position-relative rounded overflow-hidden shadow-sm" style="border: 2px solid #e2e8f0; width: 120px; height: 120px;">
+                                                            <img src="{{ Storage::url($result->review_image_path) }}" alt="Review Image" class="w-100 h-100" style="object-fit: cover; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                                                        </a>
+                                                    </div>
+                                                @endif
+                                                <div class="col-md-12 mt-3">
+                                                    <div class="d-flex align-items-center gap-3 text-muted small">
+                                                        <span>👤 Audit ghi nhận: <strong class="text-dark">{{ $result->reviewer_name }}</strong></span>
+                                                        <span>🕒 Thời gian: <strong>{{ \Carbon\Carbon::parse($result->reviewed_at)->format('H:i d/m/Y') }}</strong></span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endif
                                 @endif
                             @endif
                         </div>
@@ -218,6 +276,69 @@
             <div class="modal-footer border-top-0 pt-0 pb-4 px-4">
                 <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">Hủy</button>
                 <button type="submit" class="btn btn-warning fw-bold px-4 shadow-sm">LƯU CẢI THIỆN</button>
+            </div>
+        </form>
+    </div>
+</div>
+@endif
+
+@if($canReview && $reviewableResults->isNotEmpty())
+<!-- Nút nổi để mở modal Đánh giá lại -->
+<div class="position-fixed bottom-0 start-50 translate-middle-x w-100 p-3" style="max-width: 800px; z-index: 1040;">
+    <button type="button" class="btn btn-info w-100 shadow-lg text-white" style="border-radius: 12px; padding: 14px 20px; font-weight: 600; font-size: 16px;" data-bs-toggle="modal" data-bs-target="#reviewModal">
+        <div class="d-flex align-items-center justify-content-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+            Đánh giá lại cải thiện ({{ $reviewableResults->count() }})
+        </div>
+    </button>
+</div>
+
+<!-- Modal Đánh giá lại -->
+<div class="modal fade" id="reviewModal" tabindex="-1" aria-labelledby="reviewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <form action="{{ route('audits.reviews', $audit->id) }}" method="POST" enctype="multipart/form-data" class="modal-content border-0 shadow-lg rounded-4">
+            @csrf
+            <div class="modal-header bg-info bg-opacity-10 border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2" id="reviewModalLabel">
+                    <svg class="text-info" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+                    Đánh giá lại kết quả Cải thiện
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body py-4">
+                <p class="text-muted mb-4">Vui lòng chụp ảnh và nhận xét các hạng mục đã được báo cáo cải thiện dưới đây.</p>
+                
+                @foreach($reviewableResults as $index => $result)
+                    <div class="card bg-light border-0 shadow-sm mb-4 rounded-3 text-dark">
+                        <div class="card-header bg-info bg-opacity-10 text-dark fw-bold border-0 py-3">
+                            <div class="d-flex gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" class="text-info flex-shrink-0 mt-1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="3"/><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/></svg>
+                                <div>
+                                    <div class="fs-6">{{ $result->criterion ? $result->criterion->content : 'Hạng mục đã xóa' }}</div>
+                                    <div class="fw-normal small mt-1 text-muted">Báo cải thiện bởi: {{ $result->improver_name }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <input type="hidden" name="reviews[{{ $index }}][result_id]" value="{{ $result->id }}">
+                            
+                            <div class="mb-3">
+                                <label class="form-label fw-bold small text-secondary">Ảnh chụp sau cải thiện</label>
+                                <input type="file" name="reviews[{{ $index }}][review_image]" class="form-control" accept="image/*" capture="environment">
+                                <div class="form-text">📝 Dùng điện thoại chụp ảnh thực tế tình trạng hiện tại.</div>
+                            </div>
+
+                            <div>
+                                <label class="form-label fw-bold small text-secondary">Nhận xét của Audit</label>
+                                <textarea name="reviews[{{ $index }}][review_note]" class="form-control" rows="2" placeholder="Ghi nhận xét về cải thiện này..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+            <div class="modal-footer bg-light border-top-0 pt-0 pb-3">
+                <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">Hủy</button>
+                <button type="submit" class="btn btn-info text-white fw-bold px-4 shadow-sm">Lưu Đánh Giá</button>
             </div>
         </form>
     </div>
