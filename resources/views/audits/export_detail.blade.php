@@ -15,11 +15,11 @@
     <table>
         <!-- Header Row -->
         <tr class="title-row" style="height: 40px;">
-            <td colspan="3">
+            <td colspan="4">
                 Bộ phận nhận kiểm tra: {{ $audit->template->department_name }}<br style="mso-data-placement:same-cell;">
                 Người kiểm tra: {{ strtoupper($audit->auditor->name ?? 'N/A') }}
             </td>
-            <td>Ngày kiểm tra: {{ $audit->created_at->format('d/m/Y') }}</td>
+            <td colspan="2">Ngày kiểm tra: {{ $audit->created_at->format('d/m/Y') }}</td>
             <td>Tỷ lệ tuân thủ: {{ $audit->score }}%</td>
         </tr>
         <!-- Table Column Headers -->
@@ -29,6 +29,8 @@
             <th width="300">Nội dung</th>
             <th width="100">Điểm quy định</th>
             <th width="120">Ảnh đi kèm</th>
+            <th width="250">Nội dung đánh giá lần 2</th>
+            <th width="120">Ảnh đánh giá lần 2</th>
         </tr>
         <!-- Data Rows -->
         @foreach($audit->results as $index => $result)
@@ -54,6 +56,25 @@
             <td align="center">
                 @if(!$result->is_passed && $result->image_path)
                     <img src="{{ asset($result->image_path) }}" width="100" height="100">
+                @endif
+            </td>
+            <td class="{{ $result->reviewer_name ? '' : 'danger' }}">
+                @if($result->reviewer_name)
+                    @if($result->review_note)
+                        {{ $result->review_note }}
+                    @endif
+                    <br style="mso-data-placement:same-cell;"><b>Người ĐG:</b> {{ $result->reviewer_name }}
+                    <br style="mso-data-placement:same-cell;"><b>Thời gian:</b> {{ \Carbon\Carbon::parse($result->reviewed_at)->format('H:i d/m/Y') }}
+                @endif
+            </td>
+            <td align="center">
+                @if($result->review_image_path)
+                    @php
+                        $r_img = str_starts_with($result->review_image_path, 'public/')
+                            ? '/' . str_replace('public/', 'storage/', $result->review_image_path)
+                            : '/' . ltrim($result->review_image_path, '/');
+                    @endphp
+                    <img src="{{ asset($r_img) }}" width="100" height="100">
                 @endif
             </td>
         </tr>
