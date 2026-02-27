@@ -16,6 +16,10 @@ class AuditResult extends Model
         'corrective_action',
         'improvement_deadline',
         'improver_name',
+        'reviewer_name',
+        'review_note',
+        'review_image_path',
+        'reviewed_at',
     ];
 
     public function record()

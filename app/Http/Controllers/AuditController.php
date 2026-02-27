@@ -217,4 +217,58 @@ class AuditController extends Controller
 
         return redirect()->back()->with('success', 'Đã lưu thông tin cải thiện thành công.');
     }
+
+    public function storeReviews(Request $request, $id)
+    {
+        // 1. Check permissions (must have 'audit' or 'admin' role, and no managed_department)
+        $user = auth()->user();
+        abort_unless(
+            ($user->hasRole('audit') || $user->hasRole('admin')) && empty($user->managed_department),
+            403,
+            'Bạn không có quyền đánh giá lại cải thiện.'
+        );
+
+        $audit = AuditRecord::findOrFail($id);
+
+        $request->validate([
+            'reviews' => 'required|array',
+            'reviews.*.result_id' => 'required|exists:audit_results,id',
+            'reviews.*.review_note' => 'nullable|string',
+            'reviews.*.review_image' => 'nullable|image|max:10240', // max 10MB
+        ]);
+
+        foreach ($request->reviews as $reviewData) {
+            // Check if there is anything to update
+            if (empty($reviewData['review_note']) && empty($reviewData['review_image'])) {
+                continue;
+            }
+
+            $result = AuditResult::where('id', $reviewData['result_id'])
+                ->where('audit_record_id', $audit->id)
+                ->first();
+
+            if ($result) {
+                // Ensure it actually has an improver_name (meaning it was improved)
+                if (empty($result->improver_name)) {
+                    continue; // Skip if it hasn't been improved yet
+                }
+
+                $updateData = [
+                    'reviewer_name' => $user->name,
+                    'reviewed_at' => now(),
+                    'review_note' => $reviewData['review_note'] ?? null,
+                ];
+
+                if (isset($reviewData['review_image'])) {
+                    $path = $reviewData['review_image']->store('public/audits');
+                    $updateData['review_image_path'] = $path;
+                }
+
+                $result->update($updateData);
+            }
+        }
+
+        return redirect()->route('audits.show', $audit->id)
+            ->with('success', 'Đã lưu kết quả đánh giá lại thành công.');
+    }
 }
