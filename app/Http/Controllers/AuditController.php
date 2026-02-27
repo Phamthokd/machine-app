@@ -260,8 +260,11 @@ class AuditController extends Controller
                 ];
 
                 if (isset($reviewData['review_image'])) {
-                    $path = $reviewData['review_image']->store('public/audits');
-                    $updateData['review_image_path'] = $path;
+                    $file = $reviewData['review_image'];
+                    $filename = now()->format('Y-m-d-His-') . uniqid() . '.' . $file->extension();
+                    $path = $file->storeAs('audits', $filename, 'public');
+                    // Store identically to original logic
+                    $updateData['review_image_path'] = 'storage/' . ltrim($path, '/');
                 }
 
                 $result->update($updateData);

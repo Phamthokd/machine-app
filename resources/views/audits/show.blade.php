@@ -187,13 +187,19 @@
                                                     </div>
                                                 @endif
                                                 @if($result->review_image_path)
+                                                    @php
+                                                        // Fallback cho cả record cũ (lưu là public/audits/...) và mới (lưu là storage/audits/...)
+                                                        $r_img = str_starts_with($result->review_image_path, 'public/')
+                                                            ? '/' . str_replace('public/', 'storage/', $result->review_image_path)
+                                                            : '/' . ltrim($result->review_image_path, '/');
+                                                    @endphp
                                                     <div class="col-md-12 mt-3">
                                                         <div class="text-muted small fw-bold mb-2">
                                                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
                                                             Hình ảnh sau cải thiện
                                                         </div>
-                                                        <a href="{{ Storage::url($result->review_image_path) }}" target="_blank" class="d-inline-block position-relative rounded overflow-hidden shadow-sm" style="border: 2px solid #e2e8f0; width: 120px; height: 120px;">
-                                                            <img src="{{ Storage::url($result->review_image_path) }}" alt="Review Image" class="w-100 h-100" style="object-fit: cover; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                                                        <a href="{{ $r_img }}" target="_blank" class="d-inline-block position-relative rounded overflow-hidden shadow-sm" style="border: 2px solid #e2e8f0; width: 120px; height: 120px;">
+                                                            <img src="{{ $r_img }}" alt="Review Image" class="w-100 h-100" style="object-fit: cover; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
                                                         </a>
                                                     </div>
                                                 @endif
