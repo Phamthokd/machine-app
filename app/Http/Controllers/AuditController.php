@@ -289,4 +289,20 @@ class AuditController extends Controller
         return redirect()->route('audits.show', $audit->id)
             ->with('success', 'Đã lưu kết quả đánh giá lại thành công.');
     }
+
+    public function destroy($id)
+    {
+        $audit = AuditRecord::findOrFail($id);
+        
+        // Ensure only admin can delete
+        abort_unless(auth()->user()->hasRole('admin'), 403, 'Chỉ Admin mới có quyền xóa phiếu đánh giá');
+
+        // Delete the audit record (AuditResults should cascade, or we can delete them explicitly)
+        // Let's explicitly delete results to be safe if cascade isn't set up
+        $audit->results()->delete();
+        $audit->delete();
+
+        return redirect()->route('audits.index')
+            ->with('success', 'Đã xóa phiếu đánh giá thành công.');
+    }
 }

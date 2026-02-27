@@ -141,9 +141,20 @@
                                     {{ $audit->created_at->format('H:i d/m/Y') }}
                                 </td>
                                 <td class="py-3 px-4 text-center">
-                                    <a href="/audits/{{ $audit->id }}" class="btn btn-sm btn-light border text-primary">
-                                        {{ __('messages.view_detail') }}
-                                    </a>
+                                    <div class="d-flex justify-content-center gap-2">
+                                        <a href="/audits/{{ $audit->id }}" class="btn btn-sm btn-light border text-primary">
+                                            {{ __('messages.view_detail') }}
+                                        </a>
+                                        @if(auth()->user()->hasRole('admin'))
+                                            <form action="{{ route('audits.destroy', $audit->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa phiếu đánh giá này không? Mọi dữ liệu đánh giá và hình ảnh sẽ bị xóa và không thể hoàn tác.')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-sm btn-light border text-danger" title="Xóa phiếu">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                                                </button>
+                                            </form>
+                                        @endif
+                                    </div>
                                 </td>
                             </tr>
                         @empty

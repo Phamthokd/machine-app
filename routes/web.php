@@ -98,6 +98,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/users/{user}/edit', [UserController::class, 'edit']);
         Route::put('/users/{user}', [UserController::class, 'update']);
         Route::delete('/users/{user}', [UserController::class, 'destroy']);
+        Route::delete('/audits/{audit}', [\App\Http\Controllers\AuditController::class, 'destroy'])->name('audits.destroy');
     });
 });
 
