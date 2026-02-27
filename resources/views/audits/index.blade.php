@@ -95,9 +95,15 @@
                                     <div class="fw-bold text-dark d-flex align-items-center gap-2">
                                         {{ __($audit->template->name) }}
                                         @php
+                                            $hasImprovements = $audit->results->contains(fn($r) => !empty($r->improver_name));
                                             $unreviewed = $audit->results->filter(fn($r) => !empty($r->improver_name) && empty($r->reviewer_name));
                                         @endphp
-                                        @if($unreviewed->isNotEmpty())
+                                        @if($hasImprovements && $unreviewed->isEmpty())
+                                            <span class="badge bg-success bg-opacity-10 text-success border border-success" title="Đã được Audit đánh giá lại">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" class="me-1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                                                Đã đánh giá lần 2
+                                            </span>
+                                        @elseif($unreviewed->isNotEmpty())
                                             @php
                                                 $hasReachedDeadline = $unreviewed->every(function($r) {
                                                     if (empty($r->improvement_deadline)) return true;

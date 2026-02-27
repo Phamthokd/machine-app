@@ -1,13 +1,18 @@
 @php
     $failedResults = $audit->results->where('is_passed', 0);
+    $isFullyReviewed = $audit->results->contains(function($r) { return !empty($r->improver_name); }) && 
+                       $audit->results->filter(function($r) { return !empty($r->improver_name) && empty($r->reviewer_name); })->isEmpty();
+
     $canImprove = auth()->user()->managed_department === 'Bán thành phẩm' 
         && $audit->template->name === 'Đánh giá bộ phận BTP'
-        && $failedResults->isNotEmpty();
+        && $failedResults->isNotEmpty()
+        && (!$isFullyReviewed || auth()->user()->hasRole('admin'));
         
     // Kiểm tra xe người dùng hiện tại có quyền đánh giá lại hay không
     $canReview = \Illuminate\Support\Facades\Auth::check() 
         && (auth()->user()->hasRole('audit') || auth()->user()->hasRole('admin'))
-        && empty(auth()->user()->managed_department);
+        && empty(auth()->user()->managed_department)
+        && (!$isFullyReviewed || auth()->user()->hasRole('admin'));
     
     // Lấy danh sách các câu hỏi đã được báo cải thiện xong nhưng chưa được review
     // (Và điều kiện bổ sung: phải đến hoặc qua ngày deadline thì mới được Đánh giá lại)

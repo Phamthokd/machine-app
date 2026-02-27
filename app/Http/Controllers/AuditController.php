@@ -195,6 +195,13 @@ class AuditController extends Controller
     public function updateImprovements(Request $request, $id)
     {
         $audit = AuditRecord::with('results')->findOrFail($id);
+        
+        $isFullyReviewed = $audit->results->contains(function($r) { return !empty($r->improver_name); }) && 
+                           $audit->results->filter(function($r) { return !empty($r->improver_name) && empty($r->reviewer_name); })->isEmpty();
+                           
+        if ($isFullyReviewed && !auth()->user()->hasRole('admin')) {
+            abort(403, 'Phiếu này đã được đánh giá lần 2 và bị khóa. Chỉ Admin mới có thể chỉnh sửa.');
+        }
 
         $validated = $request->validate([
             'improvements' => 'required|array',
@@ -227,8 +234,16 @@ class AuditController extends Controller
             403,
             'Bạn không có quyền đánh giá lại cải thiện.'
         );
+        
+        $audit = AuditRecord::with('results')->findOrFail($id);
+        
+        $isFullyReviewed = $audit->results->contains(function($r) { return !empty($r->improver_name); }) && 
+                           $audit->results->filter(function($r) { return !empty($r->improver_name) && empty($r->reviewer_name); })->isEmpty();
+                           
+        if ($isFullyReviewed && !$user->hasRole('admin')) {
+            abort(403, 'Phiếu này đã được đánh giá lần 2 và bị khóa. Chỉ Admin mới có thể chỉnh sửa.');
+        }
 
-        $audit = AuditRecord::findOrFail($id);
 
         $request->validate([
             'reviews' => 'required|array',
