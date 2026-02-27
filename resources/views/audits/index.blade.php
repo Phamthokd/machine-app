@@ -99,19 +99,19 @@
                                         @endphp
                                         @if($unreviewed->isNotEmpty())
                                             @php
-                                                $hasReachedDeadline = $unreviewed->contains(function($r) {
+                                                $hasReachedDeadline = $unreviewed->every(function($r) {
                                                     if (empty($r->improvement_deadline)) return true;
                                                     return \Carbon\Carbon::now()->startOfDay()->gte(\Carbon\Carbon::parse($r->improvement_deadline)->startOfDay());
                                                 });
                                             @endphp
                                             
                                             @if($hasReachedDeadline)
-                                                <span class="badge bg-info bg-opacity-10 text-info border border-info" title="Đã tới hạn, Audit có thể đánh giá">
+                                                <span class="badge bg-info bg-opacity-10 text-info border border-info" title="Tất cả các lỗi đã tới hạn cải thiện, Audit có thể đánh giá">
                                                     <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" class="me-1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="3"/><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/></svg>
                                                     Đã cải thiện xong
                                                 </span>
                                             @else
-                                                <span class="badge bg-warning bg-opacity-10 text-warning border border-warning" title="Chưa tới hạn cải thiện">
+                                                <span class="badge bg-warning bg-opacity-10 text-warning border border-warning" title="Chưa tới hạn cải thiện của toàn bộ các lỗi">
                                                     <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
                                                     Đã lập kế hoạch
                                                 </span>
