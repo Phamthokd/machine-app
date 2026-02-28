@@ -37,7 +37,7 @@
                 <tr>
                     <th class="py-3 ps-4 text-secondary text-xs uppercase font-weight-bolder opacity-7">{{ __('messages.full_name') }}</th>
                     <th class="py-3 text-secondary text-xs uppercase font-weight-bolder opacity-7">{{ __('messages.username') }}</th>
-                    <th class="py-3 text-secondary text-xs uppercase font-weight-bolder opacity-7">BỘ PHẬN</th>
+                    <th class="py-3 text-secondary text-xs uppercase font-weight-bolder opacity-7">{{ mb_strtoupper(__('messages.department')) }}</th>
                     <th class="py-3 text-secondary text-xs uppercase font-weight-bolder opacity-7">{{ __('messages.role') }}</th>
                     <th class="py-3 text-end pe-4 text-secondary text-xs uppercase font-weight-bolder opacity-7">{{ __('messages.actions') }}</th>
                 </tr>

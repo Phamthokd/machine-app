@@ -222,21 +222,21 @@
                                     $reportedTime = \Carbon\Carbon::parse($r->started_at);
                                 }
                             @endphp
-                            <span class="text-secondary" title="Thời gian báo hỏng">{{ __('messages.report_time') }} {{ $reportedTime->format('H:i d/m') }}</span>
+                            <span class="text-secondary" title="{{ __('messages.report_time_tooltip') }}">{{ __('messages.report_time') }} {{ $reportedTime->format('H:i d/m') }}</span>
                             
                             @if($r->started_at)
-                                <span class="text-success" title="Thời gian tiếp nhận">{{ __('messages.start_time') }} &nbsp;&nbsp;{{ \Carbon\Carbon::parse($r->started_at)->format('H:i d/m') }}</span>
+                                <span class="text-success" title="{{ __('messages.accept_time_tooltip') }}">{{ __('messages.start_time') }} &nbsp;&nbsp;{{ \Carbon\Carbon::parse($r->started_at)->format('H:i d/m') }}</span>
                                 
                                 @php
                                     $waitTime = $reportedTime->diffInMinutes(\Carbon\Carbon::parse($r->started_at));
                                 @endphp
                                 @if($waitTime > 0)
-                                    <span class="badge bg-light text-dark border mt-1" title="Thời gian chờ từ lúc báo đến lúc tiếp nhận">{{ __('messages.wait_time') }} {{ $waitTime }} {{ __('messages.minutes_unit') }}</span>
+                                    <span class="badge bg-light text-dark border mt-1" title="{{ __('messages.wait_time_tooltip') }}">{{ __('messages.wait_time') }} {{ $waitTime }} {{ __('messages.minutes_unit') }}</span>
                                 @endif
                             @endif
 
                             @if($r->ended_at)
-                                <span class="text-secondary mt-1" title="Thời gian hoàn thành">{{ __('messages.end_time') }} &nbsp;&nbsp;&nbsp;&nbsp;{{ \Carbon\Carbon::parse($r->ended_at)->format('H:i d/m') }}</span>
+                                <span class="text-secondary mt-1" title="{{ __('messages.complete_time_tooltip') }}">{{ __('messages.end_time') }} &nbsp;&nbsp;&nbsp;&nbsp;{{ \Carbon\Carbon::parse($r->ended_at)->format('H:i d/m') }}</span>
                             @else
                                 <span class="badge bg-warning text-dark mt-1">{{ __('messages.status_repairing') }}</span>
                             @endif
@@ -244,9 +244,9 @@
                     </td>
                     <td>
                         <div class="d-flex flex-column gap-1 small">
-                            <div title="{{ __('messages.creator') }}">📝 <span class="text-muted">Báo:</span> {{ $r->createdBy->name ?? '...' }}</div>
+                            <div title="{{ __('messages.creator') }}">📝 <span class="text-muted">{{ __('messages.reported_by') }}:</span> {{ $r->createdBy->name ?? '...' }}</div>
                             @if($r->mechanic)
-                            <div title="Người sửa" class="text-primary fw-medium">🔧 <span class="text-muted">Sửa:</span> {{ $r->mechanic->name }}</div>
+                            <div title="{{ __('messages.repairer') }}" class="text-primary fw-medium">🔧 <span class="text-muted">{{ __('messages.repaired_by') }}:</span> {{ $r->mechanic->name }}</div>
                             @endif
                             <div class="text-muted" title="{{ __('messages.inline_qc') }}">👀 {{ $r->inlineQc->name ?? '—' }} (QC)</div>
                             <div class="text-muted" title="{{ __('messages.endline_qc') }}">check {{ $r->endlineQc->name ?? '—' }} (Endline)</div>

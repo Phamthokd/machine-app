@@ -29,7 +29,7 @@
     </div>
     <a href="/audits/export" class="btn-export text-decoration-none">
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        <span>Xuất Excel</span>
+        <span>{{ __('messages.export_excel') }}</span>
     </a>
 </div>
 
@@ -81,7 +81,7 @@
                         <tr>
                             <th class="py-3 px-4 text-secondary fw-semibold">ID</th>
                             <th class="py-3 px-4 text-secondary fw-semibold">{{ __('messages.audit_template') }}</th>
-                            <th class="py-3 px-4 text-secondary fw-semibold">Điểm số</th>
+                            <th class="py-3 px-4 text-secondary fw-semibold">{{ __('messages.score') }}</th>
                             <th class="py-3 px-4 text-secondary fw-semibold">{{ __('messages.auditor') }}</th>
                             <th class="py-3 px-4 text-secondary fw-semibold">{{ __('messages.time') }}</th>
                             <th class="py-3 px-4 text-secondary fw-semibold text-center">{{ __('messages.actions') }}</th>
@@ -99,9 +99,9 @@
                                             $unreviewed = $audit->results->filter(fn($r) => !empty($r->improver_name) && empty($r->reviewer_name));
                                         @endphp
                                         @if($hasImprovements && $unreviewed->isEmpty())
-                                            <span class="badge bg-success bg-opacity-10 text-success border border-success" title="Đã được Audit đánh giá lại">
+                                            <span class="badge bg-success bg-opacity-10 text-success border border-success" title="{{ __('messages.audit_reviewed_tooltip') }}">
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" class="me-1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                                                Đã đánh giá lần 2
+                                                {{ __('messages.audit_reviewed_badge') }}
                                             </span>
                                         @elseif($unreviewed->isNotEmpty())
                                             @php
@@ -112,14 +112,14 @@
                                             @endphp
                                             
                                             @if($hasReachedDeadline)
-                                                <span class="badge bg-info bg-opacity-10 text-info border border-info" title="Tất cả các lỗi đã tới hạn cải thiện, Audit có thể đánh giá">
+                                                <span class="badge bg-info bg-opacity-10 text-info border border-info" title="{{ __('messages.audit_ready_tooltip') }}">
                                                     <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" class="me-1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="3"/><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/></svg>
-                                                    Đã cải thiện xong
+                                                    {{ __('messages.audit_improved_badge') }}
                                                 </span>
                                             @else
-                                                <span class="badge bg-warning bg-opacity-10 text-warning border border-warning" title="Chưa tới hạn cải thiện của toàn bộ các lỗi">
+                                                <span class="badge bg-warning bg-opacity-10 text-warning border border-warning" title="{{ __('messages.audit_planned_tooltip') }}">
                                                     <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
-                                                    Đã lập kế hoạch
+                                                    {{ __('messages.audit_planned_badge') }}
                                                 </span>
                                             @endif
                                         @endif
@@ -146,10 +146,10 @@
                                             {{ __('messages.view_detail') }}
                                         </a>
                                         @if(auth()->user()->hasRole('admin'))
-                                            <form action="{{ route('audits.destroy', $audit->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa phiếu đánh giá này không? Mọi dữ liệu đánh giá và hình ảnh sẽ bị xóa và không thể hoàn tác.')">
+                                            <form action="{{ route('audits.destroy', $audit->id) }}" method="POST" class="d-inline" onsubmit="return confirm('{{ __('messages.confirm_delete_audit') }}')">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="btn btn-sm btn-light border text-danger" title="Xóa phiếu">
+                                                <button type="submit" class="btn btn-sm btn-light border text-danger" title="{{ __('messages.delete_audit') }}">
                                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
                                                 </button>
                                             </form>
