@@ -5,7 +5,8 @@ $audit->results->filter(function($r) { return !empty($r->improver_name) && empty
 
 $canImprove = (
 (auth()->user()->managed_department === 'Bán thành phẩm' && $audit->template->name === 'Đánh giá bộ phận BTP') ||
-(auth()->user()->managed_department === 'Phòng mẫu' && $audit->template->name === 'Đánh giá bộ phận Phòng mẫu')
+(auth()->user()->managed_department === 'Phòng mẫu' && $audit->template->name === 'Đánh giá bộ phận Phòng mẫu') ||
+(auth()->user()->managed_department === 'Kiểm vải' && $audit->template->name === 'Đánh giá bộ phận Kiểm vải')
 )
 && $failedResults->isNotEmpty()
 && (!$isFullyReviewed || auth()->user()->hasRole('admin'));

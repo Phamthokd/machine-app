@@ -31,7 +31,7 @@ return [
     'role_repair_tech' => 'Repair Tech',
     'role_contractor' => 'Contractor',
     'role_audit' => 'Audit',
-    
+
     // Machine List
     'machine_code' => 'Machine Code',
     'machine_name' => 'Machine Name',
@@ -55,7 +55,7 @@ return [
     'machine_list_subtitle' => 'Manage all machine profiles, history and parameters',
     'edit' => 'Edit',
     'print_qr_action' => 'Print QR',
-    
+
     // Machine Detail
     'machine_detail_title' => 'Machine Detail',
     'hero_card_dept_prefix' => 'Dept',
@@ -237,4 +237,10 @@ return [
     'reported_by' => 'Report',
     'repaired_by' => 'Repair',
     'repairer' => 'Repairer',
+
+    // Extra Departments
+    'Phòng mẫu' => 'Sample Room',
+    'Đánh giá bộ phận Phòng mẫu' => 'Sample Room Evaluation',
+    'Kiểm vải' => 'Fabric Inspection',
+    'Đánh giá bộ phận Kiểm vải' => 'Fabric Inspection Evaluation',
 ];

@@ -237,4 +237,10 @@ return [
     'reported_by' => '报告',
     'repaired_by' => '维修',
     'repairer' => '维修工',
+
+    // Extra Departments
+    'Phòng mẫu' => '版房',
+    'Đánh giá bộ phận Phòng mẫu' => '版房评估',
+    'Kiểm vải' => '验布',
+    'Đánh giá bộ phận Kiểm vải' => '验布评估',
 ];

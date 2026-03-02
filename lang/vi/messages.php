@@ -237,4 +237,10 @@ return [
     'reported_by' => 'Báo',
     'repaired_by' => 'Sửa',
     'repairer' => 'Người sửa',
+
+    // Extra Departments
+    'Phòng mẫu' => 'Phòng mẫu',
+    'Đánh giá bộ phận Phòng mẫu' => 'Đánh giá bộ phận Phòng mẫu',
+    'Kiểm vải' => 'Kiểm vải',
+    'Đánh giá bộ phận Kiểm vải' => 'Đánh giá bộ phận Kiểm vải',
 ];
