@@ -14,7 +14,7 @@ class UserController extends Controller
         $search = $request->input('search');
         $users = User::with('roles')
             ->when($search, fn($q) => $q->where('name', 'like', "%{$search}%")
-                                        ->orWhere('username', 'like', "%{$search}%"))
+                ->orWhere('username', 'like', "%{$search}%"))
             ->orderBy('id', 'desc')
             ->paginate(20)
             ->appends(['search' => $search]);
@@ -24,7 +24,7 @@ class UserController extends Controller
     public function create()
     {
         $roles = Role::all();
-        $departments = ['Xưởng 6 Tầng 1', 'Xưởng 6 Tầng 2', 'Xưởng 5', 'Bán thành phẩm', 'Khác'];
+        $departments = ['Xưởng 6 Tầng 1', 'Xưởng 6 Tầng 2', 'Xưởng 5', 'Bán thành phẩm', 'Phòng mẫu', 'Khác'];
         return view('users.create', compact('roles', 'departments'));
     }
 
@@ -35,7 +35,7 @@ class UserController extends Controller
             'username' => 'required|string|max:255|unique:users',
             'password' => 'required|string|min:6',
             'role' => 'required|string|exists:roles,name',
-            'managed_department' => 'nullable|string|in:Xưởng 6 Tầng 1,Xưởng 6 Tầng 2,Xưởng 5,Bán thành phẩm,Khác',
+            'managed_department' => 'nullable|string|in:Xưởng 6 Tầng 1,Xưởng 6 Tầng 2,Xưởng 5,Bán thành phẩm,Phòng mẫu,Khác',
         ]);
 
         $user = User::create([
@@ -53,7 +53,7 @@ class UserController extends Controller
     public function edit(User $user)
     {
         $roles = Role::all();
-        $departments = ['Xưởng 6 Tầng 1', 'Xưởng 6 Tầng 2', 'Xưởng 5', 'Bán thành phẩm', 'Khác'];
+        $departments = ['Xưởng 6 Tầng 1', 'Xưởng 6 Tầng 2', 'Xưởng 5', 'Bán thành phẩm', 'Phòng mẫu', 'Khác'];
         return view('users.edit', compact('user', 'roles', 'departments'));
     }
 
@@ -64,7 +64,7 @@ class UserController extends Controller
             'username' => 'required|string|max:255|unique:users,username,' . $user->id,
             'role' => 'required|string|exists:roles,name',
             'password' => 'nullable|string|min:6',
-            'managed_department' => 'nullable|string|in:Xưởng 6 Tầng 1,Xưởng 6 Tầng 2,Xưởng 5,Bán thành phẩm,Khác',
+            'managed_department' => 'nullable|string|in:Xưởng 6 Tầng 1,Xưởng 6 Tầng 2,Xưởng 5,Bán thành phẩm,Phòng mẫu,Khác',
         ]);
 
         $updateData = [

@@ -14,11 +14,19 @@ class AuditController extends Controller
     {
         // Get list of active templates for creating new audits
         $templates = AuditTemplate::where('is_active', true)->get();
-        
-        // Get recent audit history
-        $audits = AuditRecord::with('template', 'auditor', 'results')
-            ->orderByDesc('created_at')
-            ->paginate(20);
+        $user = auth()->user();
+
+        $query = AuditRecord::with('template', 'auditor', 'results');
+
+        // Filter by managed department if the user has one
+        if (!empty($user->managed_department)) {
+            $mappedDept = $user->managed_department === 'Bán thành phẩm' ? 'BTP' : $user->managed_department;
+            $query->whereHas('template', function ($q) use ($mappedDept) {
+                $q->where('department_name', $mappedDept);
+            });
+        }
+
+        $audits = $query->orderByDesc('created_at')->paginate(20);
 
         return view('audits.index', compact('templates', 'audits'));
     }
@@ -41,7 +49,7 @@ class AuditController extends Controller
 
         $templateId = $request->input('audit_template_id');
         $template = AuditTemplate::findOrFail($templateId);
-        
+
         $results = $request->input('results', []);
 
         // Validate results
@@ -67,7 +75,7 @@ class AuditController extends Controller
         // Create the individual criterion results
         foreach ($results as $index => $item) {
             $imagePath = null;
-            
+
             // Handle image upload if provided and the criterion failed
             if (isset($item['is_passed']) && $item['is_passed'] == 0 && $request->hasFile("results.{$index}.image")) {
                 $file = $request->file("results.{$index}.image");
@@ -92,19 +100,35 @@ class AuditController extends Controller
 
     public function export()
     {
-        $audits = AuditRecord::with(['template', 'auditor', 'results'])
-            ->orderByDesc('created_at')
-            ->get();
+        $user = auth()->user();
+
+        $query = AuditRecord::with(['template', 'auditor', 'results']);
+
+        if (!empty($user->managed_department)) {
+            $query->whereHas('template', function ($q) use ($user) {
+                $q->where('department_name', $user->managed_department);
+            });
+        }
+
+        $audits = $query->orderByDesc('created_at')->get();
 
         $headers = [
-            'ID', 'Tên đánh giá', 'Tổ', 'Người đánh giá', 'Thời gian', 'Điểm số (%)', 'Tổng mục', 'Đạt', 'Lỗi'
+            'ID',
+            'Tên đánh giá',
+            'Tổ',
+            'Người đánh giá',
+            'Thời gian',
+            'Điểm số (%)',
+            'Tổng mục',
+            'Đạt',
+            'Lỗi'
         ];
 
         $renderRow = function ($a) {
             $total = $a->results->count();
             $passed = $a->results->where('is_passed', true)->count();
             $failed = $total - $passed;
-            
+
             $cells = [
                 $a->id,
                 $a->template->name ?? '',
@@ -116,7 +140,7 @@ class AuditController extends Controller
                 $passed,
                 $failed,
             ];
-            
+
             $xml = "    <Row>\n";
             foreach ($cells as $cell) {
                 // Escape XML special chars
@@ -130,7 +154,7 @@ class AuditController extends Controller
         $startSheet = function ($name) use ($headers) {
             $safeName = preg_replace('/[\\\\\\/?*:\\[\\]]/', ' ', $name);
             if (mb_strlen($safeName) > 31) $safeName = mb_substr($safeName, 0, 31);
-            
+
             $xml = " <Worksheet ss:Name=\"{$safeName}\">\n";
             $xml .= "  <Table>\n";
             $xml .= "   <Row>\n";
@@ -147,7 +171,7 @@ class AuditController extends Controller
 
         return response()->streamDownload(function () use ($audits, $renderRow, $startSheet, $endSheet) {
             $output = fopen('php://output', 'w');
-            
+
             $preamble = '<?xml version="1.0"?>' . "\n";
             $preamble .= '<?mso-application progid="Excel.Sheet"?>' . "\n";
             $preamble .= '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" ' . "\n";
@@ -155,7 +179,7 @@ class AuditController extends Controller
             $preamble .= ' xmlns:x="urn:schemas-microsoft-com:office:excel" ' . "\n";
             $preamble .= ' xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet" ' . "\n";
             $preamble .= ' xmlns:html="http://www.w3.org/TR/REC-html40">' . "\n";
-            
+
             fwrite($output, $preamble);
 
             fwrite($output, $startSheet('Lịch sử đánh giá'));
@@ -166,7 +190,6 @@ class AuditController extends Controller
 
             fwrite($output, "</Workbook>");
             fclose($output);
-
         }, $fileName, [
             'Content-Type' => 'application/vnd.ms-excel',
         ]);
@@ -175,7 +198,7 @@ class AuditController extends Controller
     public function exportDetail($id)
     {
         $audit = AuditRecord::with(['template', 'auditor', 'results.criterion'])->findOrFail($id);
-        
+
         $html = view('audits.export_detail', compact('audit'))->render();
 
         $fileName = 'phieu-danh-gia-' . $audit->id . '-' . now()->format('Ymd-His') . '.xls';
@@ -188,17 +211,21 @@ class AuditController extends Controller
     public function show($id)
     {
         $audit = AuditRecord::with(['template', 'auditor', 'results.criterion'])->findOrFail($id);
-        
+
         return view('audits.show', compact('audit'));
     }
 
     public function updateImprovements(Request $request, $id)
     {
         $audit = AuditRecord::with('results')->findOrFail($id);
-        
-        $isFullyReviewed = $audit->results->contains(function($r) { return !empty($r->improver_name); }) && 
-                           $audit->results->filter(function($r) { return !empty($r->improver_name) && empty($r->reviewer_name); })->isEmpty();
-                           
+
+        $isFullyReviewed = $audit->results->contains(function ($r) {
+            return !empty($r->improver_name);
+        }) &&
+            $audit->results->filter(function ($r) {
+                return !empty($r->improver_name) && empty($r->reviewer_name);
+            })->isEmpty();
+
         if ($isFullyReviewed && !auth()->user()->hasRole('admin')) {
             abort(403, 'Phiếu này đã được đánh giá lần 2 và bị khóa. Chỉ Admin mới có thể chỉnh sửa.');
         }
@@ -234,12 +261,16 @@ class AuditController extends Controller
             403,
             'Bạn không có quyền đánh giá lại cải thiện.'
         );
-        
+
         $audit = AuditRecord::with('results')->findOrFail($id);
-        
-        $isFullyReviewed = $audit->results->contains(function($r) { return !empty($r->improver_name); }) && 
-                           $audit->results->filter(function($r) { return !empty($r->improver_name) && empty($r->reviewer_name); })->isEmpty();
-                           
+
+        $isFullyReviewed = $audit->results->contains(function ($r) {
+            return !empty($r->improver_name);
+        }) &&
+            $audit->results->filter(function ($r) {
+                return !empty($r->improver_name) && empty($r->reviewer_name);
+            })->isEmpty();
+
         if ($isFullyReviewed && !$user->hasRole('admin')) {
             abort(403, 'Phiếu này đã được đánh giá lần 2 và bị khóa. Chỉ Admin mới có thể chỉnh sửa.');
         }
@@ -293,7 +324,7 @@ class AuditController extends Controller
     public function destroy($id)
     {
         $audit = AuditRecord::findOrFail($id);
-        
+
         // Ensure only admin can delete
         abort_unless(auth()->user()->hasRole('admin'), 403, 'Chỉ Admin mới có quyền xóa phiếu đánh giá');
 
