@@ -17,6 +17,9 @@ class RoleSeeder extends Seeder
             'qa_supervisor_triumph',
             'warehouse',
             'team_leader',
+            'audit',
+            '7s',
+            'contractor',
         ];
 
         foreach ($roles as $role) {

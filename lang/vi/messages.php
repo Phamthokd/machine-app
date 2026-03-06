@@ -31,6 +31,7 @@ return [
     'role_repair_tech' => 'Sửa máy',
     'role_contractor' => 'Thầu phụ',
     'role_audit' => 'Bộ phận Audit',
+    'role_7s' => 'Bộ phận 7S',
 
     // Machine List
     'machine_code' => 'MÃ THIẾT BỊ',

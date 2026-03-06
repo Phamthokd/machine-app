@@ -31,6 +31,7 @@ return [
     'role_repair_tech' => 'Repair Tech',
     'role_contractor' => 'Contractor',
     'role_audit' => 'Audit',
+    'role_7s' => '7S Department',
 
     // Machine List
     'machine_code' => 'Machine Code',

@@ -16,7 +16,7 @@ class MachineMovementController extends Controller
         $movements = MachineMovement::with(['machine', 'fromDepartment', 'toDepartment', 'user'])
             ->orderByDesc('created_at')
             ->simplePaginate(20);
-            
+
         return view('machines.move_history', compact('movements'));
     }
 
@@ -36,7 +36,7 @@ class MachineMovementController extends Controller
             'department_id' => 'required|exists:departments,id',
             'note' => 'nullable|string|max:255',
         ]);
-        
+
         // Prevent moving to same department
         if ($oldDeptId == $validated['department_id']) {
             return back()->withErrors(['department_id' => 'Máy đang ở tổ này rồi.']);
@@ -48,13 +48,13 @@ class MachineMovementController extends Controller
             'from_department_id' => $oldDeptId,
             'to_department_id' => $validated['department_id'],
             'user_id' => Auth::id(),
-            'note' => $validated['note'],
+            'note' => $validated['note'] ?? null,
         ]);
 
         // Update department
         $machine->update([
             'current_department_id' => $validated['department_id'],
-            'vi_tri_text' => $validated['note'] ? $validated['note'] : $machine->vi_tri_text
+            'vi_tri_text' => ($validated['note'] ?? null) ? $validated['note'] : $machine->vi_tri_text
         ]);
 
         return redirect("/m/{$machine->ma_thiet_bi}")
@@ -68,19 +68,19 @@ class MachineMovementController extends Controller
             ->get();
 
         $fileName = 'machine-movements-' . now()->format('Ymd-His') . '.xls';
-        
+
         $headers = ['Thời gian', 'Mã thiết bị', 'Tên thiết bị', 'Từ tổ', 'Đến tổ', 'Người chuyển', 'Ghi chú'];
 
         return response()->streamDownload(function () use ($movements, $headers) {
             $output = fopen('php://output', 'w');
-            
+
             // XML Spreadsheet Header
             fwrite($output, '<?xml version="1.0"?>' . "\n");
             fwrite($output, '<?mso-application progid="Excel.Sheet"?>' . "\n");
             fwrite($output, '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">' . "\n");
             fwrite($output, ' <Worksheet ss:Name="Lịch sử chuyển tổ">' . "\n");
             fwrite($output, '  <Table>' . "\n");
-            
+
             // Header Row
             fwrite($output, '   <Row>' . "\n");
             foreach ($headers as $h) {
@@ -99,7 +99,7 @@ class MachineMovementController extends Controller
                     $m->user->name ?? '',
                     $m->note ?? ''
                 ];
-                
+
                 fwrite($output, '   <Row>' . "\n");
                 foreach ($cells as $c) {
                     $safe = htmlspecialchars((string)$c, ENT_XML1, 'UTF-8');
