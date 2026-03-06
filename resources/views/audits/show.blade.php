@@ -79,6 +79,15 @@ return $today->gte($deadline);
                 Cải thiện
             </button>
             @endif
+            @if(auth()->user()->hasRole('admin') || (auth()->user()->hasRole('audit') && empty(auth()->user()->managed_department)))
+            <a href="{{ route('audits.edit', $audit->id) }}" class="btn btn-sm btn-outline-warning d-flex align-items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 20h9" />
+                    <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                </svg>
+                Sửa phiếu
+            </a>
+            @endif
             <a href="{{ route('audits.export_detail', $audit->id) }}" class="btn btn-sm btn-outline-success d-flex align-items-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />

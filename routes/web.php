@@ -45,23 +45,33 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/repairs/contractor/export', [RepairTicketController::class, 'exportContractor']);
         Route::get('/repairs/contractor', [RepairTicketController::class, 'contractorIndex']);
         Route::get('/repair-requests', [RepairTicketController::class, 'requestsIndex']);
-        Route::get('/repairs', [RepairTicketController::class, 'index']);
         Route::get('/repairs/create', [RepairTicketController::class, 'create']);
         Route::post('/repairs', [RepairTicketController::class, 'store']);
         Route::get('/repairs/{repair}/edit', [RepairTicketController::class, 'edit']);
         Route::put('/repairs/{repair}', [RepairTicketController::class, 'update']);
-        Route::get('/repairs/export', [RepairTicketController::class, 'export']);
-        Route::get('/repairs/{repair}', [RepairTicketController::class, 'show'])->whereNumber('repair');
         Route::delete('/repairs/{repair}', [RepairTicketController::class, 'destroy'])->whereNumber('repair');
     });
 
+    // REPAIR READ-ONLY + EXPORT: also accessible by Audit
+    Route::middleware(['role:admin|warehouse|repair_tech|contractor|team_leader|audit'])->group(function () {
+        Route::get('/repairs/export', [RepairTicketController::class, 'export']);
+        Route::get('/repairs', [RepairTicketController::class, 'index']);
+        Route::get('/repairs/{repair}', [RepairTicketController::class, 'show'])->whereNumber('repair');
+    });
+
+
     // MOVEMENT GROUP: Admin, Warehouse, Team Leader
     Route::middleware(['role:admin|warehouse|team_leader'])->group(function () {
-        Route::get('/machines/{id}/move', [MachineMovementController::class, 'edit']);
         Route::post('/machines/{id}/move', [MachineMovementController::class, 'update']);
+    });
+
+    // MOVEMENT READ-ONLY + MOVE FORM + EXPORT: also accessible by Audit
+    Route::middleware(['role:admin|warehouse|team_leader|audit'])->group(function () {
+        Route::get('/machines/{id}/move', [MachineMovementController::class, 'edit']);
         Route::get('/movement-history', [MachineMovementController::class, 'index']);
         Route::get('/movement-history/export', [MachineMovementController::class, 'export']);
     });
+
 
     // AUDIT GROUP: Admin, Audit
     Route::middleware(['role:admin|audit'])->group(function () {
@@ -72,6 +82,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/audits', [\App\Http\Controllers\AuditController::class, 'index'])->name('audits.index');
         Route::get('/audits/create', [\App\Http\Controllers\AuditController::class, 'create'])->name('audits.create');
         Route::post('/audits', [\App\Http\Controllers\AuditController::class, 'store'])->name('audits.store');
+        Route::get('/audits/{audit}/edit', [\App\Http\Controllers\AuditController::class, 'editAudit'])->name('audits.edit');
+        Route::post('/audits/{audit}/update-results', [\App\Http\Controllers\AuditController::class, 'updateAudit'])->name('audits.update');
         Route::get('/audits/{audit}', [\App\Http\Controllers\AuditController::class, 'show'])->name('audits.show');
     });
 
@@ -79,11 +91,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware(['role:admin|warehouse'])->group(function () {
         Route::get('/machines/import-csv', [MachineCsvImportController::class, 'form']);
         Route::post('/machines/import-csv', [MachineCsvImportController::class, 'import']);
-        
+
         // Print QR
         Route::get('/machines/department/{department}/print-qr', [App\Http\Controllers\MachineController::class, 'printDepartmentQr'])->name('machines.print_department_qr');
         Route::get('/machines/{machine}/print-qr', [App\Http\Controllers\MachineController::class, 'printQr'])->name('machines.print_qr');
-        
+
         // Machine Management List
         Route::resource('machines', App\Http\Controllers\MachineController::class)->except(['show']);
 
@@ -102,4 +114,4 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 });
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';

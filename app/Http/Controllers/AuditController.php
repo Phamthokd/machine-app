@@ -105,6 +105,95 @@ class AuditController extends Controller
         return redirect('/audits')->with('success', "Đã đánh giá thành công bộ phận {$template->department_name}! Điểm số đạt: {$record->score}%");
     }
 
+    public function editAudit($id)
+    {
+        $user = auth()->user();
+        abort_unless(
+            $user->hasRole('admin') || ($user->hasRole('audit') && empty($user->managed_department)),
+            403,
+            'Bạn không có quyền sửa phiếu đánh giá.'
+        );
+
+        $audit = AuditRecord::with(['template', 'auditor', 'results.criterion'])->findOrFail($id);
+        return view('audits.edit', compact('audit'));
+    }
+
+    public function updateAudit(Request $request, $id)
+    {
+        $user = auth()->user();
+        abort_unless(
+            $user->hasRole('admin') || ($user->hasRole('audit') && empty($user->managed_department)),
+            403,
+            'Bạn không có quyền sửa phiếu đánh giá.'
+        );
+
+        $audit = AuditRecord::with('results')->findOrFail($id);
+
+        $results = $request->input('results', []);
+        $files   = $request->file('results', []);
+
+        foreach ($audit->results as $result) {
+            $rid   = $result->id;
+            $input = $results[$rid] ?? [];
+
+            // 1. Đổi pass/fail và ghi chú
+            $isPassed = isset($input['is_passed']) && $input['is_passed'] == '1';
+            $note     = $isPassed ? null : ($input['note'] ?? null);
+
+            // 2. Xử lý xóa ảnh cũ
+            $currentPaths = (array) ($result->image_path ?? []);
+            $toRemove     = $input['image_remove'] ?? [];      // mảng path cần xóa
+            if (!empty($toRemove)) {
+                foreach ($toRemove as $removePath) {
+                    $currentPaths = array_filter($currentPaths, fn($p) => $p !== $removePath);
+                    // Xóa file vật lý khỏi storage
+                    $disk = \Illuminate\Support\Facades\Storage::disk('public');
+                    $physicalPath = str_replace('storage/', '', ltrim($removePath, '/'));
+                    if ($disk->exists($physicalPath)) {
+                        $disk->delete($physicalPath);
+                    }
+                }
+                $currentPaths = array_values($currentPaths);
+            }
+
+            // Nếu đổi sang Đạt thì xóa hết ảnh cũ
+            if ($isPassed) {
+                $currentPaths = [];
+            }
+
+            // 3. Upload ảnh mới
+            if (!$isPassed && isset($files[$rid]['image'])) {
+                $newFiles = $files[$rid]['image'];
+                if (!is_array($newFiles)) {
+                    $newFiles = [$newFiles];
+                }
+                foreach ($newFiles as $file) {
+                    if ($file && $file->isValid()) {
+                        $filename = now()->format('Y-m-d-His-') . uniqid() . '.' . $file->extension();
+                        $path = $file->storeAs('audits', $filename, 'public');
+                        $currentPaths[] = 'storage/' . ltrim($path, '/');
+                    }
+                }
+            }
+
+            // 4. Lưu
+            $result->update([
+                'is_passed'  => $isPassed,
+                'note'       => $note,
+                'image_path' => empty($currentPaths) ? null : array_values($currentPaths),
+            ]);
+        }
+
+        // 5. Tính lại điểm
+        $audit->refresh();
+        $total  = $audit->results->count();
+        $passed = $audit->results->where('is_passed', true)->count();
+        $score  = $total > 0 ? round(($passed / $total) * 100, 2) : 0;
+        $audit->update(['score' => $score]);
+
+        return redirect()->route('audits.show', $audit->id)->with('success', "Đã cập nhật phiếu đánh giá! Điểm số mới: {$score}%");
+    }
+
     public function export()
     {
         $user = auth()->user();
