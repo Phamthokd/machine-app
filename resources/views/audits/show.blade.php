@@ -160,7 +160,7 @@ return $today->gte($deadline);
                             </div>
                             <div style="white-space: pre-wrap;" class="mb-2">{{ $result->note }}</div>
 
-                            @if($result->image_path)
+                            @if(!empty($result->image_path))
                             <div class="mt-3">
                                 <div class="fw-bold d-flex align-items-center gap-1 mb-2 text-secondary">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -170,9 +170,13 @@ return $today->gte($deadline);
                                     </svg>
                                     {{ __('messages.attached_image') }}
                                 </div>
-                                <a href="/{{ $result->image_path }}" target="_blank">
-                                    <img src="/{{ $result->image_path }}" class="img-fluid rounded border shadow-sm" style="max-height: 200px; object-fit: contain;" alt="Lỗi đính kèm">
-                                </a>
+                                <div class="d-flex flex-wrap gap-2 mt-2">
+                                    @foreach((array)$result->image_path as $path)
+                                    <a href="/{{ $path }}" target="_blank">
+                                        <img src="/{{ $path }}" class="img-fluid rounded border shadow-sm" style="max-height: 200px; object-fit: contain;" alt="Lỗi đính kèm">
+                                    </a>
+                                    @endforeach
+                                </div>
                             </div>
                             @endif
                         </div>

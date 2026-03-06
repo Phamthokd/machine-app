@@ -21,6 +21,10 @@ class AuditResult extends Model
         'review_image_path',
         'reviewed_at',
     ];
+    protected $casts = [
+        'is_passed' => 'boolean',
+        'image_path' => 'array',
+    ];
 
     public function record()
     {

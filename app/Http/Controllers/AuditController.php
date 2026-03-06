@@ -58,11 +58,12 @@ class AuditController extends Controller
             'results.*.audit_criterion_id' => 'required|exists:audit_criteria,id',
             'results.*.is_passed' => 'required|in:1,0',
             'results.*.note' => 'required_if:results.*.is_passed,0',
-            'results.*.image' => 'nullable|image|max:10240', // Max 10MB
+            'results.*.image' => 'nullable|array|max:20', // Array of images, max 20 images
+            'results.*.image.*' => 'image|max:10240', // Max 10MB per image
         ], [
             'results.*.note.required_if' => 'Vui lòng nhập ghi chú nguyên nhân cho các mục Không đạt (X).',
-            'results.*.image.image' => 'File đính kèm phải là hình ảnh.',
-            'results.*.image.max' => 'Kích thước ảnh tối đa là 10MB.',
+            'results.*.image.*.image' => 'File đính kèm phải là hình ảnh.',
+            'results.*.image.*.max' => 'Kích thước ảnh tối đa là 10MB.',
         ]);
 
         // Create the main record
@@ -74,15 +75,21 @@ class AuditController extends Controller
 
         // Create the individual criterion results
         foreach ($results as $index => $item) {
-            $imagePath = null;
+            $imagePaths = [];
 
             // Handle image upload if provided and the criterion failed
             if (isset($item['is_passed']) && $item['is_passed'] == 0 && $request->hasFile("results.{$index}.image")) {
-                $file = $request->file("results.{$index}.image");
-                $filename = now()->format('Y-m-d-His-') . uniqid() . '.' . $file->extension();
-                $path = $file->storeAs('audits', $filename, 'public');
-                // Prefix with storage/ for asset referencing 
-                $imagePath = 'storage/' . ltrim($path, '/');
+                $files = $request->file("results.{$index}.image");
+                if (!is_array($files)) {
+                    $files = [$files];
+                }
+
+                foreach ($files as $file) {
+                    $filename = now()->format('Y-m-d-His-') . uniqid() . '.' . $file->extension();
+                    $path = $file->storeAs('audits', $filename, 'public');
+                    // Prefix with storage/ for asset referencing 
+                    $imagePaths[] = 'storage/' . ltrim($path, '/');
+                }
             }
 
             AuditResult::create([
@@ -90,7 +97,7 @@ class AuditController extends Controller
                 'audit_criterion_id' => $item['audit_criterion_id'],
                 'is_passed' => (bool)$item['is_passed'],
                 'note' => $item['note'] ?? null,
-                'image_path' => $imagePath,
+                'image_path' => empty($imagePaths) ? null : $imagePaths,
             ]);
         }
 
