@@ -12,8 +12,8 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,
             DepartmentSeeder::class,
             MachineSeeder::class,
-            BtpAuditCriteriaSeeder::class,
+            AuditBtpSeeder::class,
+
         ]);
     }
-
 }

@@ -87,6 +87,21 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/audits/{audit}', [\App\Http\Controllers\AuditController::class, 'show'])->name('audits.show');
     });
 
+    // 7S GROUP: Admin, 7S
+    Route::middleware(['role:admin|7s'])->group(function () {
+        Route::get('/seven-s', [\App\Http\Controllers\SevenSController::class, 'index'])->name('seven-s.index');
+        Route::get('/seven-s/create', [\App\Http\Controllers\SevenSController::class, 'create'])->name('seven-s.create');
+        Route::post('/seven-s', [\App\Http\Controllers\SevenSController::class, 'store'])->name('seven-s.store');
+        Route::get('/seven-s/{id}/edit', [\App\Http\Controllers\SevenSController::class, 'edit'])->name('seven-s.edit')->whereNumber('id');
+        Route::put('/seven-s/{id}', [\App\Http\Controllers\SevenSController::class, 'update'])->name('seven-s.update')->whereNumber('id');
+        Route::delete('/seven-s/{id}', [\App\Http\Controllers\SevenSController::class, 'destroy'])->name('seven-s.destroy')->whereNumber('id');
+        Route::post('/seven-s/{result}/improve', [\App\Http\Controllers\SevenSController::class, 'storeImprovement'])->name('seven_s.improve');
+        Route::post('/seven-s/{record}/improvements', [\App\Http\Controllers\SevenSController::class, 'storeImprovements'])->name('seven_s.improvements');
+        Route::get('/seven-s/{id}/export', [\App\Http\Controllers\SevenSController::class, 'exportDetail'])->name('seven-s.export')->whereNumber('id');
+        Route::get('/seven-s/{id}', [\App\Http\Controllers\SevenSController::class, 'show'])->name('seven-s.show')->whereNumber('id');
+    });
+
+
     // WAREHOUSE EXTRA: Import CSV (Admin + Warehouse)
     Route::middleware(['role:admin|warehouse'])->group(function () {
         Route::get('/machines/import-csv', [MachineCsvImportController::class, 'form']);

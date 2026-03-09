@@ -172,6 +172,20 @@ $maxWidth = '1200px';
             </div>
             @endhasanyrole
 
+            @hasanyrole('admin|7s')
+            <div class="col">
+                <a href="{{ route('seven-s.index') }}" class="btn btn-white border w-100 py-4 rounded-4 shadow-sm fw-semibold d-flex flex-column align-items-center justify-content-center h-100 tap hover-shadow transition">
+                    <div class="bg-success bg-opacity-10 text-success p-3 rounded-circle mb-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 11l3 3L22 4" />
+                            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+                        </svg>
+                    </div>
+                    <span>{{ __('messages.7s_inspection') }}</span>
+                </a>
+            </div>
+            @endhasanyrole
+
             <div class="col">
                 <form method="POST" action="{{ route('logout') }}" class="h-100">
                     @csrf
