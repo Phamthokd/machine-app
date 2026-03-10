@@ -114,13 +114,17 @@
 
             <div class="mb-3">
                 <label class="form-label">{{ __('messages.start_time_label') }} <span class="text-danger">*</span></label>
-                <input
-                    class="form-control bg-light"
-                    type="datetime-local"
-                    name="started_at"
-                    value="{{ old('started_at', now()->format('Y-m-d\\TH:i')) }}"
-                    readonly
-                    required>
+                @php $startedAtValue = old('started_at', now()->format('Y-m-d\TH:i')); @endphp
+                {{-- Hidden input carries the value; the visible box is display-only (iOS ignores readonly on datetime-local) --}}
+                <input type="hidden" name="started_at" value="{{ $startedAtValue }}">
+                <div class="form-control bg-light text-muted d-flex align-items-center gap-2" style="pointer-events:none;user-select:none;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10" />
+                        <polyline points="12 6 12 12 16 14" />
+                    </svg>
+                    {{ \Carbon\Carbon::parse($startedAtValue)->format('d/m/Y H:i') }}
+                    <span class="ms-auto badge bg-secondary bg-opacity-25 text-secondary small">🔒</span>
+                </div>
                 <div class="form-text text-muted">{{ __('messages.start_time_hint') }}</div>
             </div>
 
