@@ -114,7 +114,9 @@
 
             <div class="mb-3">
                 <label class="form-label">{{ __('messages.start_time_label') }} <span class="text-danger">*</span></label>
-                @php $startedAtValue = old('started_at', now()->format('Y-m-d\TH:i')); @endphp
+                @php
+                $startedAtValue = old('started_at', $repair->started_at ? \Carbon\Carbon::parse($repair->started_at)->format('Y-m-d\TH:i') : now()->format('Y-m-d\TH:i'));
+                @endphp
                 {{-- Hidden input carries the value; the visible box is display-only (iOS ignores readonly on datetime-local) --}}
                 <input type="hidden" name="started_at" value="{{ $startedAtValue }}">
                 <div class="form-control bg-light text-muted d-flex align-items-center gap-2" style="pointer-events:none;user-select:none;">

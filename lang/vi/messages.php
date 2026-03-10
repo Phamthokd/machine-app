@@ -119,6 +119,12 @@ return [
     'report_time_header' => 'Thời gian báo',
     'action_header' => 'Hành động',
     'process_btn' => 'Tiếp nhận',
+    'process_resume_btn' => 'Tiếp tục sửa',
+    'being_repaired_by' => 'Đang sửa bởi',
+    'scan_to_accept_title' => 'Xác nhận tiếp nhận bằng QR',
+    'scan_to_accept_desc' => 'Vui lòng quét mã QR trên máy để xác nhận bạn đang ở vị trí máy.',
+    'scan_to_accept_error' => 'Mã máy quét được không khớp với máy báo hỏng!',
+    'scan_to_accept_btn' => 'Quét mã để tiếp nhận',
     'no_requests' => 'Hiện không có yêu cầu sửa chữa nào',
     'unknown_user' => 'Chưa rõ',
 

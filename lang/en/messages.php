@@ -119,6 +119,12 @@ return [
     'report_time_header' => 'Report Time',
     'action_header' => 'Action',
     'process_btn' => 'Process',
+    'process_resume_btn' => 'Resume',
+    'being_repaired_by' => 'Repaired by',
+    'scan_to_accept_title' => 'Confirm acceptance by QR',
+    'scan_to_accept_desc' => 'Please scan the QR code on the machine to confirm your location.',
+    'scan_to_accept_error' => 'The scanned machine code does not match the broken machine!',
+    'scan_to_accept_btn' => 'Scan to accept',
     'no_requests' => 'No repair requests at the moment',
     'unknown_user' => 'Unknown',
 

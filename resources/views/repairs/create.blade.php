@@ -289,9 +289,11 @@
         <div class="mb-3">
             <label class="form-label">Tổ trưởng Endline QC <span class="text-secondary small fw-normal ms-1">(Không bắt buộc)</span></label>
             <select class="form-select" name="endline_qc_name">
-                <option value="">-- Chọn Endline QC --</option>
+                <option value="">{{ __('messages.select_endline_qc') }}</option>
                 <option value="Ánh" @selected(old('endline_qc_name')=='Ánh' )>Ánh</option>
                 <option value="Thuỷ" @selected(old('endline_qc_name')=='Thuỷ' )>Thuỷ</option>
+                <option value="Vân Anh" @selected(old('endline_qc_name')=='Vân Anh' )>Vân Anh</option>
+                <option value="Thanh" @selected(old('endline_qc_name')=='Thanh' )>Thanh</option>
             </select>
         </div>
 
@@ -301,9 +303,9 @@
                 <span class="badge bg-light text-secondary fw-normal">Không bắt buộc</span>
             </div>
             <select class="form-select" name="inline_qc_name">
-                <option value="">-- Chọn Inline QC --</option>
-                <option value="Mai" @selected(old('inline_qc_name')=='Mai' )>Mai</option>
-                <option value="Liên" @selected(old('inline_qc_name')=='Liên' )>Liên</option>
+                <option value="">{{ __('messages.select_inline_qc') }}</option>
+                <option value="Sinh" @selected(old('inline_qc_name')=='Sinh' )>Sinh</option>
+                <option value="Chiên" @selected(old('inline_qc_name')=='Chiên' )>Chiên</option>
             </select>
         </div>
 
@@ -313,8 +315,8 @@
                 <span class="badge bg-light text-secondary fw-normal">Không bắt buộc</span>
             </div>
             <select class="form-select" name="qa_supervisor_name">
-                <option value="" selected>-- Chọn QA --</option>
-                <option value="Tracy">Tracy</option>
+                <option value="" selected>{{ __('messages.select_qa') }}</option>
+                <option value="Terence">Terence</option>
             </select>
         </div>
 

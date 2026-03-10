@@ -49,6 +49,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/repairs', [RepairTicketController::class, 'store']);
         Route::get('/repairs/{repair}/edit', [RepairTicketController::class, 'edit']);
         Route::put('/repairs/{repair}', [RepairTicketController::class, 'update']);
+        Route::post('/repairs/{repair}/accept', [RepairTicketController::class, 'accept'])->name('repairs.accept');
         Route::delete('/repairs/{repair}', [RepairTicketController::class, 'destroy'])->whereNumber('repair');
     });
 
