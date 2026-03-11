@@ -123,6 +123,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // USER MANAGEMENT: Admin Only (Create, Edit, Delete)
     Route::middleware(['role:admin'])->group(function () {
+        // Repair Ticket Complete Editing
+        Route::get('/repairs/{repair}/edit-completed', [RepairTicketController::class, 'editCompleted'])->name('repairs.edit_completed');
+        Route::put('/repairs/{repair}/update-completed', [RepairTicketController::class, 'updateCompleted'])->name('repairs.update_completed');
+
         Route::get('/users/create', [UserController::class, 'create']);
         Route::post('/users', [UserController::class, 'store']);
         Route::get('/users/{user}/edit', [UserController::class, 'edit']);

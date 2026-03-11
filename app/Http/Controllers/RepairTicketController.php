@@ -406,6 +406,50 @@ class RepairTicketController extends Controller
         return redirect('/repair-requests')->with('success', "Đã hoàn thành phiếu sửa: {$repair->code}");
     }
 
+    public function editCompleted(RepairTicket $repair)
+    {
+        abort_unless(auth()->user()->hasRole('admin'), 403);
+        $repair->load('machine');
+        $machine = $repair->machine;
+        $mechanics = \App\Models\User::role(['repair_tech', 'admin'])->get();
+        $contractors = \App\Models\User::role('contractor')->get();
+        return view('repairs.edit_completed', compact('repair', 'machine', 'contractors', 'mechanics'));
+    }
+
+    public function updateCompleted(Request $request, RepairTicket $repair)
+    {
+        abort_unless(auth()->user()->hasRole('admin'), 403);
+
+        $rules = [
+            'ma_hang' => ['nullable', 'string', 'max:255'],
+            'cong_doan' => ['nullable', 'string', 'max:255'],
+            'nguyen_nhan' => ['required', 'string'],
+            'noi_dung_sua_chua' => ['required', 'string'],
+            'started_at' => ['required', 'date'],
+            'ended_at' => ['required', 'date', 'after_or_equal:started_at'],
+            'endline_qc_name' => ['nullable', 'string', 'max:255'],
+            'inline_qc_name' => ['nullable', 'string', 'max:255'],
+            'qa_supervisor_name' => ['nullable', 'string', 'max:255'],
+            'mechanic_id' => ['required', 'exists:users,id'],
+        ];
+
+        if ($repair->type == 'contractor') {
+            $rules = [
+                'nguyen_nhan' => ['required', 'string'],
+                'noi_dung_sua_chua' => ['required', 'string'],
+                'started_at' => ['required', 'date'],
+                'ended_at' => ['required', 'date', 'after_or_equal:started_at'],
+                'nguoi_ho_tro' => ['nullable', 'string', 'max:255'],
+                'mechanic_id' => ['required', 'exists:users,id'],
+            ];
+        }
+
+        $validated = $request->validate($rules);
+        $repair->update($validated);
+
+        return back()->with('success', "Đã cập nhật phiếu sửa đã hoàn thành: {$repair->code}");
+    }
+
     public function accept(RepairTicket $repair)
     {
         abort_unless(auth()->user()->hasRole('admin|warehouse|repair_tech|contractor|team_leader'), 403);

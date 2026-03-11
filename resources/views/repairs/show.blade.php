@@ -46,22 +46,37 @@
 </style>
 
 <div class="container-fluid px-0">
-    <!-- Header -->
-    <div class="d-flex align-items-center justify-content-between mb-4">
+    <!-- HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
         <div>
             <div class="d-flex align-items-center gap-2 mb-1">
-                <a href="/repairs" class="text-decoration-none text-secondary d-flex align-items-center gap-1 small fw-bold">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-                    QUAY LẠI DANH SÁCH
+                <a href="/repair-requests" class="btn btn-sm btn-light rounded-circle p-1 me-1 shadow-sm tap">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
                 </a>
+                <h3 class="fw-bold mb-0 text-dark" style="letter-spacing: -0.5px;">{{ __('messages.ticket') }} #{{ $repair->code }}</h3>
             </div>
-            <h3 class="fw-bold mb-0">Phiếu: {{ $repair->code }}</h3>
+            <div class="text-secondary small ms-5">{{ __('messages.ticket_details') }}</div>
         </div>
-        <div>
-            <span class="status-badge {{ $repair->status }}">
-                {{ $repair->status == 'completed' ? 'Đã hoàn thành' : 'Đã ghi nhận' }}
-            </span>
+
+        @if($repair->status == 'pending')
+        <div class="badge bg-warning text-dark border border-warning-subtle px-3 py-2 rounded-pill fw-medium shadow-sm">
+            <span class="d-inline-block bg-white rounded-circle me-2" style="width: 8px; height: 8px;"></span>
+            {{ __('messages.status_pending') }}
         </div>
+        @else
+        <div class="d-flex align-items-center gap-2">
+            <div class="badge bg-success-subtle text-success px-3 py-2 rounded-pill fw-medium border border-success-subtle shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                {{ __('messages.status_completed') }}
+            </div>
+            @role('admin')
+            <a href="{{ route('repairs.edit_completed', $repair->id) }}" class="btn btn-outline-primary btn-sm rounded-pill fw-medium shadow-sm d-flex align-items-center gap-1 tap">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                Sửa (Admin)
+            </a>
+            @endrole
+        </div>
+        @endif
     </div>
 
     <div class="row g-4">
