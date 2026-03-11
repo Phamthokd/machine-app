@@ -20,9 +20,14 @@ class AuditResult extends Model
         'review_note',
         'review_image_path',
         'reviewed_at',
+        'department_agreement',
+        'department_reject_reason',
+        'audit_rejection_decision',
     ];
     protected $casts = [
         'is_passed' => 'boolean',
+        'department_agreement' => 'boolean',
+        'audit_rejection_decision' => 'boolean',
         'image_path' => 'array',
     ];
 

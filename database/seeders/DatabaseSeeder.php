@@ -13,6 +13,9 @@ class DatabaseSeeder extends Seeder
             DepartmentSeeder::class,
             MachineSeeder::class,
             AuditBtpSeeder::class,
+            AuditXuong6Tang1Seeder::class,
+            AuditXuong6Tang2Seeder::class,
+            AuditTheuSeeder::class,
 
         ]);
     }

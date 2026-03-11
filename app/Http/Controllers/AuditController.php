@@ -432,4 +432,74 @@ class AuditController extends Controller
         return redirect()->route('audits.index')
             ->with('success', 'Đã xóa phiếu đánh giá thành công.');
     }
+
+    public function submitAgreements(Request $request, $id)
+    {
+        $audit = AuditRecord::with('results', 'template')->findOrFail($id);
+
+        // Authorization: Current user must belong to the department being audited
+        $user = auth()->user();
+        $targetDept = $audit->template->department_name === 'BTP' ? 'Bán thành phẩm' : $audit->template->department_name;
+        abort_unless($user->managed_department === $targetDept, 403, 'Bạn không thuộc bộ phận này nên không thể phản hồi lỗi.');
+
+        $request->validate([
+            'agreements' => 'required|array',
+            'agreements.*.department_agreement' => 'required|in:1,0',
+            'agreements.*.department_reject_reason' => 'required_if:agreements.*.department_agreement,0'
+        ], [
+            'agreements.*.department_reject_reason.required_if' => 'Vui lòng nhập lý do nếu bạn phản đối lỗi.'
+        ]);
+
+        foreach ($request->agreements as $resultId => $data) {
+            $result = AuditResult::where('id', $resultId)->where('audit_record_id', $audit->id)->first();
+            if ($result && !$result->is_passed && is_null($result->department_agreement)) {
+                $isAgreement = $data['department_agreement'] == '1';
+                $result->update([
+                    'department_agreement' => $isAgreement,
+                    'department_reject_reason' => $isAgreement ? null : ($data['department_reject_reason'] ?? null)
+                ]);
+            }
+        }
+
+        return redirect()->route('audits.show', $audit->id)->with('success', 'Đã ghi nhận phản hồi lỗi thành công.');
+    }
+
+    public function reviewRejections(Request $request, $id)
+    {
+        $audit = AuditRecord::with('results')->findOrFail($id);
+
+        // Authorization: Admin or Audit without department
+        $user = auth()->user();
+        abort_unless(
+            $user->hasRole('admin') || ($user->hasRole('audit') && empty($user->managed_department)),
+            403,
+            'Bạn không có quyền duyệt phản đối lỗi.'
+        );
+
+        $request->validate([
+            'rejections' => 'required|array',
+            'rejections.*.decision' => 'required|in:1,0'
+        ]);
+
+        foreach ($request->rejections as $resultId => $data) {
+            $result = AuditResult::where('id', $resultId)->where('audit_record_id', $audit->id)->first();
+            if ($result && $result->department_agreement === false && is_null($result->audit_rejection_decision)) {
+                $decision = $data['decision'] == '1';
+                if ($decision) {
+                    // Decide to waive the error
+                    $result->update([
+                        'audit_rejection_decision' => true,
+                        'is_passed' => true, // Waived so it counts as passed
+                    ]);
+                } else {
+                    // Decide to reject the department's rejection (Confirm error)
+                    $result->update([
+                        'audit_rejection_decision' => false,
+                    ]);
+                }
+            }
+        }
+
+        return redirect()->route('audits.show', $audit->id)->with('success', 'Đã duyệt các lời phản đối lỗi.');
+    }
 }

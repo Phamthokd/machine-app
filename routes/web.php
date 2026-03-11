@@ -79,6 +79,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/audits/export', [\App\Http\Controllers\AuditController::class, 'export'])->name('audits.export');
         Route::get('/audits/{audit}/export', [\App\Http\Controllers\AuditController::class, 'exportDetail'])->name('audits.export_detail');
         Route::post('/audits/{audit}/improvements', [\App\Http\Controllers\AuditController::class, 'updateImprovements'])->name('audits.improvements');
+        Route::post('/audits/{audit}/agreements', [\App\Http\Controllers\AuditController::class, 'submitAgreements'])->name('audits.agreements');
+        Route::post('/audits/{audit}/review-rejections', [\App\Http\Controllers\AuditController::class, 'reviewRejections'])->name('audits.review_rejections');
         Route::post('/audits/{audit}/reviews', [\App\Http\Controllers\AuditController::class, 'storeReviews'])->name('audits.reviews');
         Route::get('/audits', [\App\Http\Controllers\AuditController::class, 'index'])->name('audits.index');
         Route::get('/audits/create', [\App\Http\Controllers\AuditController::class, 'create'])->name('audits.create');

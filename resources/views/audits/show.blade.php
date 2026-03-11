@@ -3,36 +3,52 @@ $failedResults = $audit->results->where('is_passed', 0);
 $isFullyReviewed = $audit->results->contains(function($r) { return !empty($r->improver_name); }) &&
 $audit->results->filter(function($r) { return !empty($r->improver_name) && empty($r->reviewer_name); })->isEmpty();
 
-$canImprove = (
+// Quyền truy cập
+$isDepartmentUser = \Illuminate\Support\Facades\Auth::check() && (
 (auth()->user()->managed_department === 'Bán thành phẩm' && $audit->template->name === 'Đánh giá bộ phận BTP') ||
 (auth()->user()->managed_department === 'Phòng mẫu' && $audit->template->name === 'Đánh giá bộ phận Phòng mẫu') ||
-(auth()->user()->managed_department === 'Kiểm vải' && $audit->template->name === 'Đánh giá bộ phận Kiểm vải')
-)
-&& $failedResults->isNotEmpty()
-&& (!$isFullyReviewed || auth()->user()->hasRole('admin'));
-
-// Kiểm tra xe người dùng hiện tại có quyền đánh giá lại hay không
-$canReview = \Illuminate\Support\Facades\Auth::check()
+(auth()->user()->managed_department === 'Kiểm vải' && $audit->template->name === 'Đánh giá bộ phận Kiểm vải') ||
+(in_array(auth()->user()->managed_department, ['Xưởng 6 tầng 1', 'Xưởng 6 Tầng 1']) && $audit->template->name === 'Đánh giá Xưởng 6 tầng 1') ||
+(in_array(auth()->user()->managed_department, ['Xưởng 6 tầng 2', 'Xưởng 6 Tầng 2']) && $audit->template->name === 'Đánh giá Xưởng 6 tầng 2') ||
+(auth()->user()->managed_department === 'Thêu' && $audit->template->name === 'Đánh giá bộ phận Thêu')
+);
+$isAuditUser = \Illuminate\Support\Facades\Auth::check()
 && (auth()->user()->hasRole('audit') || auth()->user()->hasRole('admin'))
-&& empty(auth()->user()->managed_department)
-&& (!$isFullyReviewed || auth()->user()->hasRole('admin'));
+&& empty(auth()->user()->managed_department);
 
-// Lấy danh sách các câu hỏi đã được báo cải thiện xong nhưng chưa được review
-// (Và điều kiện bổ sung: phải đến hoặc qua ngày deadline thì mới được Đánh giá lại)
+// Phân loại lỗi
+$unrespondedResults = $failedResults->filter(function($r) {
+return is_null($r->department_agreement);
+});
+
+$rejectedResultsPendingAudit = $failedResults->filter(function($r) {
+return $r->department_agreement === false && is_null($r->audit_rejection_decision);
+});
+
+$improveableResults = $failedResults->filter(function($r) {
+return $r->department_agreement === true || $r->audit_rejection_decision === false;
+});
+
+// Điều kiện hiển thị các nút
+$canRespond = $isDepartmentUser && $unrespondedResults->isNotEmpty();
+$canReviewRejections = $isAuditUser && $rejectedResultsPendingAudit->isNotEmpty();
+
+$canImprove = $isDepartmentUser
+&& $improveableResults->isNotEmpty()
+&& (!$isFullyReviewed || (auth()->check() && auth()->user()->hasRole('admin')));
+
+$canReview = $isAuditUser && (!$isFullyReviewed || (auth()->check() && auth()->user()->hasRole('admin')));
+
+// Lấy danh sách cải thiện cần Audit duyệt KQ
 $reviewableResults = $audit->results->filter(function($r) {
 if (empty($r->improver_name) || !empty($r->reviewer_name)) {
 return false;
 }
-
-// Nếu không có deadline (lý do nào đó), mặc định cho phép đánh giá luôn
 if (empty($r->improvement_deadline)) {
 return true;
 }
-
-// So sánh ngày hiện tại với ngày deadline (bỏ qua giờ phút)
 $today = \Carbon\Carbon::now()->startOfDay();
 $deadline = \Carbon\Carbon::parse($r->improvement_deadline)->startOfDay();
-
 return $today->gte($deadline);
 });
 @endphp
@@ -70,6 +86,22 @@ return $today->gte($deadline);
             <span class="badge bg-success bg-opacity-10 text-success border border-success">{{ __('messages.audit_completed') }}</span>
         </div>
         <div class="ms-auto d-flex align-items-center gap-2">
+            @if($canRespond)
+            <button type="button" class="btn btn-sm btn-info d-flex align-items-center gap-2 text-white" data-bs-toggle="modal" data-bs-target="#respondModal">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                </svg>
+                Phản hồi
+            </button>
+            @endif
+            @if($canReviewRejections)
+            <button type="button" class="btn btn-sm btn-danger d-flex align-items-center gap-2 text-white" data-bs-toggle="modal" data-bs-target="#reviewRejectionsModal">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
+                </svg>
+                Duyệt phản đối
+            </button>
+            @endif
             @if($canImprove)
             <button type="button" class="btn btn-sm btn-warning d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#improvementModal">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -190,6 +222,22 @@ return $today->gte($deadline);
                             @endif
                         </div>
 
+                        @if($result->department_reject_reason)
+                        <div class="bg-secondary bg-opacity-10 border border-secondary border-opacity-25 rounded p-3 text-dark mb-3">
+                            <h6 class="fw-bold text-secondary mb-3 d-flex align-items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                                </svg>
+                                Lời phản đối từ bộ phận
+                            </h6>
+                            <div class="row g-3">
+                                <div class="col-md-12">
+                                    <div style="white-space: pre-wrap;">{{ $result->department_reject_reason }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        @endif
+
                         @if($result->root_cause)
                         <div class="bg-warning bg-opacity-10 border border-warning border-opacity-25 rounded p-3 text-dark mb-3">
                             <h6 class="fw-bold text-warning mb-3 d-flex align-items-center gap-2">
@@ -270,11 +318,25 @@ return $today->gte($deadline);
                     </div>
 
                     <!-- Status text badge -->
-                    <div class="flex-shrink-0 ms-3 d-none d-md-block">
+                    <div class="flex-shrink-0 ms-3 d-none d-md-block text-end">
                         @if($result->is_passed)
-                        <span class="badge bg-success bg-opacity-10 text-success border border-success px-3 py-2 fs-6">{{ __('messages.audit_pass') }}</span>
+                        <span class="badge bg-success bg-opacity-10 text-success border border-success px-3 py-2 fs-6 mb-2 d-block">{{ __('messages.audit_pass') }}</span>
+                        @if($result->audit_rejection_decision === true)
+                        <span class="badge bg-info bg-opacity-10 text-info border border-info px-2 py-1">Đã được huỷ lỗi</span>
+                        @endif
                         @else
-                        <span class="badge bg-danger bg-opacity-10 text-danger border border-danger px-3 py-2 fs-6">{{ __('messages.audit_fail') }}</span>
+                        @if($result->department_agreement === false && is_null($result->audit_rejection_decision))
+                        <span class="badge bg-warning bg-opacity-10 text-warning border border-warning px-3 py-2 fs-6 d-block">{{ __('messages.audit_fail') }}</span>
+                        <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary px-2 py-1 mt-2 d-block">Đang chờ Audit duyệt phản đối</span>
+                        @elseif($result->department_agreement === false && $result->audit_rejection_decision === false)
+                        <span class="badge bg-danger bg-opacity-10 text-danger border border-danger px-3 py-2 fs-6 d-block">{{ __('messages.audit_fail') }}</span>
+                        <span class="badge bg-danger bg-opacity-10 text-danger border border-danger px-2 py-1 mt-2 d-block text-wrap" style="max-width: 150px">Audit đã bác bỏ phản đối</span>
+                        @elseif($result->department_agreement === true)
+                        <span class="badge bg-danger bg-opacity-10 text-danger border border-danger px-3 py-2 fs-6 d-block">{{ __('messages.audit_fail') }}</span>
+                        <span class="badge bg-warning bg-opacity-10 text-warning border border-warning px-2 py-1 mt-2 d-block">Đã đồng ý lỗi</span>
+                        @else
+                        <span class="badge bg-danger bg-opacity-10 text-danger border border-danger px-3 py-2 fs-6 d-block">{{ __('messages.audit_fail') }}</span>
+                        @endif
                         @endif
                     </div>
                 </div>
@@ -287,6 +349,125 @@ return $today->gte($deadline);
         </div>
     </div>
 </div>
+
+@if($canRespond)
+<!-- Modal Phản hồi lỗi -->
+<div class="modal fade" id="respondModal" tabindex="-1" aria-labelledby="respondModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <form action="{{ route('audits.agreements', $audit->id) }}" method="POST" class="modal-content border-0 shadow-lg rounded-4">
+            @csrf
+            <div class="modal-header bg-info bg-opacity-10 border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2" id="respondModalLabel">
+                    <svg class="text-info" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                    </svg>
+                    {{ __('messages.audit_feedback_modal_title') }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body py-4">
+                <p class="text-muted mb-4">{{ __('messages.audit_feedback_modal_desc') }}</p>
+
+                @foreach($unrespondedResults as $index => $result)
+                <div class="card bg-light border-0 shadow-sm mb-4 rounded-3">
+                    <div class="card-header bg-danger bg-opacity-10 text-danger fw-bold border-0 py-3">
+                        <div class="d-flex gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 mt-1">
+                                <circle cx="12" cy="12" r="10" />
+                                <line x1="12" y1="8" x2="12" y2="12" />
+                                <line x1="12" y1="16" x2="12.01" y2="16" />
+                            </svg>
+                            <div>
+                                <div class="fs-6">{{ $result->criterion ? $result->criterion->content : 'Hạng mục đã xóa' }}</div>
+                                <div class="fw-normal small mt-1">Lỗi: {{ $result->note }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">{{ __('messages.audit_decision_label') }} <span class="text-danger">*</span></label>
+                            <select class="form-select bg-white" name="agreements[{{ $result->id }}][department_agreement]" required
+                                onchange="document.getElementById('reject_reason_{{ $result->id }}').style.display = this.value === '0' ? 'block' : 'none';">
+                                <option value="" disabled selected>{{ __('messages.audit_choose_feedback') }}</option>
+                                <option value="1">{{ __('messages.audit_agree_error_option') }}</option>
+                                <option value="0">{{ __('messages.audit_dispute_error_option') }}</option>
+                            </select>
+                        </div>
+                        <div class="mb-3" id="reject_reason_{{ $result->id }}" style="display: none;">
+                            <label class="form-label fw-bold">{{ __('messages.audit_dispute_reason_input_label') }} <span class="text-danger">*</span></label>
+                            <textarea class="form-control bg-white" name="agreements[{{ $result->id }}][department_reject_reason]" rows="3" placeholder="{{ __('messages.audit_dispute_reason_placeholder') }}"></textarea>
+                        </div>
+                    </div>
+                </div>
+                @endforeach
+            </div>
+            <div class="modal-footer border-top-0 pt-0 pb-4 px-4">
+                <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">{{ __('messages.cancel') }}</button>
+                <button type="submit" class="btn btn-info fw-bold px-4 shadow-sm text-white text-uppercase">Gửi phản hồi</button>
+            </div>
+        </form>
+    </div>
+</div>
+@endif
+
+@if($canReviewRejections)
+<!-- Modal Duyệt phản đối -->
+<div class="modal fade" id="reviewRejectionsModal" tabindex="-1" aria-labelledby="reviewRejectionsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <form action="{{ route('audits.review_rejections', $audit->id) }}" method="POST" class="modal-content border-0 shadow-lg rounded-4">
+            @csrf
+            <div class="modal-header bg-danger bg-opacity-10 border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2" id="reviewRejectionsModalLabel">
+                    <svg class="text-danger" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
+                    </svg>
+                    {{ __('messages.audit_review_dispute_modal_title') }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body py-4">
+                <p class="text-muted mb-4">{{ __('messages.audit_review_dispute_modal_desc') }}</p>
+
+                @foreach($rejectedResultsPendingAudit as $index => $result)
+                <div class="card bg-light border-0 shadow-sm mb-4 rounded-3">
+                    <div class="card-header bg-danger bg-opacity-10 text-danger fw-bold border-0 py-3">
+                        <div class="d-flex gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 mt-1">
+                                <circle cx="12" cy="12" r="10" />
+                                <line x1="12" y1="8" x2="12" y2="12" />
+                                <line x1="12" y1="16" x2="12.01" y2="16" />
+                            </svg>
+                            <div>
+                                <div class="fs-6">{{ $result->criterion ? $result->criterion->content : 'Hạng mục đã xóa' }}</div>
+                                <div class="fw-normal small mt-1">Lỗi ban đầu: {{ $result->note }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3 p-3 bg-white border rounded">
+                            <span class="fw-bold text-secondary d-block mb-1">{{ __('messages.audit_dispute_reason_label') }}</span>
+                            <span class="text-dark">{{ $result->department_reject_reason }}</span>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">{{ __('messages.audit_decision_label') }} <span class="text-danger">*</span></label>
+                            <select class="form-select bg-white" name="rejections[{{ $result->id }}][decision]" required>
+                                <option value="" disabled selected>{{ __('messages.audit_choose_decision') }}</option>
+                                <option value="1">{{ __('messages.audit_accept_dispute_option') }}</option>
+                                <option value="0">{{ __('messages.audit_reject_dispute_option') }}</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                @endforeach
+            </div>
+            <div class="modal-footer border-top-0 pt-0 pb-4 px-4">
+                <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">{{ __('messages.cancel') }}</button>
+                <button type="submit" class="btn btn-danger fw-bold px-4 shadow-sm text-white text-uppercase">{{ __('messages.audit_save_decision') }}</button>
+            </div>
+        </form>
+    </div>
+</div>
+@endif
 
 @if($canImprove)
 <!-- Modal Cải thiện -->
@@ -305,9 +486,9 @@ return $today->gte($deadline);
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body py-4">
-                <p class="text-muted mb-4">Vui lòng điền đầy đủ kế hoạch cải thiện cho các hạng mục bị đánh giá lỗi dưới đây.</p>
+                <p class="text-muted mb-4">{{ __('messages.audit_improvement_form_desc') }}</p>
 
-                @foreach($failedResults as $index => $result)
+                @foreach($improveableResults as $index => $result)
                 <div class="card bg-light border-0 shadow-sm mb-4 rounded-3">
                     <div class="card-header bg-danger bg-opacity-10 text-danger fw-bold border-0 py-3">
                         <div class="d-flex gap-2">
@@ -376,7 +557,7 @@ return $today->gte($deadline);
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body py-4">
-                <p class="text-muted mb-4">Vui lòng chụp ảnh và nhận xét các hạng mục đã được báo cáo cải thiện dưới đây.</p>
+                <p class="text-muted mb-4">{{ __('messages.audit_re_evaluate_photo') }}</p>
 
                 @foreach($reviewableResults as $index => $result)
                 <div class="card bg-light border-0 shadow-sm mb-4 rounded-3 text-dark">
@@ -387,8 +568,8 @@ return $today->gte($deadline);
                                 <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
                             </svg>
                             <div>
-                                <div class="fs-6">{{ $result->criterion ? $result->criterion->content : 'Hạng mục đã xóa' }}</div>
-                                <div class="fw-normal small mt-1 text-muted">Báo cải thiện bởi: {{ $result->improver_name }}</div>
+                                <div class="fs-6">{{ $result->criterion ? $result->criterion->content : __('messages.question_deleted') }}</div>
+                                <div class="fw-normal small mt-1 text-muted">{{ __('messages.audit_improvement_reported_by') }} {{ $result->improver_name }}</div>
                             </div>
                         </div>
                     </div>
