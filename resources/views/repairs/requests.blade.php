@@ -55,7 +55,17 @@
                     <td class="px-3 text-end">
                         <div class="d-flex align-items-center justify-content-end gap-2">
                             @role('team_leader|audit')
+                            @if($r->mechanic_id)
+                            @php
+                            $parts = explode(' ', $r->mechanic->name ?? __('messages.unknown_user'));
+                            $shortName = end($parts);
+                            @endphp
+                            <span class="badge bg-warning text-dark border px-3 py-2" title="{{ $r->mechanic->name ?? '' }}">
+                                🔒 {{ __('messages.being_repaired_by') }} {{ $shortName }}
+                            </span>
+                            @else
                             <span class="badge bg-light text-secondary border px-3 py-2">Chỉ xem</span>
+                            @endif
                             @else
                             @if($r->mechanic_id)
                             @if($r->mechanic_id === auth()->id())
