@@ -7,7 +7,7 @@
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="m15 18-6-6 6-6" />
         </svg>
-        Quay lại
+        {{ __('messages.back') }}
     </a>
 
     @if(session('success'))
@@ -22,9 +22,9 @@
     {{-- Header card --}}
     <div class="card border-0 shadow-sm rounded-4 mb-4 bg-dark text-white overflow-hidden">
         <div class="card-body p-4">
-            <div class="text-white-50 text-uppercase fw-bold small mb-1">MẪU ĐÁNH GIÁ</div>
+            <div class="text-white-50 text-uppercase fw-bold small mb-1">{{ __('messages.audit_template_label') }}</div>
             <div class="h5 fw-bold mb-0">{{ __($audit->template->name) }}</div>
-            <div class="mt-2 text-white-50 small">Tổ: <strong class="text-info">{{ $audit->template->department_name }}</strong></div>
+            <div class="mt-2 text-white-50 small">{{ __('messages.department') }}: <strong class="text-info">{{ __('messages.' . $audit->template->department_name) }}</strong></div>
         </div>
     </div>
 
@@ -71,7 +71,7 @@
                     </div>
 
                     {{-- Khu vực lỗi: chỉ hiện khi chọn Lỗi --}}
-                    <div class="note-container" style="display: {{ !$result->is_passed ? 'block' : 'none' }};">
+                    <div class="note-container" @if($result->is_passed) style="display: none;" @endif>
                         {{-- Ghi chú lỗi --}}
                         <div class="mb-3">
                             <label class="form-label text-danger fw-semibold d-flex align-items-center gap-1 mb-2">

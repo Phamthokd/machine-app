@@ -10,7 +10,7 @@ use Illuminate\Http\Request;
 
 class AuditController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         // Get list of active templates for creating new audits
         $templates = AuditTemplate::where('is_active', true)->get();
@@ -18,7 +18,7 @@ class AuditController extends Controller
 
         $query = AuditRecord::with('template', 'auditor', 'results');
 
-        // Filter by managed department if the user has one
+        // 1. Authorization/Base Filter: Filter by managed department if the user has one
         if (!empty($user->managed_department)) {
             $mappedDept = $user->managed_department === 'Bán thành phẩm' ? 'BTP' : $user->managed_department;
             $query->whereHas('template', function ($q) use ($mappedDept) {
@@ -26,7 +26,22 @@ class AuditController extends Controller
             });
         }
 
-        $audits = $query->orderByDesc('created_at')->paginate(20);
+        // 2. User Filters for History
+        if ($request->filled('history_dept') && $request->history_dept !== 'all') {
+            $query->whereHas('template', function ($q) use ($request) {
+                $q->where('department_name', $request->history_dept);
+            });
+        }
+
+        if ($request->filled('start_date')) {
+            $query->whereDate('created_at', '>=', $request->start_date);
+        }
+
+        if ($request->filled('end_date')) {
+            $query->whereDate('created_at', '<=', $request->end_date);
+        }
+
+        $audits = $query->orderByDesc('created_at')->paginate(20)->withQueryString();
 
         return view('audits.index', compact('templates', 'audits'));
     }

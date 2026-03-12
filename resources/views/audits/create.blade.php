@@ -11,7 +11,7 @@
             {{ __('messages.back') }}
         </a>
         <h3 class="fw-bold mb-1">{{ __($template->name) }}</h3>
-        <p class="text-secondary mb-0">{{ __('messages.department') }}: <span class="badge bg-primary">{{ __($template->department_name) }}</span></p>
+        <p class="text-secondary mb-0">{{ __('messages.department') }}: <span class="badge bg-primary">{{ __('messages.' . $template->department_name) }}</span></p>
     </div>
 
     @if ($errors->any())
@@ -75,7 +75,7 @@
                     </div>
 
                     <!-- Khu vực nhập ghi chú và ảnh (Chỉ hiện khi chọn Không Đạt) -->
-                    <div class="note-container" style="display: {{ old("results.{$index}.is_passed") === "0" ? 'block' : 'none' }};">
+                    <div class="note-container" @if(old("results.{$index}.is_passed") !== "0") style="display: none;" @endif>
                         <!-- Ghi chú lỗi -->
                         <div class="mb-3">
                             <label class="form-label text-danger fw-semibold d-flex align-items-center gap-1 mb-2">

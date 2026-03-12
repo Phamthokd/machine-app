@@ -4,13 +4,27 @@ $isFullyReviewed = $audit->results->contains(function($r) { return !empty($r->im
 $audit->results->filter(function($r) { return !empty($r->improver_name) && empty($r->reviewer_name); })->isEmpty();
 
 // Quyền truy cập
+$userDept = auth()->user()->managed_department;
+$templateName = $audit->template->name;
+$isAdmin = auth()->user()->hasRole('admin');
+
 $isDepartmentUser = \Illuminate\Support\Facades\Auth::check() && (
-(auth()->user()->managed_department === 'Bán thành phẩm' && $audit->template->name === 'Đánh giá bộ phận BTP') ||
-(auth()->user()->managed_department === 'Phòng mẫu' && $audit->template->name === 'Đánh giá bộ phận Phòng mẫu') ||
-(auth()->user()->managed_department === 'Kiểm vải' && $audit->template->name === 'Đánh giá bộ phận Kiểm vải') ||
-(in_array(auth()->user()->managed_department, ['Xưởng 6 tầng 1', 'Xưởng 6 Tầng 1']) && $audit->template->name === 'Đánh giá Xưởng 6 tầng 1') ||
-(in_array(auth()->user()->managed_department, ['Xưởng 6 tầng 2', 'Xưởng 6 Tầng 2']) && $audit->template->name === 'Đánh giá Xưởng 6 tầng 2') ||
-(auth()->user()->managed_department === 'Thêu' && $audit->template->name === 'Đánh giá bộ phận Thêu')
+    $isAdmin ||
+    ($userDept === 'Bán thành phẩm' && ($templateName === 'Đánh giá bộ phận BTP' || $templateName === 'messages.audit_template_btp')) ||
+    ($userDept === 'Phòng mẫu' && ($templateName === 'Đánh giá bộ phận Phòng mẫu' || $templateName === 'messages.audit_template_phong_mau')) ||
+    ($userDept === 'Kiểm vải' && ($templateName === 'Đánh giá bộ phận Kiểm vải' || $templateName === 'messages.audit_template_kiem_vai')) ||
+    (in_array($userDept, ['Xưởng 6 tầng 1', 'Xưởng 6 Tầng 1']) && ($templateName === 'Đánh giá Xưởng 6 tầng 1' || $templateName === 'messages.audit_template_x6_t1')) ||
+    (in_array($userDept, ['Xưởng 6 tầng 2', 'Xưởng 6 Tầng 2']) && ($templateName === 'Đánh giá Xưởng 6 tầng 2' || $templateName === 'messages.audit_template_x6_t2')) ||
+    ($userDept === 'Thêu' && ($templateName === 'Đánh giá bộ phận Thêu' || $templateName === 'messages.audit_template_theu')) ||
+    ($userDept === 'May lập trình' && ($templateName === 'messages.audit_template_may_lap_trinh')) ||
+    ($userDept === 'Kế toán' && ($templateName === 'messages.audit_template_ke_toan')) ||
+    ($userDept === 'Sale + Đơn hàng' && ($templateName === 'messages.audit_template_sale_don_hang')) ||
+    ($userDept === 'Kho vải + PL' && ($templateName === 'messages.audit_template_kho_vai_pl')) ||
+    ($userDept === 'Nhà cắt' && ($templateName === 'messages.audit_template_nha_cat')) ||
+    ($userDept === 'Nhà giặt' && ($templateName === 'messages.audit_template_nha_giat')) ||
+    ($userDept === 'Thống kê tổng' && ($templateName === 'messages.audit_template_thong_ke_tong')) ||
+    ($userDept === 'IE' && ($templateName === 'messages.audit_template_ie')) ||
+    ($userDept === 'KHSX' && ($templateName === 'messages.audit_template_khsx'))
 );
 $isAuditUser = \Illuminate\Support\Facades\Auth::check()
 && (auth()->user()->hasRole('audit') || auth()->user()->hasRole('admin'))
@@ -18,15 +32,15 @@ $isAuditUser = \Illuminate\Support\Facades\Auth::check()
 
 // Phân loại lỗi
 $unrespondedResults = $failedResults->filter(function($r) {
-return is_null($r->department_agreement);
+    return is_null($r->department_agreement);
 });
 
 $rejectedResultsPendingAudit = $failedResults->filter(function($r) {
-return $r->department_agreement === false && is_null($r->audit_rejection_decision);
+    return $r->department_agreement === false && is_null($r->audit_rejection_decision);
 });
 
 $improveableResults = $failedResults->filter(function($r) {
-return $r->department_agreement === true || $r->audit_rejection_decision === false;
+    return $r->department_agreement === true || $r->audit_rejection_decision === false;
 });
 
 // Điều kiện hiển thị các nút
@@ -41,15 +55,15 @@ $canReview = $isAuditUser && (!$isFullyReviewed || (auth()->check() && auth()->u
 
 // Lấy danh sách cải thiện cần Audit duyệt KQ
 $reviewableResults = $audit->results->filter(function($r) {
-if (empty($r->improver_name) || !empty($r->reviewer_name)) {
-return false;
-}
-if (empty($r->improvement_deadline)) {
-return true;
-}
-$today = \Carbon\Carbon::now()->startOfDay();
-$deadline = \Carbon\Carbon::parse($r->improvement_deadline)->startOfDay();
-return $today->gte($deadline);
+    if (empty($r->improver_name) || !empty($r->reviewer_name)) {
+        return false;
+    }
+    if (empty($r->improvement_deadline)) {
+        return true;
+    }
+    $today = \Carbon\Carbon::now()->startOfDay();
+    $deadline = \Carbon\Carbon::parse($r->improvement_deadline)->startOfDay();
+    return $today->gte($deadline);
 });
 @endphp
 
@@ -57,21 +71,98 @@ return $today->gte($deadline);
 @section('title', __('messages.audit_detail'))
 
 @section('content')
-<div class="mb-4">
-    <a href="/audits" class="text-decoration-none text-secondary d-flex align-items-center gap-1 mb-2">
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+<style>
+    :root {
+        --glass-bg: rgba(255, 255, 255, 0.85);
+        --glass-border: rgba(255, 255, 255, 0.4);
+        --primary-gradient: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    }
+
+    .btn-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: #64748b;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.2s;
+        margin-bottom: 1.5rem;
+    }
+
+    .btn-back:hover {
+        color: #3b82f6;
+        transform: translateX(-4px);
+    }
+
+    .detail-card {
+        background: white;
+        border-radius: 1.25rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        border: none;
+    }
+
+    .info-bar {
+        background: #1e293b;
+        color: white;
+        border-radius: 1.25rem;
+        padding: 2rem;
+        margin-bottom: 2.5rem;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+
+    .result-card {
+        border-radius: 1rem;
+        border: 1px solid #f1f5f9;
+        transition: all 0.2s;
+        background: white;
+    }
+
+    .result-card:hover {
+        border-color: #cbd5e1;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .status-indicator {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+    }
+
+    .photo-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 12px;
+    }
+
+    .photo-thumb {
+        aspect-ratio: 1;
+        border-radius: 12px;
+        overflow: hidden;
+        border: 2px solid #eef2f6;
+    }
+
+    .photo-thumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+</style>
+
+<div class="mb-5">
+    <a href="/audits" class="btn-back">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <path d="m15 18-6-6 6-6" />
         </svg>
         {{ __('messages.back') }}
     </a>
 
     @if(session('success'))
-    <div class="alert alert-success border-0 shadow-sm rounded-3 mb-3">
+    <div class="alert alert-success border-0 shadow-sm rounded-4 mb-4 pulse">
         {{ session('success') }}
     </div>
     @endif
     @if ($errors->any())
-    <div class="alert alert-danger border-0 shadow-sm rounded-3 mb-3">
+    <div class="alert alert-danger border-0 shadow-sm rounded-4 mb-4">
         <ul class="mb-0">
             @foreach ($errors->all() as $error)
             <li>{{ $error }}</li>
@@ -80,76 +171,65 @@ return $today->gte($deadline);
     </div>
     @endif
 
-    <div class="d-flex align-items-center flex-wrap gap-3 mb-2">
+    <div class="d-flex align-items-center flex-wrap justify-content-between gap-4 mb-4">
         <div class="d-flex align-items-center gap-3">
-            <h3 class="fw-bold mb-0">{{ __('messages.audit_detail_id') }} #{{ $audit->id }}</h3>
-            <span class="badge bg-success bg-opacity-10 text-success border border-success">{{ __('messages.audit_completed') }}</span>
+            <div class="card-icon" style="width: 56px; height: 56px; background: #eff6ff; color: #2563eb; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">#</div>
+            <div>
+                <h2 class="h3 fw-bold mb-1">{{ __('messages.audit_detail_id') }} #{{ $audit->id }}</h2>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="status-badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 shadow-none" style="padding: 2px 10px;">{{ __('messages.audit_completed') }}</span>
+                    <span class="text-muted small">🕒 {{ $audit->created_at->format('H:i d/m/Y') }}</span>
+                </div>
+            </div>
         </div>
-        <div class="ms-auto d-flex align-items-center gap-2">
+        <div class="d-flex flex-wrap align-items-center gap-2">
             @if($canRespond)
-            <button type="button" class="btn btn-sm btn-info d-flex align-items-center gap-2 text-white" data-bs-toggle="modal" data-bs-target="#respondModal">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                </svg>
-                Phản hồi
+            <button type="button" class="btn btn-info shadow-sm fw-bold px-4 text-white rounded-3" data-bs-toggle="modal" data-bs-target="#respondModal">
+                {{ __('messages.audit_respond_btn') }}
             </button>
             @endif
             @if($canReviewRejections)
-            <button type="button" class="btn btn-sm btn-danger d-flex align-items-center gap-2 text-white" data-bs-toggle="modal" data-bs-target="#reviewRejectionsModal">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
-                </svg>
-                Duyệt phản đối
+            <button type="button" class="btn btn-danger shadow-sm fw-bold px-4 text-white rounded-3" data-bs-toggle="modal" data-bs-target="#reviewRejectionsModal">
+                {{ __('messages.audit_review_dispute_modal_title') }}
             </button>
             @endif
             @if($canImprove)
-            <button type="button" class="btn btn-sm btn-warning d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#improvementModal">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 20h9" />
-                    <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
-                </svg>
-                Cải thiện
+            <button type="button" class="btn btn-warning shadow-sm fw-bold px-4 rounded-3" data-bs-toggle="modal" data-bs-target="#improvementModal">
+                {{ __('messages.improvement_plan') }}
             </button>
             @endif
             @if(auth()->user()->hasRole('admin') || (auth()->user()->hasRole('audit') && empty(auth()->user()->managed_department)))
-            <a href="{{ route('audits.edit', $audit->id) }}" class="btn btn-sm btn-outline-warning d-flex align-items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 20h9" />
-                    <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
-                </svg>
-                Sửa phiếu
+            <a href="{{ route('audits.edit', $audit->id) }}" class="btn btn-outline-warning fw-bold px-4 rounded-3">
+                {{ __('messages.edit_audit') ?? 'Sửa phiếu' }}
             </a>
             @endif
-            <a href="{{ route('audits.export_detail', $audit->id) }}" class="btn btn-sm btn-outline-success d-flex align-items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                    <polyline points="7 10 12 15 17 10" />
-                    <line x1="12" y1="15" x2="12" y2="3" />
-                </svg>
+            <a href="{{ route('audits.export_detail', $audit->id) }}" class="btn btn-light border fw-bold px-4 rounded-3 text-success d-flex align-items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
                 Xuất Excel
             </a>
         </div>
     </div>
-    <div class="text-muted mb-4">
-        <span>🕒 {{ __('messages.time') }}: <strong>{{ $audit->created_at->format('H:i d/m/Y') }}</strong></span>
-        <span class="mx-2">•</span>
-        <span>👤 {{ __('messages.auditor_name') }} <strong>{{ $audit->auditor->name ?? 'N/A' }}</strong></span>
-    </div>
 
     <!-- Thông tin tổ/bộ phận -->
-    <div class="card border-0 shadow-sm rounded-4 mb-4 bg-dark text-white overflow-hidden">
-        <div class="card-body p-4">
-            <div class="row align-items-center">
-                <div class="col-md-8">
-                    <div class="text-white-50 text-uppercase fw-bold text-xs mb-1">{{ __('messages.audit_template_label') }}</div>
-                    <div class="h4 fw-bold mb-1">{{ __($audit->template->name) }}</div>
+    <div class="info-bar">
+        <div class="row g-4 align-items-center">
+            <div class="col-md-6">
+                <div class="text-white-50 text-uppercase fw-bold small mb-2" style="letter-spacing: 0.1em">{{ __('messages.audit_template_label') }}</div>
+                <h3 class="h2 fw-bold mb-0">{{ __($audit->template->name) }}</h3>
+                <div class="mt-3 d-flex align-items-center gap-3">
+                    <div class="d-flex align-items-center gap-2 bg-white bg-opacity-10 px-3 py-1 rounded-pill">
+                        <span class="text-white-50 small">👤</span>
+                        <span class="small fw-medium">{{ $audit->auditor->name ?? 'N/A' }}</span>
+                    </div>
                 </div>
-                <div class="col-md-4 text-md-end mt-3 mt-md-0">
-                    <div class="text-white-50 text-uppercase fw-bold text-xs mb-1">{{ __('messages.department') }}</div>
-                    <div class="h5 fw-bold mb-2 text-info">{{ __($audit->template->department_name) }}</div>
-                    <div class="d-inline-flex align-items-center gap-2 bg-white bg-opacity-10 px-3 py-2 rounded-3 border border-white border-opacity-10">
-                        <span class="text-white-50 text-uppercase fw-bold text-xs">Điểm số:</span>
-                        <span class="fs-5 fw-bold {{ $audit->score == 100 ? 'text-success' : ($audit->score >= 80 ? 'text-warning' : 'text-danger') }}">{{ $audit->score }}%</span>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <div class="d-inline-block text-start text-md-end">
+                    <div class="text-white-50 text-uppercase fw-bold small mb-2" style="letter-spacing: 0.1em">{{ __('messages.department') }}</div>
+                    <h4 class="h5 fw-bold text-info mb-4">{{ __('messages.' . $audit->template->department_name) }}</h4>
+                    <div class="d-inline-flex flex-column align-items-md-end gap-1">
+                        <div class="text-white-50 text-uppercase fw-bold small" style="letter-spacing: 0.1em">Tỷ lệ đạt chuẩn:</div>
+                        <div class="h1 fw-black display-5 mb-0 {{ $audit->score == 100 ? 'text-success' : ($audit->score >= 80 ? 'text-warning' : 'text-danger') }}">{{ $audit->score }}%</div>
                     </div>
                 </div>
             </div>
@@ -157,23 +237,34 @@ return $today->gte($deadline);
     </div>
 
     <!-- Danh sách kết quả -->
-    <h4 class="h5 mb-3 fw-bold text-dark mt-5">{{ __('messages.actual_inspection_result') }}</h4>
-    <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-5">
-        <div class="card-body p-0">
-            @forelse($audit->results as $index => $result)
-            <div class="p-4 {{ !$loop->last ? 'border-bottom' : '' }} bg-white">
-                <div class="d-flex align-items-start gap-3">
+    <div class="d-flex align-items-center justify-content-between mb-4 mt-5">
+        <h4 class="h5 fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+            <span style="width: 4px; height: 24px; background: #2563eb; border-radius: 4px; display: inline-block;"></span>
+            {{ __('messages.actual_inspection_result') }}
+        </h4>
+        <div class="text-muted small fw-medium">
+            Tổng cộng: <strong>{{ $audit->results->count() }}</strong> hạng mục
+        </div>
+    </div>
+
+    <div class="results-container d-grid gap-4">
+        @forelse($audit->results as $index => $result)
+        <div class="result-card p-0 overflow-hidden shadow-sm">
+            <div class="p-4">
+                <div class="d-flex align-items-start gap-4">
                     <!-- Icon status -->
-                    <div class="mt-1 flex-shrink-0">
+                    <div class="flex-shrink-0">
                         @if($result->is_passed)
-                        <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 32px; height: 32px;">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center shadow-sm"
+                             style="width: 48px; height: 48px; background: #f0fdf4; color: #16a34a; border: 2px solid #bcf0da;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
                                 <polyline points="20 6 9 17 4 12"></polyline>
                             </svg>
                         </div>
                         @else
-                        <div class="bg-danger text-white rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 32px; height: 32px;">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center shadow-sm"
+                             style="width: 48px; height: 48px; background: #fef2f2; color: #dc2626; border: 2px solid #fecaca;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
                                 <line x1="18" y1="6" x2="6" y2="18"></line>
                                 <line x1="6" y1="6" x2="18" y2="18"></line>
                             </svg>
@@ -181,172 +272,165 @@ return $today->gte($deadline);
                         @endif
                     </div>
 
-                    <!-- Tiêu đề & Ghi chú -->
+                    <!-- Nội dung chính -->
                     <div class="flex-grow-1">
-                        <h5 class="fw-bold text-dark lh-base fs-6 mb-1">
-                            {{ $result->criterion ? __($result->criterion->content) : __('messages.question_deleted') }}
-                        </h5>
+                        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-2">
+                            <h5 class="fw-bold text-dark lh-base fs-6 mb-0" style="max-width: 80%; text-wrap: balance;">
+                                {{ $result->criterion ? __($result->criterion->content) : __('messages.question_deleted') }}
+                            </h5>
+                            <div class="text-end">
+                                @if($result->is_passed)
+                                <span class="status-badge bg-success bg-opacity-10 text-success border-success border-opacity-25">{{ __('messages.audit_pass') }}</span>
+                                @if($result->audit_rejection_decision === true)
+                                <div class="mt-1 small text-info fw-bold">✓ Đã được huỷ lỗi</div>
+                                @endif
+                                @else
+                                <span class="status-badge bg-danger bg-opacity-10 text-danger border-danger border-opacity-25">{{ __('messages.audit_fail') }}</span>
+                                @endif
+                            </div>
+                        </div>
 
                         @if(!$result->is_passed)
-                        <div class="mt-2 bg-danger bg-opacity-10 border border-danger border-opacity-25 rounded p-3 text-danger mb-3">
-                            <div class="fw-bold d-flex align-items-center gap-1 mb-1">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
-                                    <polyline points="14 2 14 8 20 8"></polyline>
-                                    <line x1="16" y1="13" x2="8" y2="13"></line>
-                                    <line x1="16" y1="17" x2="8" y2="17"></line>
-                                    <polyline points="10 9 9 9 8 9"></polyline>
-                                </svg>
-                                {{ __('messages.detected_error_content') }}
-                            </div>
-                            <div style="white-space: pre-wrap;" class="mb-2">{{ $result->note }}</div>
+                        <!-- Chi tiết lỗi -->
+                        <div class="mt-4 p-4 rounded-4 bg-light border border-dashed border-danger border-opacity-25">
+                            <div class="d-flex align-items-start gap-3">
+                                <div class="flex-grow-1">
+                                    <div class="text-danger fw-bold small text-uppercase mb-2 d-flex align-items-center gap-2" style="letter-spacing: 0.05em">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                                        {{ __('messages.detected_error_content') }}
+                                    </div>
+                                    <div class="text-dark fs-6" style="white-space: pre-wrap;">{{ $result->note }}</div>
 
-                            @if(!empty($result->image_path))
-                            <div class="mt-3">
-                                <div class="fw-bold d-flex align-items-center gap-1 mb-2 text-secondary">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                                        <circle cx="8.5" cy="8.5" r="1.5" />
-                                        <polyline points="21 15 16 10 5 21" />
-                                    </svg>
-                                    {{ __('messages.attached_image') }}
+                                    @if(!empty($result->image_path))
+                                    <div class="mt-4">
+                                        <div class="small fw-bold text-secondary mb-2">📸 Hình ảnh minh chứng:</div>
+                                        <div class="photo-grid">
+                                            @foreach((array)$result->image_path as $path)
+                                            <div class="photo-thumb shadow-sm">
+                                                <a href="/{{ $path }}" target="_blank">
+                                                    <img src="/{{ $path }}" alt="Lỗi">
+                                                </a>
+                                            </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                    @endif
                                 </div>
-                                <div class="d-flex flex-wrap gap-2 mt-2">
-                                    @foreach((array)$result->image_path as $path)
-                                    <a href="/{{ $path }}" target="_blank">
-                                        <img src="/{{ $path }}" class="img-fluid rounded border shadow-sm" style="max-height: 200px; object-fit: contain;" alt="Lỗi đính kèm">
-                                    </a>
-                                    @endforeach
-                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Trạng thái phản hồi -->
+                        @if($result->department_agreement === false)
+                        <div class="mt-4 p-4 rounded-4 bg-warning bg-opacity-10 border border-warning border-opacity-25">
+                            <div class="d-flex align-items-center gap-2 text-warning fw-bold small text-uppercase mb-3">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                                Lời phản đối từ bộ phận
+                            </div>
+                            <div class="bg-white p-3 rounded-3 shadow-sm text-dark fs-6 mb-3" style="white-space: pre-wrap;">{{ $result->department_reject_reason }}</div>
+
+                            @if(is_null($result->audit_rejection_decision))
+                            <div class="d-inline-flex align-items-center gap-2 text-secondary small fw-medium">
+                                <span class="pulse-dot"></span> Đang chờ Audit phê duyệt phản đối
+                            </div>
+                            @elseif($result->audit_rejection_decision === false)
+                            <div class="text-danger small fw-bold d-flex align-items-center gap-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                                Audit đã bác bỏ phản đối này
                             </div>
                             @endif
                         </div>
-
-                        @if($result->department_reject_reason)
-                        <div class="bg-secondary bg-opacity-10 border border-secondary border-opacity-25 rounded p-3 text-dark mb-3">
-                            <h6 class="fw-bold text-secondary mb-3 d-flex align-items-center gap-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                                </svg>
-                                Lời phản đối từ bộ phận
-                            </h6>
-                            <div class="row g-3">
-                                <div class="col-md-12">
-                                    <div style="white-space: pre-wrap;">{{ $result->department_reject_reason }}</div>
-                                </div>
-                            </div>
+                        @elseif($result->department_agreement === true)
+                        <div class="mt-3 text-success small fw-bold d-flex align-items-center gap-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11 3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                            Bộ phận đã xác nhận lỗi
                         </div>
                         @endif
 
+                        <!-- Kế hoạch cải thiện -->
                         @if($result->root_cause)
-                        <div class="bg-warning bg-opacity-10 border border-warning border-opacity-25 rounded p-3 text-dark mb-3">
-                            <h6 class="fw-bold text-warning mb-3 d-flex align-items-center gap-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M12 20h9" />
-                                    <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
-                                </svg>
+                        <div class="mt-4 p-4 rounded-4 bg-info bg-opacity-10 border border-info border-opacity-25">
+                            <div class="text-info fw-bold small text-uppercase mb-3 d-flex align-items-center gap-2" style="letter-spacing: 0.05em">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
                                 {{ __('messages.improvement_plan') }}
-                            </h6>
-                            <div class="row g-3">
-                                <div class="col-md-12">
+                            </div>
+                            <div class="row g-4">
+                                <div class="col-md-6">
                                     <div class="text-muted small fw-bold mb-1">{{ __('messages.root_cause') }}</div>
-                                    <div style="white-space: pre-wrap;">{{ $result->root_cause }}</div>
+                                    <div class="bg-white p-3 rounded-3 shadow-sm text-dark">{{ $result->root_cause }}</div>
                                 </div>
-                                <div class="col-md-12">
+                                <div class="col-md-6">
                                     <div class="text-muted small fw-bold mb-1">{{ __('messages.corrective_action') }}</div>
-                                    <div style="white-space: pre-wrap;">{{ $result->corrective_action }}</div>
+                                    <div class="bg-white p-3 rounded-3 shadow-sm text-dark">{{ $result->corrective_action }}</div>
                                 </div>
-                                <div class="col-md-12">
+                                <div class="col-md-4">
                                     <div class="text-muted small fw-bold mb-1">{{ __('messages.improvement_deadline') }}</div>
-                                    <div>{{ \Carbon\Carbon::parse($result->improvement_deadline)->format('d/m/Y') }}</div>
+                                    <div class="fw-bold">{{ \Carbon\Carbon::parse($result->improvement_deadline)->format('d/m/Y') }}</div>
                                 </div>
                                 @if($result->improver_name)
-                                <div class="col-md-12">
+                                <div class="col-md-4">
                                     <div class="text-muted small fw-bold mb-1">{{ __('messages.improver') }}</div>
                                     <div class="fw-bold text-dark">{{ $result->improver_name }}</div>
                                 </div>
                                 @endif
+                                <div class="col-md-4 text-md-end pt-3">
+                                    @if($result->reviewer_name)
+                                    <span class="badge bg-success px-3 py-2 rounded-pill fw-bold">✓ ĐÃ HOÀN THÀNH</span>
+                                    @else
+                                    <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-bold">⌛ ĐANG XỬ LÝ</span>
+                                    @endif
+                                </div>
                             </div>
-                        </div>
 
-                        @if($result->reviewer_name)
-                        <div class="bg-info bg-opacity-10 border border-info border-opacity-25 rounded p-3 text-dark">
-                            <h6 class="fw-bold text-info mb-3 d-flex align-items-center gap-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" />
-                                </svg>
-                                {{ __('messages.re_evaluation_result') }}
-                            </h6>
-                            <div class="row g-3">
-                                @if($result->review_note)
-                                <div class="col-md-12">
-                                    <div class="text-muted small fw-bold mb-1">{{ __('messages.audit_note') }}</div>
-                                    <div style="white-space: pre-wrap;">{{ $result->review_note }}</div>
+                            @if($result->reviewer_name)
+                            <div class="mt-4 border-top pt-4">
+                                <div class="text-success fw-bold small text-uppercase mb-3 d-flex align-items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+                                    {{ __('messages.re_evaluation_result') }}
                                 </div>
-                                @endif
-                                @if($result->review_image_path)
-                                @php
-                                // Fallback cho cả record cũ (lưu là public/audits/...) và mới (lưu là storage/audits/...)
-                                $r_img = str_starts_with($result->review_image_path, 'public/')
-                                ? '/' . str_replace('public/', 'storage/', $result->review_image_path)
-                                : '/' . ltrim($result->review_image_path, '/');
-                                @endphp
-                                <div class="col-md-12 mt-3">
-                                    <div class="text-muted small fw-bold mb-2">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1">
-                                            <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
-                                            <circle cx="12" cy="13" r="3" />
-                                        </svg>
-                                        {{ __('messages.improved_image') }}
+                                <div class="bg-white p-4 rounded-4 shadow-sm">
+                                    @if($result->review_note)
+                                    <div class="mb-3">
+                                        <div class="text-muted small fw-bold mb-1">{{ __('messages.audit_note') }}</div>
+                                        <div class="fs-6">{{ $result->review_note }}</div>
                                     </div>
-                                    <a href="{{ $r_img }}" target="_blank" class="d-inline-block position-relative rounded overflow-hidden shadow-sm" style="border: 2px solid #e2e8f0; width: 120px; height: 120px;">
-                                        <img src="{{ $r_img }}" alt="Review Image" class="w-100 h-100" style="object-fit: cover; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-                                    </a>
-                                </div>
-                                @endif
-                                <div class="col-md-12 mt-3">
-                                    <div class="d-flex align-items-center gap-3 text-muted small">
-                                        <span>👤 {{ __('messages.audit_recorded_by') }} <strong class="text-dark">{{ $result->reviewer_name }}</strong></span>
-                                        <span>🕒 Thời gian: <strong>{{ \Carbon\Carbon::parse($result->reviewed_at)->format('H:i d/m/Y') }}</strong></span>
+                                    @endif
+                                    @if($result->review_image_path)
+                                    @php
+                                        $r_img = str_starts_with($result->review_image_path, 'public/')
+                                        ? '/storage/' . str_replace('public/', '', $result->review_image_path)
+                                        : '/' . ltrim($result->review_image_path, '/');
+                                    @endphp
+                                    <div class="mb-3">
+                                        <div class="text-muted small fw-bold mb-2">📸 Hình ảnh cải thiện:</div>
+                                        <div class="photo-thumb" style="width: 150px; height: 150px">
+                                            <a href="{{ $r_img }}" target="_blank">
+                                                <img src="{{ $r_img }}" alt="Review Image">
+                                            </a>
+                                        </div>
+                                    </div>
+                                    @endif
+                                    <div class="mt-3 p-3 bg-light rounded-3 d-flex align-items-center gap-4 text-muted small">
+                                        <span>👤 Người duyệt: <strong class="text-dark">{{ $result->reviewer_name }}</strong></span>
+                                        <span>📅 Thời gian: <strong class="text-dark">{{ \Carbon\Carbon::parse($result->reviewed_at)->format('H:i d/m/Y') }}</strong></span>
                                     </div>
                                 </div>
                             </div>
+                            @endif
                         </div>
-                        @endif
-                        @endif
-                        @endif
-                    </div>
-
-                    <!-- Status text badge -->
-                    <div class="flex-shrink-0 ms-3 d-none d-md-block text-end">
-                        @if($result->is_passed)
-                        <span class="badge bg-success bg-opacity-10 text-success border border-success px-3 py-2 fs-6 mb-2 d-block">{{ __('messages.audit_pass') }}</span>
-                        @if($result->audit_rejection_decision === true)
-                        <span class="badge bg-info bg-opacity-10 text-info border border-info px-2 py-1">Đã được huỷ lỗi</span>
-                        @endif
-                        @else
-                        @if($result->department_agreement === false && is_null($result->audit_rejection_decision))
-                        <span class="badge bg-warning bg-opacity-10 text-warning border border-warning px-3 py-2 fs-6 d-block">{{ __('messages.audit_fail') }}</span>
-                        <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary px-2 py-1 mt-2 d-block">Đang chờ Audit duyệt phản đối</span>
-                        @elseif($result->department_agreement === false && $result->audit_rejection_decision === false)
-                        <span class="badge bg-danger bg-opacity-10 text-danger border border-danger px-3 py-2 fs-6 d-block">{{ __('messages.audit_fail') }}</span>
-                        <span class="badge bg-danger bg-opacity-10 text-danger border border-danger px-2 py-1 mt-2 d-block text-wrap" style="max-width: 150px">Audit đã bác bỏ phản đối</span>
-                        @elseif($result->department_agreement === true)
-                        <span class="badge bg-danger bg-opacity-10 text-danger border border-danger px-3 py-2 fs-6 d-block">{{ __('messages.audit_fail') }}</span>
-                        <span class="badge bg-warning bg-opacity-10 text-warning border border-warning px-2 py-1 mt-2 d-block">Đã đồng ý lỗi</span>
-                        @else
-                        <span class="badge bg-danger bg-opacity-10 text-danger border border-danger px-3 py-2 fs-6 d-block">{{ __('messages.audit_fail') }}</span>
                         @endif
                         @endif
                     </div>
                 </div>
             </div>
-            @empty
-            <div class="p-5 text-center text-muted">
-                {{ __('messages.no_detailed_result') }}
-            </div>
-            @endforelse
         </div>
+        @empty
+        <div class="text-center py-5">
+            <div class="mb-3 text-muted">
+                <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>
+            </div>
+            <h5 class="text-muted fw-bold">{{ __('messages.no_detailed_result') }}</h5>
+        </div>
+        @endforelse
     </div>
 </div>
 
@@ -354,56 +438,54 @@ return $today->gte($deadline);
 <!-- Modal Phản hồi lỗi -->
 <div class="modal fade" id="respondModal" tabindex="-1" aria-labelledby="respondModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-        <form action="{{ route('audits.agreements', $audit->id) }}" method="POST" class="modal-content border-0 shadow-lg rounded-4">
+        <form action="{{ route('audits.agreements', $audit->id) }}" method="POST" class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
             @csrf
-            <div class="modal-header bg-info bg-opacity-10 border-bottom-0 pb-0">
-                <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2" id="respondModalLabel">
-                    <svg class="text-info" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                    </svg>
+            <div class="modal-header border-bottom-0 p-4 pb-0">
+                <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-3" id="respondModalLabel">
+                    <div class="rounded-3 bg-info bg-opacity-10 p-2 text-info">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    </div>
                     {{ __('messages.audit_feedback_modal_title') }}
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body py-4">
-                <p class="text-muted mb-4">{{ __('messages.audit_feedback_modal_desc') }}</p>
+            <div class="modal-body p-4">
+                <p class="text-muted mb-4 fs-6">{{ __('messages.audit_feedback_modal_desc') }}</p>
 
                 @foreach($unrespondedResults as $index => $result)
-                <div class="card bg-light border-0 shadow-sm mb-4 rounded-3">
-                    <div class="card-header bg-danger bg-opacity-10 text-danger fw-bold border-0 py-3">
-                        <div class="d-flex gap-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 mt-1">
-                                <circle cx="12" cy="12" r="10" />
-                                <line x1="12" y1="8" x2="12" y2="12" />
-                                <line x1="12" y1="16" x2="12.01" y2="16" />
-                            </svg>
-                            <div>
-                                <div class="fs-6">{{ $result->criterion ? $result->criterion->content : 'Hạng mục đã xóa' }}</div>
-                                <div class="fw-normal small mt-1">Lỗi: {{ $result->note }}</div>
+                <div class="card result-card shadow-none border mb-4 rounded-4 overflow-hidden">
+                    <div class="card-header bg-danger bg-opacity-10 text-danger fw-bold border-0 p-3">
+                        <div class="d-flex gap-3">
+                            <div class="bg-white rounded-circle p-1 d-flex align-items-center justify-content-center flex-shrink-0 shadow-sm" style="width: 28px; height: 28px;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="fs-6 lh-sm">{{ $result->criterion ? $result->criterion->content : 'Hạng mục đã xóa' }}</div>
+                                <div class="fw-normal small mt-1 text-danger-emphasis opacity-75">Ghi chú lỗi: {{ $result->note }}</div>
                             </div>
                         </div>
                     </div>
-                    <div class="card-body">
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">{{ __('messages.audit_decision_label') }} <span class="text-danger">*</span></label>
-                            <select class="form-select bg-white" name="agreements[{{ $result->id }}][department_agreement]" required
+                    <div class="card-body p-4">
+                        <div class="mb-4">
+                            <label class="form-label fw-bold small text-secondary text-uppercase" style="letter-spacing: 0.05em">{{ __('messages.audit_decision_label') }} <span class="text-danger">*</span></label>
+                            <select class="form-select border-0 bg-light rounded-3 py-2 px-3 fw-medium" name="agreements[{{ $result->id }}][department_agreement]" required
                                 onchange="document.getElementById('reject_reason_{{ $result->id }}').style.display = this.value === '0' ? 'block' : 'none';">
                                 <option value="" disabled selected>{{ __('messages.audit_choose_feedback') }}</option>
-                                <option value="1">{{ __('messages.audit_agree_error_option') }}</option>
-                                <option value="0">{{ __('messages.audit_dispute_error_option') }}</option>
+                                <option value="1">✅ {{ __('messages.audit_agree_error_option') }}</option>
+                                <option value="0">❌ {{ __('messages.audit_dispute_error_option') }}</option>
                             </select>
                         </div>
-                        <div class="mb-3" id="reject_reason_{{ $result->id }}" style="display: none;">
-                            <label class="form-label fw-bold">{{ __('messages.audit_dispute_reason_input_label') }} <span class="text-danger">*</span></label>
-                            <textarea class="form-control bg-white" name="agreements[{{ $result->id }}][department_reject_reason]" rows="3" placeholder="{{ __('messages.audit_dispute_reason_placeholder') }}"></textarea>
+                        <div class="mb-0 animate__animated animate__fadeIn" id="reject_reason_{{ $result->id }}" style="display: none;">
+                            <label class="form-label fw-bold small text-secondary text-uppercase" style="letter-spacing: 0.05em">{{ __('messages.audit_dispute_reason_input_label') }} <span class="text-danger">*</span></label>
+                            <textarea class="form-control border-0 bg-light rounded-3 py-2 px-3" name="agreements[{{ $result->id }}][department_reject_reason]" rows="3" placeholder="{{ __('messages.audit_dispute_reason_placeholder') }}"></textarea>
                         </div>
                     </div>
                 </div>
                 @endforeach
             </div>
-            <div class="modal-footer border-top-0 pt-0 pb-4 px-4">
-                <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">{{ __('messages.cancel') }}</button>
-                <button type="submit" class="btn btn-info fw-bold px-4 shadow-sm text-white text-uppercase">Gửi phản hồi</button>
+            <div class="modal-footer border-top-0 p-4 pt-0">
+                <button type="button" class="btn btn-light fw-bold px-4 rounded-3 h-48" data-bs-dismiss="modal">{{ __('messages.cancel') }}</button>
+                <button type="submit" class="btn btn-info fw-bold px-4 rounded-3 h-48 text-white shadow-sm flex-grow-1">GỬI PHẢN HỒI HỆ THỐNG</button>
             </div>
         </form>
     </div>
@@ -414,55 +496,53 @@ return $today->gte($deadline);
 <!-- Modal Duyệt phản đối -->
 <div class="modal fade" id="reviewRejectionsModal" tabindex="-1" aria-labelledby="reviewRejectionsModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-        <form action="{{ route('audits.review_rejections', $audit->id) }}" method="POST" class="modal-content border-0 shadow-lg rounded-4">
+        <form action="{{ route('audits.review_rejections', $audit->id) }}" method="POST" class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
             @csrf
-            <div class="modal-header bg-danger bg-opacity-10 border-bottom-0 pb-0">
-                <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2" id="reviewRejectionsModalLabel">
-                    <svg class="text-danger" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
-                    </svg>
+            <div class="modal-header border-bottom-0 p-4 pb-0">
+                <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-3" id="reviewRejectionsModalLabel">
+                    <div class="rounded-3 bg-danger bg-opacity-10 p-2 text-danger">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
+                    </div>
                     {{ __('messages.audit_review_dispute_modal_title') }}
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body py-4">
-                <p class="text-muted mb-4">{{ __('messages.audit_review_dispute_modal_desc') }}</p>
+            <div class="modal-body p-4">
+                <p class="text-muted mb-4 fs-6">{{ __('messages.audit_review_dispute_modal_desc') }}</p>
 
                 @foreach($rejectedResultsPendingAudit as $index => $result)
-                <div class="card bg-light border-0 shadow-sm mb-4 rounded-3">
-                    <div class="card-header bg-danger bg-opacity-10 text-danger fw-bold border-0 py-3">
-                        <div class="d-flex gap-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 mt-1">
-                                <circle cx="12" cy="12" r="10" />
-                                <line x1="12" y1="8" x2="12" y2="12" />
-                                <line x1="12" y1="16" x2="12.01" y2="16" />
-                            </svg>
-                            <div>
-                                <div class="fs-6">{{ $result->criterion ? $result->criterion->content : 'Hạng mục đã xóa' }}</div>
-                                <div class="fw-normal small mt-1">Lỗi ban đầu: {{ $result->note }}</div>
+                <div class="card result-card shadow-none border mb-4 rounded-4 overflow-hidden">
+                    <div class="card-header bg-danger bg-opacity-10 text-danger fw-bold border-0 p-3">
+                        <div class="d-flex gap-3">
+                            <div class="bg-white rounded-circle p-1 d-flex align-items-center justify-content-center flex-shrink-0 shadow-sm" style="width: 28px; height: 28px;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="fs-6 lh-sm">{{ $result->criterion ? $result->criterion->content : 'Hạng mục đã xóa' }}</div>
+                                <div class="fw-normal small mt-1 text-danger-emphasis opacity-75">Lỗi ban đầu: {{ $result->note }}</div>
                             </div>
                         </div>
                     </div>
-                    <div class="card-body">
-                        <div class="mb-3 p-3 bg-white border rounded">
-                            <span class="fw-bold text-secondary d-block mb-1">{{ __('messages.audit_dispute_reason_label') }}</span>
-                            <span class="text-dark">{{ $result->department_reject_reason }}</span>
+                    <div class="card-body p-4">
+                        <div class="p-3 bg-light rounded-3 mb-4">
+                            <span class="fw-bold text-secondary small text-uppercase d-block mb-2" style="letter-spacing: 0.05em">{{ __('messages.audit_dispute_reason_label') }}</span>
+                            <div class="text-dark bg-white p-3 rounded-2 shadow-sm fs-6">{{ $result->department_reject_reason }}</div>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">{{ __('messages.audit_decision_label') }} <span class="text-danger">*</span></label>
-                            <select class="form-select bg-white" name="rejections[{{ $result->id }}][decision]" required>
+                        <div class="mb-0">
+                            <label class="form-label fw-bold small text-secondary text-uppercase" style="letter-spacing: 0.05em">{{ __('messages.audit_decision_label') }} <span class="text-danger">*</span></label>
+                            <select class="form-select border-0 bg-light rounded-3 py-2 px-3 fw-medium" name="rejections[{{ $result->id }}][decision]" required>
                                 <option value="" disabled selected>{{ __('messages.audit_choose_decision') }}</option>
-                                <option value="1">{{ __('messages.audit_accept_dispute_option') }}</option>
-                                <option value="0">{{ __('messages.audit_reject_dispute_option') }}</option>
+                                <option value="1">✅ {{ __('messages.audit_accept_dispute_option') }}</option>
+                                <option value="0">❌ {{ __('messages.audit_reject_dispute_option') }}</option>
                             </select>
                         </div>
                     </div>
                 </div>
                 @endforeach
             </div>
-            <div class="modal-footer border-top-0 pt-0 pb-4 px-4">
-                <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">{{ __('messages.cancel') }}</button>
-                <button type="submit" class="btn btn-danger fw-bold px-4 shadow-sm text-white text-uppercase">{{ __('messages.audit_save_decision') }}</button>
+            <div class="modal-footer border-top-0 p-4 pt-0">
+                <button type="button" class="btn btn-light fw-bold px-4 rounded-3 h-48" data-bs-dismiss="modal">{{ __('messages.cancel') }}</button>
+                <button type="submit" class="btn btn-danger fw-bold px-4 rounded-3 h-48 shadow-sm flex-grow-1">LƯU QUYẾT ĐỊNH CUỐI CÙNG</button>
             </div>
         </form>
     </div>
@@ -473,56 +553,55 @@ return $today->gte($deadline);
 <!-- Modal Cải thiện -->
 <div class="modal fade" id="improvementModal" tabindex="-1" aria-labelledby="improvementModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-        <form action="{{ route('audits.improvements', $audit->id) }}" method="POST" class="modal-content border-0 shadow-lg rounded-4">
+        <form action="{{ route('audits.improvements', $audit->id) }}" method="POST" class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
             @csrf
-            <div class="modal-header bg-warning bg-opacity-10 border-bottom-0 pb-0">
-                <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2" id="improvementModalLabel">
-                    <svg class="text-warning" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 20h9" />
-                        <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
-                    </svg>
+            <div class="modal-header border-bottom-0 p-4 pb-0">
+                <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-3" id="improvementModalLabel">
+                    <div class="rounded-3 bg-warning bg-opacity-10 p-2 text-warning">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                    </div>
                     {{ __('messages.improvement_plan') }}
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body py-4">
-                <p class="text-muted mb-4">{{ __('messages.audit_improvement_form_desc') }}</p>
+            <div class="modal-body p-4">
+                <p class="text-muted mb-4 fs-6">{{ __('messages.audit_improvement_form_desc') }}</p>
 
                 @foreach($improveableResults as $index => $result)
-                <div class="card bg-light border-0 shadow-sm mb-4 rounded-3">
-                    <div class="card-header bg-danger bg-opacity-10 text-danger fw-bold border-0 py-3">
-                        <div class="d-flex gap-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 mt-1">
-                                <circle cx="12" cy="12" r="10" />
-                                <line x1="12" y1="8" x2="12" y2="12" />
-                                <line x1="12" y1="16" x2="12.01" y2="16" />
-                            </svg>
-                            <div>
-                                <div class="fs-6">{{ $result->criterion ? $result->criterion->content : 'Hạng mục đã xóa' }}</div>
-                                <div class="fw-normal small mt-1">Lỗi: {{ $result->note }}</div>
+                <div class="card result-card shadow-none border mb-4 rounded-4 overflow-hidden">
+                    <div class="card-header bg-danger bg-opacity-10 text-danger fw-bold border-0 p-3">
+                        <div class="d-flex gap-3">
+                            <div class="bg-white rounded-circle p-1 d-flex align-items-center justify-content-center flex-shrink-0 shadow-sm" style="width: 28px; height: 28px;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="fs-6 lh-sm">{{ $result->criterion ? $result->criterion->content : 'Hạng mục đã xóa' }}</div>
+                                <div class="fw-normal small mt-1 text-danger-emphasis opacity-75">Lỗi: {{ $result->note }}</div>
                             </div>
                         </div>
                     </div>
-                    <div class="card-body">
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">{{ __('messages.root_cause') }} <span class="text-danger">*</span></label>
-                            <textarea class="form-control bg-white" name="improvements[{{ $result->id }}][root_cause]" rows="2" required placeholder="Nhập nguyên nhân gây ra lỗi...">{{ old("improvements.{$result->id}.root_cause", $result->root_cause) }}</textarea>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">{{ __('messages.corrective_action') }} <span class="text-danger">*</span></label>
-                            <textarea class="form-control bg-white" name="improvements[{{ $result->id }}][corrective_action]" rows="2" required placeholder="Hành động để khắc phục lỗi triệt để...">{{ old("improvements.{$result->id}.corrective_action", $result->corrective_action) }}</textarea>
-                        </div>
-                        <div>
-                            <label class="form-label fw-bold">{{ __('messages.improvement_deadline') }} <span class="text-danger">*</span></label>
-                            <input type="date" class="form-control bg-white" name="improvements[{{ $result->id }}][improvement_deadline]" value="{{ old("improvements.{$result->id}.improvement_deadline", $result->improvement_deadline ? \Carbon\Carbon::parse($result->improvement_deadline)->format('Y-m-d') : '') }}" required>
+                    <div class="card-body p-4">
+                        <div class="row g-4">
+                            <div class="col-12">
+                                <label class="form-label fw-bold small text-secondary text-uppercase" style="letter-spacing: 0.05em">{{ __('messages.root_cause') }} <span class="text-danger">*</span></label>
+                                <textarea class="form-control border-0 bg-light rounded-3 py-2 px-3" name="improvements[{{ $result->id }}][root_cause]" rows="2" required placeholder="Nhập nguyên nhân gây ra lỗi...">{{ old("improvements.{$result->id}.root_cause", $result->root_cause) }}</textarea>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-bold small text-secondary text-uppercase" style="letter-spacing: 0.05em">{{ __('messages.corrective_action') }} <span class="text-danger">*</span></label>
+                                <textarea class="form-control border-0 bg-light rounded-3 py-2 px-3" name="improvements[{{ $result->id }}][corrective_action]" rows="2" required placeholder="Hành động để khắc phục lỗi triệt để...">{{ old("improvements.{$result->id}.corrective_action", $result->corrective_action) }}</textarea>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-bold small text-secondary text-uppercase" style="letter-spacing: 0.05em">{{ __('messages.improvement_deadline') }} <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control border-0 bg-light rounded-3 py-2 px-3 fw-medium" name="improvements[{{ $result->id }}][improvement_deadline]" value="{{ old("improvements.{$result->id}.improvement_deadline", $result->improvement_deadline ? \Carbon\Carbon::parse($result->improvement_deadline)->format('Y-m-d') : '') }}" required>
+                            </div>
                         </div>
                     </div>
                 </div>
                 @endforeach
             </div>
-            <div class="modal-footer border-top-0 pt-0 pb-4 px-4">
-                <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">{{ __('messages.cancel') }}</button>
-                <button type="submit" class="btn btn-warning fw-bold px-4 shadow-sm text-uppercase">{{ __('messages.save_changes') }}</button>
+            <div class="modal-footer border-top-0 p-4 pt-0">
+                <button type="button" class="btn btn-light fw-bold px-4 rounded-3 h-48" data-bs-dismiss="modal">{{ __('messages.cancel') }}</button>
+                <button type="submit" class="btn btn-warning fw-bold px-4 rounded-3 h-48 shadow-sm flex-grow-1">LƯU KẾ HOẠCH CẢI THIỆN</button>
             </div>
         </form>
     </div>
@@ -532,9 +611,9 @@ return $today->gte($deadline);
 @if($canReview && $reviewableResults->isNotEmpty())
 <!-- Nút nổi để mở modal Đánh giá lại -->
 <div class="position-fixed bottom-0 start-50 translate-middle-x w-100 p-3" style="max-width: 800px; z-index: 1040;">
-    <button type="button" class="btn btn-info w-100 shadow-lg text-white" style="border-radius: 12px; padding: 14px 20px; font-weight: 600; font-size: 16px;" data-bs-toggle="modal" data-bs-target="#reviewModal">
-        <div class="d-flex align-items-center justify-content-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <button type="button" class="btn btn-info w-100 shadow-lg text-white" style="border-radius: 16px; padding: 14px 20px; font-weight: 700; font-size: 16px; background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%); border: none;" data-bs-toggle="modal" data-bs-target="#reviewModal">
+        <div class="d-flex align-items-center justify-content-center gap-3">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" />
             </svg>
             {{ __('messages.re_evaluate') }} ({{ $reviewableResults->count() }})
@@ -545,54 +624,56 @@ return $today->gte($deadline);
 <!-- Modal Đánh giá lại -->
 <div class="modal fade" id="reviewModal" tabindex="-1" aria-labelledby="reviewModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-        <form action="{{ route('audits.reviews', $audit->id) }}" method="POST" enctype="multipart/form-data" class="modal-content border-0 shadow-lg rounded-4">
+        <form action="{{ route('audits.reviews', $audit->id) }}" method="POST" enctype="multipart/form-data" class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
             @csrf
-            <div class="modal-header bg-info bg-opacity-10 border-bottom-0 pb-0">
-                <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2" id="reviewModalLabel">
-                    <svg class="text-info" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" />
-                    </svg>
+            <div class="modal-header border-bottom-0 p-4 pb-0">
+                <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-3" id="reviewModalLabel">
+                    <div class="rounded-3 bg-info bg-opacity-10 p-2 text-info">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" /></svg>
+                    </div>
                     {{ __('messages.re_evaluation_result') }}
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body py-4">
-                <p class="text-muted mb-4">{{ __('messages.audit_re_evaluate_photo') }}</p>
+            <div class="modal-body p-4">
+                <p class="text-muted mb-4 fs-6">{{ __('messages.audit_re_evaluate_photo') }}</p>
 
                 @foreach($reviewableResults as $index => $result)
-                <div class="card bg-light border-0 shadow-sm mb-4 rounded-3 text-dark">
-                    <div class="card-header bg-info bg-opacity-10 text-dark fw-bold border-0 py-3">
-                        <div class="d-flex gap-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" class="text-info flex-shrink-0 mt-1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="12" cy="13" r="3" />
-                                <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
-                            </svg>
-                            <div>
-                                <div class="fs-6">{{ $result->criterion ? $result->criterion->content : __('messages.question_deleted') }}</div>
+                <div class="card result-card shadow-none border mb-4 rounded-4 overflow-hidden">
+                    <div class="card-header bg-info bg-opacity-10 text-dark fw-bold border-0 p-3">
+                        <div class="d-flex gap-3">
+                            <div class="bg-white rounded-circle p-1 d-flex align-items-center justify-content-center flex-shrink-0 shadow-sm" style="width: 28px; height: 28px;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="3"/><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/></svg>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="fs-6 lh-sm">{{ $result->criterion ? $result->criterion->content : __('messages.question_deleted') }}</div>
                                 <div class="fw-normal small mt-1 text-muted">{{ __('messages.audit_improvement_reported_by') }} {{ $result->improver_name }}</div>
                             </div>
                         </div>
                     </div>
-                    <div class="card-body">
+                    <div class="card-body p-4 text-dark">
                         <input type="hidden" name="reviews[{{ $index }}][result_id]" value="{{ $result->id }}">
 
-                        <div class="mb-3">
-                            <label class="form-label fw-bold small text-secondary">Ảnh chụp sau cải thiện</label>
-                            <input type="file" name="reviews[{{ $index }}][review_image]" class="form-control" accept="image/*" capture="environment">
-                            <div class="form-text">📝 Dùng điện thoại chụp ảnh thực tế tình trạng hiện tại.</div>
+                        <div class="mb-4">
+                            <label class="form-label fw-bold small text-secondary text-uppercase" style="letter-spacing: 0.05em">Ảnh chụp sau cải thiện</label>
+                            <input type="file" name="reviews[{{ $index }}][review_image]" class="form-control border-0 bg-light rounded-3 py-2 px-3" accept="image/*" capture="environment">
+                            <div class="form-text mt-2 text-muted fw-medium d-flex align-items-center gap-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                                Dùng điện thoại chụp ảnh thực tế tình trạng hiện tại.
+                            </div>
                         </div>
 
-                        <div>
-                            <label class="form-label fw-bold small text-secondary">{{ __('messages.audit_note') }}</label>
-                            <textarea name="reviews[{{ $index }}][review_note]" class="form-control" rows="2" placeholder="Ghi nhận xét về cải thiện này..."></textarea>
+                        <div class="mb-0">
+                            <label class="form-label fw-bold small text-secondary text-uppercase" style="letter-spacing: 0.05em">{{ __('messages.audit_note') }}</label>
+                            <textarea name="reviews[{{ $index }}][review_note]" class="form-control border-0 bg-light rounded-3 py-2 px-3" rows="2" placeholder="Ghi nhận xét về cải thiện này..."></textarea>
                         </div>
                     </div>
                 </div>
                 @endforeach
             </div>
-            <div class="modal-footer bg-light border-top-0 pt-0 pb-3">
-                <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">{{ __('messages.cancel') }}</button>
-                <button type="submit" class="btn btn-info text-white fw-bold px-4 shadow-sm">{{ __('messages.save_changes') }}</button>
+            <div class="modal-footer border-top-0 p-4 pt-0">
+                <button type="button" class="btn btn-light fw-bold px-4 rounded-3 h-48" data-bs-dismiss="modal">{{ __('messages.cancel') }}</button>
+                <button type="submit" class="btn btn-info fw-bold px-4 rounded-3 h-48 text-white shadow-sm flex-grow-1">XÁC NHẬN HOÀN THÀNH</button>
             </div>
         </form>
     </div>

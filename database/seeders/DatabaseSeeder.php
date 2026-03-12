@@ -16,7 +16,15 @@ class DatabaseSeeder extends Seeder
             AuditXuong6Tang1Seeder::class,
             AuditXuong6Tang2Seeder::class,
             AuditTheuSeeder::class,
-
+            AuditMayLapTrinhSeeder::class,
+            AuditKeToanSeeder::class,
+            AuditSaleDonHangSeeder::class,
+            AuditKhoVaiPLSeeder::class,
+            AuditNhaCatSeeder::class,
+            AuditNhaGiatSeeder::class,
+            AuditThongKeTongSeeder::class,
+            AuditIESeeder::class,
+            AuditKHSXSeeder::class,
         ]);
     }
 }
