@@ -110,14 +110,19 @@
                                     $unrespondedResults = $failedResults->filter(fn($r) => is_null($r->department_agreement));
                                     $rejectedResultsPendingAudit = $failedResults->filter(fn($r) => $r->department_agreement === false && is_null($r->audit_rejection_decision));
 
-                                            $isDepartmentUser = \Illuminate\Support\Facades\Auth::check() && (
-                                                (auth()->user()->managed_department === 'Bán thành phẩm' && $audit->template->name === 'Đánh giá bộ phận BTP') ||
-                                                (auth()->user()->managed_department === 'Phòng mẫu' && $audit->template->name === 'Đánh giá bộ phận Phòng mẫu') ||
-                                                (auth()->user()->managed_department === 'Kiểm vải' && $audit->template->name === 'Đánh giá bộ phận Kiểm vải') ||
-                                                (in_array(auth()->user()->managed_department, ['Xưởng 6 tầng 1', 'Xưởng 6 Tầng 1']) && $audit->template->name === 'Đánh giá Xưởng 6 tầng 1') ||
-                                                (in_array(auth()->user()->managed_department, ['Xưởng 6 tầng 2', 'Xưởng 6 Tầng 2']) && $audit->template->name === 'Đánh giá Xưởng 6 tầng 2') ||
-                                                (auth()->user()->managed_department === 'Thêu' && $audit->template->name === 'Đánh giá bộ phận Thêu')
-                                            );
+                                    $userDept = auth()->user()->managed_department;
+                                    $templateName = $audit->template->name;
+                                    $isAdmin = auth()->user()->hasRole('admin');
+
+                                    $isDepartmentUser = \Illuminate\Support\Facades\Auth::check() && (
+                                        $isAdmin ||
+                                        ($userDept === 'Bán thành phẩm' && ($templateName === 'Đánh giá bộ phận BTP' || $templateName === 'messages.audit_template_btp')) ||
+                                        ($userDept === 'Phòng mẫu' && ($templateName === 'Đánh giá bộ phận Phòng mẫu' || $templateName === 'messages.audit_template_phong_mau')) ||
+                                        ($userDept === 'Kiểm vải' && ($templateName === 'Đánh giá bộ phận Kiểm vải' || $templateName === 'messages.audit_template_kiem_vai')) ||
+                                        (in_array($userDept, ['Xưởng 6 tầng 1', 'Xưởng 6 Tầng 1']) && ($templateName === 'Đánh giá Xưởng 6 tầng 1' || $templateName === 'messages.audit_template_x6_t1')) ||
+                                        (in_array($userDept, ['Xưởng 6 tầng 2', 'Xưởng 6 Tầng 2']) && ($templateName === 'Đánh giá Xưởng 6 tầng 2' || $templateName === 'messages.audit_template_x6_t2')) ||
+                                        ($userDept === 'Thêu' && ($templateName === 'Đánh giá bộ phận Thêu' || $templateName === 'messages.audit_template_theu'))
+                                    );
                                     $canRespond = $isDepartmentUser && $unrespondedResults->isNotEmpty();
 
                                     $improveableResults = $failedResults->filter(function($r) {
