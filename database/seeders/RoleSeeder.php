@@ -12,9 +12,6 @@ class RoleSeeder extends Seeder
         $roles = [
             'admin',
             'repair_tech',
-            'endline_qc',
-            'inline_qc_triumph',
-            'qa_supervisor_triumph',
             'warehouse',
             'team_leader',
             'audit',

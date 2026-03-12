@@ -22,20 +22,19 @@ class AuditKiemVaiSeeder extends Seeder
         );
 
         $criteria = [];
-        for ($i = 1; $i <= 14; $i++) {
+        for ($i = 1; $i <= 11; $i++) {
             $criteria[] = "messages.audit_kv_q$i";
         }
 
+        // Delete existing criteria for this template to ensure only new ones exist
+        AuditCriterion::where('audit_template_id', $template->id)->delete();
+
         foreach ($criteria as $index => $content) {
-            AuditCriterion::firstOrCreate(
-                [
-                    'audit_template_id' => $template->id,
-                    'content' => $content
-                ],
-                [
-                    'order_num' => $index + 1
-                ]
-            );
+            AuditCriterion::create([
+                'audit_template_id' => $template->id,
+                'content' => $content,
+                'order_num' => $index + 1
+            ]);
         }
     }
 }
