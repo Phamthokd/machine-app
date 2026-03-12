@@ -212,7 +212,7 @@
                                 <div class="d-flex justify-content-center gap-2">
                                     @if($canRespond)
                                     <button type="button" class="btn btn-sm btn-info text-white" data-bs-toggle="modal" data-bs-target="#respondModal_{{ $audit->id }}">
-                                        Phản hồi
+                                        {{ __('messages.audit_respond_btn') }}
                                     </button>
                                     @endif
                                     <a href="/audits/{{ $audit->id }}" class="btn btn-sm btn-light border text-primary" style="white-space: nowrap;">
@@ -261,8 +261,8 @@
                                                                 <line x1="12" y1="16" x2="12.01" y2="16" />
                                                             </svg>
                                                             <div>
-                                                                <div class="fs-6">{{ $result->criterion ? $result->criterion->content : 'Hạng mục đã xóa' }}</div>
-                                                                <div class="fw-normal small mt-1">Lỗi: {{ $result->note }}</div>
+                                                                <div class="fs-6">{{ $result->criterion ? $result->criterion->content : __('messages.question_deleted') }}</div>
+                                                                <div class="fw-normal small mt-1">{{ __('messages.issue') }}: {{ $result->note }}</div>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -273,12 +273,12 @@
                                                                 onchange="document.getElementById('reject_reason_{{ $audit->id }}_{{ $result->id }}').style.display = this.value === '0' ? 'block' : 'none';">
                                                                 <option value="" disabled selected>{{ __('messages.audit_choose_feedback') }}</option>
                                                                 <option value="1">{{ __('messages.audit_agree_error_option') }}</option>
-                                                                <option value="0">Phản đối lỗi (Chờ Audit xem xét lại)</option>
+                                                                <option value="0">{{ __('messages.audit_dispute_error_option') }}</option>
                                                             </select>
                                                         </div>
                                                         <div class="mb-3" id="reject_reason_{{ $audit->id }}_{{ $result->id }}" style="display: none;">
-                                                            <label class="form-label fw-bold">Lý do phản đối <span class="text-danger">*</span></label>
-                                                            <textarea class="form-control bg-white" name="agreements[{{ $result->id }}][department_reject_reason]" rows="3" placeholder="Nhập lý do tại sao bạn cho rằng đây không phải là lỗi..."></textarea>
+                                                            <label class="form-label fw-bold">{{ __('messages.audit_dispute_reason_only') }} <span class="text-danger">*</span></label>
+                                                            <textarea class="form-control bg-white" name="agreements[{{ $result->id }}][department_reject_reason]" rows="3" placeholder="{{ __('messages.audit_dispute_reason_placeholder') }}"></textarea>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -286,7 +286,7 @@
                                             </div>
                                             <div class="modal-footer border-top-0 pt-0 pb-4 px-4">
                                                 <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">{{ __('messages.cancel') }}</button>
-                                                <button type="submit" class="btn btn-info fw-bold px-4 shadow-sm text-white text-uppercase">Gửi phản hồi</button>
+                                                <button type="submit" class="btn btn-info fw-bold px-4 shadow-sm text-white text-uppercase">{{ __('messages.audit_send_feedback_btn') }}</button>
                                             </div>
                                         </form>
                                     </div>
