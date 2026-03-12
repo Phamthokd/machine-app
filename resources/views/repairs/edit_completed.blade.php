@@ -155,7 +155,7 @@
                 <select class="form-select" name="inline_qc_name">
                     <option value="">{{ __('messages.select_inline_qc') }}</option>
                     <option value="Sinh" @selected(old('inline_qc_name', $repair->inline_qc_name) == 'Sinh')>Sinh</option>
-                    <option value="Chiên" @selected(old('inline_qc_name', $repair->inline_qc_name) == 'Chiên')>Chiên</option>
+                    <option value="Chiêm" @selected(old('inline_qc_name', $repair->inline_qc_name) == 'Chiêm')>Chiêm</option>
                 </select>
             </div>
 

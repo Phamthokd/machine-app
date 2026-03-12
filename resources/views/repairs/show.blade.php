@@ -6,11 +6,12 @@
     .card-section {
         background: white;
         border-radius: 16px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
         border: none;
         margin-bottom: 24px;
         overflow: hidden;
     }
+
     .section-header {
         padding: 16px 24px;
         border-bottom: 1px solid #f1f5f9;
@@ -21,6 +22,7 @@
         align-items: center;
         gap: 8px;
     }
+
     .info-label {
         color: #64748b;
         font-size: 0.85rem;
@@ -29,11 +31,13 @@
         font-weight: 600;
         letter-spacing: 0.025em;
     }
+
     .info-value {
         color: #0f172a;
         font-weight: 500;
         font-size: 1rem;
     }
+
     .status-badge {
         padding: 6px 12px;
         border-radius: 9999px;
@@ -41,8 +45,16 @@
         font-size: 0.875rem;
         display: inline-block;
     }
-    .status-badge.submitted { background-color: #e0f2fe; color: #0284c7; }
-    .status-badge.completed { background-color: #dcfce7; color: #16a34a; }
+
+    .status-badge.submitted {
+        background-color: #e0f2fe;
+        color: #0284c7;
+    }
+
+    .status-badge.completed {
+        background-color: #dcfce7;
+        color: #16a34a;
+    }
 </style>
 
 <div class="container-fluid px-0">
@@ -51,7 +63,9 @@
         <div>
             <div class="d-flex align-items-center gap-2 mb-1">
                 <a href="/repair-requests" class="btn btn-sm btn-light rounded-circle p-1 me-1 shadow-sm tap">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m15 18-6-6 6-6" />
+                    </svg>
                 </a>
                 <h3 class="fw-bold mb-0 text-dark" style="letter-spacing: -0.5px;">{{ __('messages.ticket') }} #{{ $repair->code }}</h3>
             </div>
@@ -66,12 +80,18 @@
         @else
         <div class="d-flex align-items-center gap-2">
             <div class="badge bg-success-subtle text-success px-3 py-2 rounded-pill fw-medium border border-success-subtle shadow-sm">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
                 {{ __('messages.status_completed') }}
             </div>
             @role('admin')
             <a href="{{ route('repairs.edit_completed', $repair->id) }}" class="btn btn-outline-primary btn-sm rounded-pill fw-medium shadow-sm d-flex align-items-center gap-1 tap">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
                 Sửa (Admin)
             </a>
             @endrole
@@ -85,7 +105,11 @@
             <!-- Machine Info -->
             <div class="card-section">
                 <div class="section-header">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+                        <line x1="8" y1="21" x2="16" y2="21" />
+                        <line x1="12" y1="17" x2="12" y2="21" />
+                    </svg>
                     Thông tin thiết bị
                 </div>
                 <div class="p-4">
@@ -111,7 +135,9 @@
             <!-- Repair Details -->
             <div class="card-section">
                 <div class="section-header">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+                    </svg>
                     Nội dung sửa chữa
                 </div>
                 <div class="p-4">
@@ -145,7 +171,10 @@
         <div class="col-12 col-lg-4">
             <div class="card-section h-100">
                 <div class="section-header">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10" />
+                        <polyline points="12 6 12 12 16 14" />
+                    </svg>
                     Thời gian & Nhân sự
                 </div>
                 <div class="p-4">
@@ -175,7 +204,7 @@
                     <hr class="opacity-10 my-4">
 
                     <h6 class="fw-bold text-secondary text-uppercase text-xs mb-3">Xác nhận QC / QA</h6>
-                    
+
                     <div class="d-flex flex-column gap-3">
                         <div class="d-flex justify-content-between align-items-center">
                             <span class="text-secondary small">Endline QC</span>
