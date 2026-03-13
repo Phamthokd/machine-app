@@ -209,9 +209,19 @@ class AuditController extends Controller
         return redirect()->route('audits.show', $audit->id)->with('success', "Đã cập nhật phiếu đánh giá! Điểm số mới: {$score}%");
     }
 
-    public function export()
+    public function export(Request $request)
     {
         $user = auth()->user();
+        $selectedIds = collect($request->input('audit_ids', []))
+            ->map(fn($id) => (int) $id)
+            ->filter(fn($id) => $id > 0)
+            ->unique()
+            ->values();
+
+        if ($selectedIds->isEmpty()) {
+            return redirect()->route('audits.index')
+                ->with('error', 'Vui lòng chọn ít nhất 1 phiếu trước khi xuất Excel.');
+        }
 
         $query = AuditRecord::with(['template', 'auditor', 'results']);
 
@@ -221,11 +231,18 @@ class AuditController extends Controller
             });
         }
 
-        $audits = $query->orderByDesc('created_at')->get();
+        $audits = $query
+            ->whereIn('id', $selectedIds)
+            ->orderByDesc('created_at')
+            ->get();
+
+        if ($audits->isEmpty()) {
+            return redirect()->route('audits.index')
+                ->with('error', 'Không có phiếu hợp lệ để xuất.');
+        }
 
         $headers = [
             'ID',
-            'Tên đánh giá',
             'Tổ',
             'Người đánh giá',
             'Thời gian',
@@ -242,7 +259,6 @@ class AuditController extends Controller
 
             $cells = [
                 $a->id,
-                $a->template->name ?? '',
                 $a->template->department_name ?? '',
                 $a->auditor->name ?? '',
                 $a->created_at ? $a->created_at->format('Y-m-d H:i:s') : '',
@@ -279,7 +295,6 @@ class AuditController extends Controller
         $endSheet = "  </Table>\n </Worksheet>\n";
 
         $fileName = 'audits-' . now()->format('Ymd-His') . '.xls';
-
         return response()->streamDownload(function () use ($audits, $renderRow, $startSheet, $endSheet) {
             $output = fopen('php://output', 'w');
 

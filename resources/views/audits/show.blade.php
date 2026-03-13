@@ -8,8 +8,7 @@ $userDept = auth()->user()->managed_department;
 $templateName = $audit->template->name;
 $isAdmin = auth()->user()->hasRole('admin');
 
-$isDepartmentUser = \Illuminate\Support\Facades\Auth::check() && (
-    $isAdmin ||
+$isDepartmentUser = \Illuminate\Support\Facades\Auth::check() && !$isAdmin && (
     ($userDept === 'Bán thành phẩm' && ($templateName === 'Đánh giá bộ phận BTP' || $templateName === 'messages.audit_template_btp')) ||
     ($userDept === 'Phòng mẫu' && ($templateName === 'Đánh giá bộ phận Phòng mẫu' || $templateName === 'messages.audit_template_phong_mau')) ||
     ($userDept === 'Kiểm vải' && ($templateName === 'Đánh giá bộ phận Kiểm vải' || $templateName === 'messages.audit_template_kiem_vai')) ||
@@ -460,7 +459,7 @@ $reviewableResults = $audit->results->filter(function($r) {
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                             </div>
                             <div class="flex-grow-1">
-                                <div class="fs-6 lh-sm">{{ $result->criterion ? $result->criterion->content : 'Hạng mục đã xóa' }}</div>
+                                <div class="fs-6 lh-sm">{{ $result->criterion ? __($result->criterion->content) : 'Hạng mục đã xóa' }}</div>
                                 <div class="fw-normal small mt-1 text-danger-emphasis opacity-75">Ghi chú lỗi: {{ $result->note }}</div>
                             </div>
                         </div>
@@ -518,7 +517,7 @@ $reviewableResults = $audit->results->filter(function($r) {
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                             </div>
                             <div class="flex-grow-1">
-                                <div class="fs-6 lh-sm">{{ $result->criterion ? $result->criterion->content : 'Hạng mục đã xóa' }}</div>
+                                <div class="fs-6 lh-sm">{{ $result->criterion ? __($result->criterion->content) : 'Hạng mục đã xóa' }}</div>
                                 <div class="fw-normal small mt-1 text-danger-emphasis opacity-75">Lỗi ban đầu: {{ $result->note }}</div>
                             </div>
                         </div>
@@ -575,7 +574,7 @@ $reviewableResults = $audit->results->filter(function($r) {
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                             </div>
                             <div class="flex-grow-1">
-                                <div class="fs-6 lh-sm">{{ $result->criterion ? $result->criterion->content : 'Hạng mục đã xóa' }}</div>
+                                <div class="fs-6 lh-sm">{{ $result->criterion ? __($result->criterion->content) : 'Hạng mục đã xóa' }}</div>
                                 <div class="fw-normal small mt-1 text-danger-emphasis opacity-75">Lỗi: {{ $result->note }}</div>
                             </div>
                         </div>
@@ -646,7 +645,7 @@ $reviewableResults = $audit->results->filter(function($r) {
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="3"/><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/></svg>
                             </div>
                             <div class="flex-grow-1">
-                                <div class="fs-6 lh-sm">{{ $result->criterion ? $result->criterion->content : __('messages.question_deleted') }}</div>
+                                <div class="fs-6 lh-sm">{{ $result->criterion ? __($result->criterion->content) : __('messages.question_deleted') }}</div>
                                 <div class="fw-normal small mt-1 text-muted">{{ __('messages.audit_improvement_reported_by') }} {{ $result->improver_name }}</div>
                             </div>
                         </div>

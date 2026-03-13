@@ -26,15 +26,16 @@ class AuditKiemVaiSeeder extends Seeder
             $criteria[] = "messages.audit_kv_q$i";
         }
 
-        // Delete existing criteria for this template to ensure only new ones exist
-        AuditCriterion::where('audit_template_id', $template->id)->delete();
-
         foreach ($criteria as $index => $content) {
-            AuditCriterion::create([
-                'audit_template_id' => $template->id,
-                'content' => $content,
-                'order_num' => $index + 1
-            ]);
+            AuditCriterion::updateOrCreate(
+                [
+                    'audit_template_id' => $template->id,
+                    'content' => $content,
+                ],
+                [
+                    'order_num' => $index + 1,
+                ]
+            );
         }
     }
 }

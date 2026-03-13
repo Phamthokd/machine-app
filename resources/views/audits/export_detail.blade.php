@@ -69,7 +69,7 @@
         @endphp
         <tr style="height: {{ $rowHeight }}px;">
             <td align="center" style="vertical-align: middle;">{{ $index + 1 }}</td>
-            <td style="vertical-align: middle;">{{ $result->criterion ? $result->criterion->content : 'N/A' }}</td>
+            <td style="vertical-align: middle;">{{ $result->criterion ? __($result->criterion->content) : 'N/A' }}</td>
             <td class="{{ $result->is_passed ? '' : 'danger' }}" style="vertical-align: middle;">
                 @if($result->is_passed)
                 Đạt

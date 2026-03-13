@@ -167,22 +167,28 @@
 
 <div class="page-header d-flex flex-wrap align-items-center justify-content-between gap-3">
     <div>
-        <h2 class="h3 mb-1 fw-bold text-dark">📋 {{ __('messages.internal_audit') }}</h2>
+        <h2 class="h3 mb-1 fw-bold text-dark">{{ __('messages.internal_audit') }}</h2>
         <div class="text-muted small">{{ __('messages.manage_audits_subtitle') }}</div>
     </div>
-    <a href="/audits/export" class="btn-export text-decoration-none">
+    <button type="button" id="exportSelectedBtn" class="btn-export text-decoration-none">
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
             <polyline points="7 10 12 15 17 10" />
             <line x1="12" y1="15" x2="12" y2="3" />
         </svg>
-        <span>{{ __('messages.export_excel') }}</span>
-    </a>
+        <span>{{ __('messages.export_excel') }} (Đã chọn)</span>
+    </button>
 </div>
 
 @if(session('success'))
 <div class="alert alert-success border-0 shadow-sm rounded-4 mb-4 pulse">
     {{ session('success') }}
+</div>
+@endif
+
+@if(session('error'))
+<div class="alert alert-danger border-0 shadow-sm rounded-4 mb-4">
+    {{ session('error') }}
 </div>
 @endif
 
@@ -193,22 +199,24 @@
             <h4 class="h5 fw-bold text-dark m-0">{{ __('messages.start_new_audit') }}</h4>
             <span class="text-muted small">({{ count($templates) }} {{ __('messages.department') }})</span>
         </div>
-        
-        <!-- Bộ chọn Bộ phận -->
+
+        <!-- Department selector -->
         <div class="d-flex align-items-center gap-2" style="min-width: 250px;">
             <label for="deptSelector" class="small fw-bold text-muted text-nowrap mt-1">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1"><path d="M22 3H2l8 9v11l4-6V12z"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1">
+                    <path d="M22 3H2l8 9v11l4-6V12z" />
+                </svg>
                 {{ __('messages.filter_department') }}:
             </label>
             <select id="deptSelector" class="form-select form-select-sm border-0 shadow-sm rounded-3" style="background-color: #f1f5f9; font-weight: 600;">
                 <option value="all">-- {{ __('messages.all') }} --</option>
                 @foreach($templates->pluck('department_name')->unique() as $deptName)
-                    <option value="{{ $deptName }}" {{ $deptName == 'BTP' ? 'selected' : '' }}>{{ __('messages.' . $deptName) }}</option>
+                <option value="{{ $deptName }}" {{ $deptName == 'BTP' ? 'selected' : '' }}>{{ __('messages.' . $deptName) }}</option>
                 @endforeach
             </select>
         </div>
     </div>
-    
+
     <div class="audit-grid" id="auditTemplateGrid">
         @forelse($templates as $template)
         <div class="audit-card" data-dept="{{ $template->department_name }}">
@@ -223,7 +231,12 @@
                 </div>
                 <h5 class="card-title">{{ __($template->name) }}</h5>
                 <div class="card-dept">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
                     {{ __('messages.' . $template->department_name) }}
                 </div>
             </div>
@@ -240,46 +253,46 @@
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const deptSelector = document.getElementById('deptSelector');
-    const auditCards = document.querySelectorAll('.audit-card');
-    
-    function filterCards(selectedDept) {
-        auditCards.forEach(card => {
-            if (selectedDept === 'all' || card.getAttribute('data-dept') === selectedDept) {
-                card.style.display = 'flex';
-            } else {
-                card.style.display = 'none';
-            }
-        });
-    }
+    document.addEventListener('DOMContentLoaded', function() {
+        const deptSelector = document.getElementById('deptSelector');
+        const auditCards = document.querySelectorAll('.audit-card');
 
-    if (deptSelector) {
-        // Lọc ngay khi tải trang dựa trên giá trị mặc định (BTP)
-        filterCards(deptSelector.value);
-        
-        deptSelector.addEventListener('change', function() {
-            filterCards(this.value);
-        });
-    }
+        function filterCards(selectedDept) {
+            auditCards.forEach(card => {
+                if (selectedDept === 'all' || card.getAttribute('data-dept') === selectedDept) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
 
-    // Filter for Audit History
-    const historyDeptSelector = document.getElementById('historyDeptSelector');
-    const historyRows = document.querySelectorAll('.history-row');
+        if (deptSelector) {
+            // Filter on first load based on default value (BTP)
+            filterCards(deptSelector.value);
 
-    function filterHistory(selectedDept) {
-        historyRows.forEach(row => {
-            if (selectedDept === 'all' || row.getAttribute('data-dept') === selectedDept) {
-                row.style.display = '';
-            } else {
-                row.style.display = 'none';
-            }
-        });
-    }
+            deptSelector.addEventListener('change', function() {
+                filterCards(this.value);
+            });
+        }
 
-    // Filter for Audit History table (if it exists)
-    // No longer using JS for history filter since it's server-side now
-});
+        // Filter for Audit History
+        const historyDeptSelector = document.getElementById('historyDeptSelector');
+        const historyRows = document.querySelectorAll('.history-row');
+
+        function filterHistory(selectedDept) {
+            historyRows.forEach(row => {
+                if (selectedDept === 'all' || row.getAttribute('data-dept') === selectedDept) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        // Filter for Audit History table (if it exists)
+        // No longer using JS for history filter since it's server-side now
+    });
 </script>
 @endif
 
@@ -287,7 +300,9 @@ document.addEventListener('DOMContentLoaded', function() {
     <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
         <div class="card-body p-4">
             <h4 class="h5 mb-4 fw-bold text-dark d-flex align-items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary"><path d="M12 20v-6M9 20v-10M15 20v-2M3 20h18"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary">
+                    <path d="M12 20v-6M9 20v-10M15 20v-2M3 20h18" />
+                </svg>
                 {{ __('messages.audit_history') }}
             </h4>
 
@@ -297,7 +312,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <select name="history_dept" class="form-select form-select-sm border-0 shadow-sm rounded-3 py-2" style="background-color: #f1f5f9; font-weight: 600;">
                         <option value="all">-- {{ __('messages.all') }} --</option>
                         @foreach($templates->pluck('department_name')->unique() as $deptName)
-                            <option value="{{ $deptName }}" {{ request('history_dept') == $deptName ? 'selected' : '' }}>{{ __('messages.' . $deptName) }}</option>
+                        <option value="{{ $deptName }}" {{ request('history_dept') == $deptName ? 'selected' : '' }}>{{ __('messages.' . $deptName) }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -311,7 +326,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
                 <div class="col-md-3">
                     <button type="submit" class="btn btn-primary btn-sm w-100 py-2 rounded-3 shadow-sm fw-bold d-flex align-items-center justify-content-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="8" />
+                            <path d="m21 21-4.3-4.3" />
+                        </svg>
                         {{ __('messages.search') }}
                     </button>
                 </div>
@@ -324,6 +342,9 @@ document.addEventListener('DOMContentLoaded', function() {
             <table class="table table-hover mb-0 align-middle">
                 <thead>
                     <tr>
+                        <th width="56" class="text-center">
+                            <input type="checkbox" id="selectAllAudits" class="form-check-input">
+                        </th>
                         <th width="80">ID</th>
                         <th>{{ __('messages.audit_template') }}</th>
                         <th width="100">{{ __('messages.score') }}</th>
@@ -335,6 +356,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 <tbody>
                     @forelse($audits as $audit)
                     <tr>
+                        <td class="text-center">
+                            <input type="checkbox" class="form-check-input audit-select" value="{{ $audit->id }}" aria-label="Chon phieu #{{ $audit->id }}">
+                        </td>
                         <td class="text-muted small">#{{ $audit->id }}</td>
                         <td>
                             <div class="d-flex flex-column gap-1">
@@ -347,32 +371,19 @@ document.addEventListener('DOMContentLoaded', function() {
                                     $rejectedResultsPendingAudit = $failedResults->filter(fn($r) => $r->department_agreement === false && is_null($r->audit_rejection_decision));
 
                                     $userDept = auth()->user()->managed_department;
-                                    $templateName = $audit->template->name;
+                                    $auditDept = $audit->template->department_name ?? null;
+                                    $userDeptMapped = $userDept === 'Bán thành phẩm' ? 'BTP' : $userDept;
                                     $isAdmin = auth()->user()->hasRole('admin');
 
                                     $isDepartmentUser = \Illuminate\Support\Facades\Auth::check() && (
-                                        $isAdmin ||
-                                        ($userDept === 'Bán thành phẩm' && ($templateName === 'Đánh giá bộ phận BTP' || $templateName === 'messages.audit_template_btp')) ||
-                                        ($userDept === 'Phòng mẫu' && ($templateName === 'Đánh giá bộ phận Phòng mẫu' || $templateName === 'messages.audit_template_phong_mau')) ||
-                                        ($userDept === 'Kiểm vải' && ($templateName === 'Đánh giá bộ phận Kiểm vải' || $templateName === 'messages.audit_template_kiem_vai')) ||
-                                        (in_array($userDept, ['Xưởng 6 tầng 1', 'Xưởng 6 Tầng 1']) && ($templateName === 'Đánh giá Xưởng 6 tầng 1' || $templateName === 'messages.audit_template_x6_t1')) ||
-                                        (in_array($userDept, ['Xưởng 6 tầng 2', 'Xưởng 6 Tầng 2']) && ($templateName === 'Đánh giá Xưởng 6 tầng 2' || $templateName === 'messages.audit_template_x6_t2')) ||
-                                        ($userDept === 'Thêu' && ($templateName === 'Đánh giá bộ phận Thêu' || $templateName === 'messages.audit_template_theu')) ||
-                                        ($userDept === 'May lập trình' && ($templateName === 'messages.audit_template_may_lap_trinh')) ||
-                                        ($userDept === 'Kế toán' && ($templateName === 'messages.audit_template_ke_toan')) ||
-                                        ($userDept === 'Sale + Đơn hàng' && ($templateName === 'messages.audit_template_sale_don_hang')) ||
-                                        ($userDept === 'Kho vải + PL' && ($templateName === 'messages.audit_template_kho_vai_pl')) ||
-                                        ($userDept === 'Nhà cắt' && ($templateName === 'messages.audit_template_nha_cat')) ||
-                                        ($userDept === 'Nhà giặt' && ($templateName === 'messages.audit_template_nha_giat')) ||
-                                        ($userDept === 'Thống kê tổng' && ($templateName === 'messages.audit_template_thong_ke_tong')) ||
-                                        ($userDept === 'IE' && ($templateName === 'messages.audit_template_ie')) ||
-                                        ($userDept === 'KHSX' && ($templateName === 'messages.audit_template_khsx'))
+                                    !$isAdmin &&
+                                    !empty($userDeptMapped) && !empty($auditDept) && $userDeptMapped === $auditDept
                                     );
                                     $canRespond = $isDepartmentUser && $unrespondedResults->isNotEmpty();
 
                                     $improveableResults = $failedResults->filter(function($r) {
-                                        return $r->department_agreement === true ||
-                                        ($r->department_agreement === false && $r->audit_rejection_decision === false);
+                                    return $r->department_agreement === true ||
+                                    ($r->department_agreement === false && $r->audit_rejection_decision === false);
                                     });
                                     $pendingImprovements = $improveableResults->filter(fn($r) => empty($r->root_cause));
 
@@ -397,15 +408,15 @@ document.addEventListener('DOMContentLoaded', function() {
                                         {{ __('messages.audit_reviewed_badge') }}
                                     </span>
                                     @elseif($unreviewed->isNotEmpty())
-                                        @php
-                                        $hasReachedDeadline = $unreviewed->every(function($r) {
-                                            if (empty($r->improvement_deadline)) return true;
-                                            return \Carbon\Carbon::now()->startOfDay()->gte(\Carbon\Carbon::parse($r->improvement_deadline)->startOfDay());
-                                        });
-                                        @endphp
-                                        <span class="status-badge bg-{{ $hasReachedDeadline ? 'info' : 'warning' }} bg-opacity-10 text-{{ $hasReachedDeadline ? 'info' : 'warning' }} border border-{{ $hasReachedDeadline ? 'info' : 'warning' }} border-opacity-25 shadow-none" style="padding: 2px 8px;">
-                                            {{ $hasReachedDeadline ? __('messages.audit_improved_badge') : __('messages.audit_planned_badge') }}
-                                        </span>
+                                    @php
+                                    $hasReachedDeadline = $unreviewed->every(function($r) {
+                                    if (empty($r->improvement_deadline)) return true;
+                                    return \Carbon\Carbon::now()->startOfDay()->gte(\Carbon\Carbon::parse($r->improvement_deadline)->startOfDay());
+                                    });
+                                    @endphp
+                                    <span class="status-badge bg-{{ $hasReachedDeadline ? 'info' : 'warning' }} bg-opacity-10 text-{{ $hasReachedDeadline ? 'info' : 'warning' }} border border-{{ $hasReachedDeadline ? 'info' : 'warning' }} border-opacity-25 shadow-none" style="padding: 2px 8px;">
+                                        {{ $hasReachedDeadline ? __('messages.audit_improved_badge') : __('messages.audit_planned_badge') }}
+                                    </span>
                                     @endif
                                 </div>
                             </div>
@@ -417,7 +428,12 @@ document.addEventListener('DOMContentLoaded', function() {
                         </td>
                         <td>
                             <div class="d-flex align-items-center gap-2">
-                                <div class="bg-light rounded-circle p-2 text-center" style="width: 32px; height: 32px; line-height: 16px;">👤</div>
+                                <div class="bg-light rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M20 21a8 8 0 1 0-16 0"></path>
+                                        <circle cx="12" cy="7" r="4"></circle>
+                                    </svg>
+                                </div>
                                 <span class="fw-medium">{{ $audit->auditor->name ?? 'N/A' }}</span>
                             </div>
                         </td>
@@ -431,8 +447,11 @@ document.addEventListener('DOMContentLoaded', function() {
                                     {{ __('messages.audit_respond_btn') }}
                                 </button>
                                 @endif
-                                <a href="/audits/{{ $audit->id }}" class="btn btn-sm btn-light border fw-medium px-3 text-primary">
-                                    {{ __('messages.view_detail') }}
+                                <a href="/audits/{{ $audit->id }}" class="btn btn-sm btn-light border text-primary px-2" title="{{ __('messages.view_detail') }}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+                                        <circle cx="12" cy="12" r="3" />
+                                    </svg>
                                 </a>
                                 @if(auth()->user()->hasRole('admin'))
                                 <form action="{{ route('audits.destroy', $audit->id) }}" method="POST" class="d-inline" onsubmit="return confirm('{{ __('messages.confirm_delete_audit') }}')">
@@ -450,7 +469,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             </div>
 
                             @if($canRespond)
-                            <!-- Modal Phản hồi lỗi -->
+                            <!-- Error feedback modal -->
                             <div class="modal fade" id="respondModal_{{ $audit->id }}" tabindex="-1" aria-hidden="true">
                                 <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable text-start">
                                     <form action="{{ route('audits.agreements', $audit->id) }}" method="POST" class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
@@ -473,7 +492,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                                     <div class="d-flex gap-3">
                                                         <div class="bg-danger text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; flex-shrink: 0;">!</div>
                                                         <div>
-                                                            <div class="fs-6">{{ $result->criterion ? $result->criterion->content : __('messages.question_deleted') }}</div>
+                                                            <div class="fs-6">{{ $result->criterion ? __($result->criterion->content) : __('messages.question_deleted') }}</div>
                                                             <div class="fw-normal small mt-2 bg-white bg-opacity-50 p-2 rounded-3 text-dark">
                                                                 <span class="fw-bold">{{ __('messages.issue') }}:</span> {{ $result->note }}
                                                             </div>
@@ -510,10 +529,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="6" class="py-5 text-center">
+                        <td colspan="7" class="py-5 text-center">
                             <div class="text-muted d-flex flex-column align-items-center">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="mb-3 opacity-25">
-                                    <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                                    <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
+                                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                                 </svg>
                                 <span>{{ __('messages.no_audit_history') }}</span>
                             </div>
@@ -532,4 +552,98 @@ document.addEventListener('DOMContentLoaded', function() {
         @endif
     </div>
 </div>
-@endsection
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const exportBtn = document.getElementById('exportSelectedBtn');
+        const selectAll = document.getElementById('selectAllAudits');
+        const storageKey = 'audits.selected.ids';
+
+        function readSelectedSet() {
+            try {
+                const raw = localStorage.getItem(storageKey);
+                const ids = raw ? JSON.parse(raw) : [];
+                if (!Array.isArray(ids)) return new Set();
+                return new Set(ids.map((id) => String(id)));
+            } catch (e) {
+                return new Set();
+            }
+        }
+
+        function writeSelectedSet(selectedSet) {
+            try {
+                localStorage.setItem(storageKey, JSON.stringify(Array.from(selectedSet)));
+            } catch (e) {
+                // Ignore storage write error.
+            }
+        }
+
+        function getAuditCheckboxes() {
+            return Array.from(document.querySelectorAll('.audit-select'));
+        }
+
+        function getSelectedIds() {
+            return Array.from(readSelectedSet());
+        }
+
+        function syncSelectAllState() {
+            const boxes = getAuditCheckboxes();
+            if (!selectAll || boxes.length === 0) return;
+            selectAll.checked = boxes.every((cb) => cb.checked);
+        }
+
+        function restoreSelectionForCurrentPage() {
+            const selectedSet = readSelectedSet();
+            getAuditCheckboxes().forEach((cb) => {
+                cb.checked = selectedSet.has(String(cb.value));
+            });
+            syncSelectAllState();
+        }
+
+        function saveSelectionForCurrentPage() {
+            const selectedSet = readSelectedSet();
+            getAuditCheckboxes().forEach((cb) => {
+                const id = String(cb.value);
+                if (cb.checked) {
+                    selectedSet.add(id);
+                } else {
+                    selectedSet.delete(id);
+                }
+            });
+            writeSelectedSet(selectedSet);
+        }
+
+        if (selectAll) {
+            selectAll.addEventListener('change', function() {
+                getAuditCheckboxes().forEach((cb) => {
+                    cb.checked = selectAll.checked;
+                });
+                saveSelectionForCurrentPage();
+            });
+        }
+
+        document.addEventListener('change', function(event) {
+            if (event.target.classList.contains('audit-select')) {
+                saveSelectionForCurrentPage();
+                syncSelectAllState();
+            }
+        });
+
+        restoreSelectionForCurrentPage();
+
+        if (exportBtn) {
+            exportBtn.addEventListener('click', function() {
+                const selectedIds = getSelectedIds();
+                if (selectedIds.length === 0) {
+                    alert('Vui long chon it nhat 1 phieu de xuat Excel.');
+                    return;
+                }
+
+                const params = new URLSearchParams();
+                selectedIds.forEach((id) => params.append('audit_ids[]', id));
+                window.location.href = "{{ route('audits.export') }}?" + params.toString();
+            });
+        }
+    });
+</script>
+@endsection
