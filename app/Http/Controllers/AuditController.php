@@ -6,6 +6,8 @@ use App\Models\AuditCriterion;
 use App\Models\AuditRecord;
 use App\Models\AuditResult;
 use App\Models\AuditTemplate;
+use App\Models\User;
+use App\Notifications\AuditStatusChangedNotification;
 use Illuminate\Http\Request;
 
 class AuditController extends Controller
@@ -117,6 +119,8 @@ class AuditController extends Controller
         }
 
         $record->load('results');
+        $this->notifyDepartmentAboutAuditCreated($record, $template);
+
         return redirect('/audits')->with('success', "Đã đánh giá thành công bộ phận {$template->department_name}! Điểm số đạt: {$record->score}%");
     }
 
@@ -130,6 +134,18 @@ class AuditController extends Controller
         );
 
         $audit = AuditRecord::with(['template', 'auditor', 'results.criterion'])->findOrFail($id);
+
+        $isFullyReviewed = $audit->results->contains(function ($r) {
+            return !empty($r->improver_name);
+        }) &&
+            $audit->results->filter(function ($r) {
+                return !empty($r->improver_name) && empty($r->reviewer_name);
+            })->isEmpty();
+
+        if ($isFullyReviewed && !$user->hasRole('admin')) {
+            abort(403, 'Phiếu này đã được đánh giá lần 2 và bị khóa. Chỉ Admin mới có thể chỉnh sửa.');
+        }
+
         return view('audits.edit', compact('audit'));
     }
 
@@ -143,6 +159,17 @@ class AuditController extends Controller
         );
 
         $audit = AuditRecord::with('results')->findOrFail($id);
+
+        $isFullyReviewed = $audit->results->contains(function ($r) {
+            return !empty($r->improver_name);
+        }) &&
+            $audit->results->filter(function ($r) {
+                return !empty($r->improver_name) && empty($r->reviewer_name);
+            })->isEmpty();
+
+        if ($isFullyReviewed && !$user->hasRole('admin')) {
+            abort(403, 'Phiếu này đã được đánh giá lần 2 và bị khóa. Chỉ Admin mới có thể chỉnh sửa.');
+        }
 
         $results = $request->input('results', []);
         $files   = $request->file('results', []);
@@ -366,6 +393,11 @@ class AuditController extends Controller
         foreach ($validated['improvements'] as $resultId => $improvementData) {
             $result = $audit->results->where('id', $resultId)->first();
             if ($result) {
+                // If already has an improvement and not an admin, don't allow rewrite
+                if (!empty($result->improver_name) && !auth()->user()->hasRole('admin')) {
+                    continue;
+                }
+
                 $result->update([
                     'root_cause' => $improvementData['root_cause'],
                     'corrective_action' => $improvementData['corrective_action'],
@@ -375,7 +407,98 @@ class AuditController extends Controller
             }
         }
 
+        $this->notifyAuditParticipants(
+            $audit,
+            'audit_improved',
+            'messages.notif_audit_improved_title',
+            'messages.notif_audit_improved_message',
+            ['id' => $audit->id, 'department' => $audit->template->department_name]
+        );
+
         return redirect()->back()->with('success', 'Đã lưu thông tin cải thiện thành công.');
+    }
+
+    public function confirmCompletion(Request $request, $id)
+    {
+        $audit = AuditRecord::with('results')->findOrFail($id);
+        $user = auth()->user();
+
+        // Check if user is from the department being audited
+        $template = $audit->template;
+        if (!empty($user->managed_department)) {
+            $mappedDept = $user->managed_department === 'Bán thành phẩm' ? 'BTP' : $user->managed_department;
+            if ($mappedDept !== $template->department_name && !$user->hasRole('admin')) {
+                abort(403, 'Bạn không có quyền xác nhận hoàn thành cho phiếu thuộc bộ phận khác.');
+            }
+        }
+
+        $request->validate([
+            'completion' => 'required|array',
+            'completion.*.result_id' => 'required|exists:audit_results,id',
+            'completion.*.completion_note' => 'required|string',
+            'completion.*.images' => 'nullable|array|max:10',
+            'completion.*.images.*' => 'image|max:10240',
+        ]);
+
+        foreach ($request->completion as $index => $data) {
+            $result = $audit->results->where('id', $data['result_id'])->first();
+            if ($result && !empty($result->root_cause)) {
+                $imagePaths = $result->completion_image_path ?? [];
+                if ($request->hasFile("completion.{$index}.images")) {
+                    foreach ($request->file("completion.{$index}.images") as $file) {
+                        $path = $file->store('audits/completions', 'public');
+                        $imagePaths[] = 'storage/' . ltrim($path, '/');
+                    }
+                }
+
+                $result->update([
+                    'is_completed' => true,
+                    'completed_at' => now(),
+                    'completion_image_path' => $imagePaths,
+                    'completion_note' => $data['completion_note'] ?? null,
+                ]);
+            }
+        }
+
+        $this->notifyAuditParticipants(
+            $audit,
+            'audit_completed_report',
+            'messages.notif_audit_completed_report_title',
+            'messages.notif_audit_completed_report_message',
+            ['id' => $audit->id, 'department' => $audit->template->department_name]
+        );
+
+        return redirect()->back()->with('success', 'Đã xác nhận hoàn thành cải thiện thành công. Đang chờ Audit phê duyệt.');
+    }
+
+    public function rejectCompletion(Request $request, $id, $resultId)
+    {
+        $user = auth()->user();
+        abort_unless($user->hasRole('admin'), 403, 'Chỉ Admin mới có quyền trả lại yêu cầu hoàn thiện.');
+
+        $audit = AuditRecord::with('results')->findOrFail($id);
+        $result = $audit->results->where('id', $resultId)->firstOrFail();
+
+        if (!$result->is_completed) {
+            return redirect()->back()->with('error', 'Hạng mục này chưa được báo cáo hoàn thiện.');
+        }
+
+        $result->update([
+            'is_completed' => false,
+            'completed_at' => null,
+        ]);
+
+        $this->notifyDepartmentUsers(
+            $audit->template->department_name,
+            $audit->id,
+            'audit_completion_rejected',
+            'messages.notif_audit_completion_rejected_title',
+            'messages.notif_audit_completion_rejected_message',
+            [auth()->id()],
+            ['id' => $audit->id, 'department' => $audit->template->department_name]
+        );
+
+        return redirect()->back()->with('success', 'Đã trả lại yêu cầu xác nhận hoàn thiện thành công.');
     }
 
     public function storeReviews(Request $request, $id)
@@ -443,6 +566,16 @@ class AuditController extends Controller
             }
         }
 
+        $this->notifyDepartmentUsers(
+            $audit->template->department_name,
+            $audit->id,
+            'audit_reviewed',
+            'messages.notif_audit_reviewed_title',
+            'messages.notif_audit_reviewed_message',
+            [auth()->id()],
+            ['id' => $audit->id, 'department' => $audit->template->department_name]
+        );
+
         return redirect()->route('audits.show', $audit->id)
             ->with('success', 'Đã lưu kết quả đánh giá lại thành công.');
     }
@@ -491,6 +624,14 @@ class AuditController extends Controller
             }
         }
 
+        $this->notifyAuditParticipants(
+            $audit,
+            'audit_responded',
+            'messages.notif_audit_agreed_title',
+            'messages.notif_audit_agreed_message',
+            ['id' => $audit->id, 'department' => $audit->template->department_name]
+        );
+
         return redirect()->route('audits.show', $audit->id)->with('success', 'Đã ghi nhận phản hồi lỗi thành công.');
     }
 
@@ -531,5 +672,90 @@ class AuditController extends Controller
         }
 
         return redirect()->route('audits.show', $audit->id)->with('success', 'Đã duyệt các lời phản đối lỗi.');
+    }
+
+    private function notifyDepartmentAboutAuditCreated(AuditRecord $record, AuditTemplate $template): void
+    {
+        $departmentName = $template->department_name ?? '';
+        $title = 'messages.notif_new_audit_title';
+        $message = 'messages.notif_new_audit_message';
+        $params = [
+            'id' => $record->id,
+            'department' => $departmentName
+        ];
+
+        $this->notifyDepartmentUsers(
+            $departmentName,
+            $record->id,
+            'audit_created',
+            $title,
+            $message,
+            [auth()->id()],
+            $params
+        );
+    }
+
+    private function notifyDepartmentUsers(
+        string $departmentName,
+        int $auditId,
+        string $eventKey,
+        string $title,
+        string $message,
+        array $excludeUserIds = [],
+        array $params = []
+    ): void {
+        $normalizedDepartment = $this->normalizeDepartmentName($departmentName);
+        if (empty($normalizedDepartment)) {
+            return;
+        }
+
+        $users = User::query()
+            ->whereNotNull('managed_department')
+            ->whereNotIn('id', $excludeUserIds)
+            ->get()
+            ->filter(function (User $user) use ($normalizedDepartment) {
+                return $this->normalizeDepartmentName($user->managed_department) === $normalizedDepartment;
+            });
+
+        $notification = new AuditStatusChangedNotification($auditId, $eventKey, $title, $message, $params);
+        foreach ($users as $user) {
+            $user->notify($notification);
+        }
+    }
+
+    private function notifyAuditParticipants(AuditRecord $audit, string $eventKey, string $title, string $message, array $params = []): void
+    {
+        $users = User::query()
+            ->where('id', $audit->auditor_id)
+            ->orWhereHas('roles', function ($q) {
+                $q->whereIn('name', ['admin', 'audit']);
+            })
+            ->get()
+            ->where('id', '!=', auth()->id())
+            ->unique('id');
+
+        $notification = new AuditStatusChangedNotification($audit->id, $eventKey, $title, $message, $params);
+        foreach ($users as $user) {
+            $user->notify($notification);
+        }
+    }
+
+    private function normalizeDepartmentName(?string $departmentName): ?string
+    {
+        if (empty($departmentName)) {
+            return null;
+        }
+
+        $name = mb_strtolower(trim($departmentName));
+        $map = [
+            'btp' => 'btp',
+            'bán thành phẩm' => 'btp',
+            'phòng mẫu' => 'phong mau',
+            'kiểm vải' => 'kiem vai',
+            'xưởng 6 tầng 1' => 'xuong 6 tang 1',
+            'xưởng 6 tầng 2' => 'xuong 6 tang 2',
+        ];
+
+        return $map[$name] ?? $name;
     }
 }

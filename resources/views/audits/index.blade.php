@@ -176,7 +176,7 @@
             <polyline points="7 10 12 15 17 10" />
             <line x1="12" y1="15" x2="12" y2="3" />
         </svg>
-        <span>{{ __('messages.export_excel') }} (Đã chọn)</span>
+        <span>{{ __('messages.export_excel') }} ({{ __('messages.selected') }})</span>
     </button>
 </div>
 
@@ -357,7 +357,7 @@
                     @forelse($audits as $audit)
                     <tr>
                         <td class="text-center">
-                            <input type="checkbox" class="form-check-input audit-select" value="{{ $audit->id }}" aria-label="Chon phieu #{{ $audit->id }}">
+                            <input type="checkbox" class="form-check-input audit-select" value="{{ $audit->id }}" aria-label="{{ __('messages.select_audit') }} #{{ $audit->id }}">
                         </td>
                         <td class="text-muted small">#{{ $audit->id }}</td>
                         <td>
@@ -409,14 +409,26 @@
                                     </span>
                                     @elseif($unreviewed->isNotEmpty())
                                     @php
-                                    $hasReachedDeadline = $unreviewed->every(function($r) {
-                                    if (empty($r->improvement_deadline)) return true;
-                                    return \Carbon\Carbon::now()->startOfDay()->gte(\Carbon\Carbon::parse($r->improvement_deadline)->startOfDay());
+                                    $anyOverdue = $unreviewed->contains(function($r) {
+                                        if ($r->is_completed || empty($r->improvement_deadline)) return false;
+                                        return \Carbon\Carbon::now()->startOfDay()->gte(\Carbon\Carbon::parse($r->improvement_deadline)->startOfDay());
                                     });
+                                    $allCompleted = $unreviewed->every('is_completed', true);
                                     @endphp
-                                    <span class="status-badge bg-{{ $hasReachedDeadline ? 'info' : 'warning' }} bg-opacity-10 text-{{ $hasReachedDeadline ? 'info' : 'warning' }} border border-{{ $hasReachedDeadline ? 'info' : 'warning' }} border-opacity-25 shadow-none" style="padding: 2px 8px;">
-                                        {{ $hasReachedDeadline ? __('messages.audit_improved_badge') : __('messages.audit_planned_badge') }}
+                                    
+                                    @if($anyOverdue)
+                                    <span class="status-badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 shadow-none" style="padding: 2px 8px;">
+                                        {{ __('messages.audit_overdue_badge') }}
                                     </span>
+                                    @elseif($allCompleted)
+                                    <span class="status-badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 shadow-none" style="padding: 2px 8px;">
+                                        {{ __('messages.audit_improved_badge') }}
+                                    </span>
+                                    @else
+                                    <span class="status-badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 shadow-none" style="padding: 2px 8px;">
+                                        {{ __('messages.audit_planned_badge') }}
+                                    </span>
+                                    @endif
                                     @endif
                                 </div>
                             </div>
@@ -454,7 +466,7 @@
                                     </svg>
                                 </a>
                                 @if(auth()->user()->hasRole('admin'))
-                                <form action="{{ route('audits.destroy', $audit->id) }}" method="POST" class="d-inline" onsubmit="return confirm('{{ __('messages.confirm_delete_audit') }}')">
+                                <form action="{{ route('audits.destroy', $audit->id) }}" method="POST" class="d-inline" data-confirm-msg="{{ __('messages.confirm_delete_audit') }}" onsubmit="return confirm(this.dataset.confirmMsg)">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-sm btn-outline-danger border-0" title="{{ __('messages.delete_audit') }}">
@@ -494,7 +506,7 @@
                                                         <div>
                                                             <div class="fs-6">{{ $result->criterion ? __($result->criterion->content) : __('messages.question_deleted') }}</div>
                                                             <div class="fw-normal small mt-2 bg-white bg-opacity-50 p-2 rounded-3 text-dark">
-                                                                <span class="fw-bold">{{ __('messages.issue') }}:</span> {{ $result->note }}
+                                                                <span class="fw-bold">{{ __('messages.detected_error_content') }}</span> {{ $result->note }}
                                                             </div>
                                                         </div>
                                                     </div>
@@ -510,7 +522,7 @@
                                                         </select>
                                                     </div>
                                                     <div id="reject_reason_{{ $audit->id }}_{{ $result->id }}" style="display: none;">
-                                                        <label class="form-label fw-bold text-dark mb-2">{{ __('messages.audit_dispute_reason_only') }}</label>
+                                                        <label class="form-label fw-bold text-dark mb-2">{{ __('messages.audit_dispute_reason_label') }}</label>
                                                         <textarea class="form-control rounded-3 border-2" name="agreements[{{ $result->id }}][department_reject_reason]" rows="3" placeholder="{{ __('messages.audit_dispute_reason_placeholder') }}"></textarea>
                                                     </div>
                                                 </div>
@@ -635,7 +647,7 @@
             exportBtn.addEventListener('click', function() {
                 const selectedIds = getSelectedIds();
                 if (selectedIds.length === 0) {
-                    alert('Vui long chon it nhat 1 phieu de xuat Excel.');
+                    alert("{{ __('messages.select_audit_export_error') }}");
                     return;
                 }
 

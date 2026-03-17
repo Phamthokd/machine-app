@@ -23,12 +23,19 @@ class AuditResult extends Model
         'department_agreement',
         'department_reject_reason',
         'audit_rejection_decision',
+        'is_completed',
+        'completed_at',
+        'completion_image_path',
+        'completion_note',
     ];
     protected $casts = [
         'is_passed' => 'boolean',
         'department_agreement' => 'boolean',
         'audit_rejection_decision' => 'boolean',
+        'is_completed' => 'boolean',
         'image_path' => 'array',
+        'completion_image_path' => 'array',
+        'completed_at' => 'datetime',
     ];
 
     public function record()

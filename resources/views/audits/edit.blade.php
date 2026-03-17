@@ -127,14 +127,14 @@
                                         <line x1="12" y1="8" x2="12" y2="16" />
                                         <line x1="8" y1="12" x2="16" y2="12" />
                                     </svg>
-                                    <span>Thêm Ảnh / Chụp Ảnh</span>
+                                    <span>{{ __('messages.add_photo') }}</span>
                                 </button>
                             </div>
                         </div>
                     </div>
                 </div>
                 @empty
-                <div class="p-5 text-center text-muted">Không có câu hỏi nào.</div>
+                <div class="p-5 text-center text-muted">{{ __('messages.no_questions_defined') }}</div>
                 @endforelse
             </div>
         </div>

@@ -117,10 +117,57 @@
       margin: 0 -12px -12px;
       z-index: 90;
     }
+
+    .notification-read {
+      opacity: 0.5;
+    }
+
+    .notification-dropdown {
+      width: 320px;
+    }
+
+    @media (max-width: 576px) {
+      .notification-dropdown {
+        width: calc(100vw - 20px);
+        position: fixed !important;
+        left: 10px !important;
+        right: 10px !important;
+        top: 64px !important;
+        transform: none !important;
+      }
+
+      .navbar-modern .container-fluid {
+        padding-left: 10px;
+        padding-right: 10px;
+      }
+
+      .navbar-brand {
+        font-size: 1.1rem;
+        gap: 4px;
+      }
+
+      .nav-btn-lang {
+        padding: 4px 8px !important;
+        font-size: 0.75rem !important;
+      }
+      
+      .d-flex.gap-2.align-items-center {
+        gap: 0.35rem !important;
+      }
+    }
   </style>
 </head>
 
 <body>
+
+  @php
+    $recentNotifications = collect();
+    $unreadCount = 0;
+    if (auth()->check() && \Illuminate\Support\Facades\Schema::hasTable('notifications')) {
+      $recentNotifications = auth()->user()->notifications()->latest()->limit(10)->get();
+      $unreadCount = auth()->user()->unreadNotifications()->count();
+    }
+  @endphp
 
   <nav class="navbar navbar-modern">
     <div class="container-fluid d-flex justify-content-between align-items-center">
@@ -136,17 +183,57 @@
       </a>
 
       <!-- Actions -->
-      <!-- Language Switcher -->
-      <div class="d-flex gap-2">
-        <a href="{{ route('lang.switch', 'vi') }}" class="btn btn-sm {{ app()->getLocale() == 'vi' ? 'btn-primary' : 'btn-outline-secondary' }}">VN</a>
-        <a href="{{ route('lang.switch', 'zh') }}" class="btn btn-sm {{ app()->getLocale() == 'zh' ? 'btn-primary' : 'btn-outline-secondary' }}">CN</a>
-        <a href="{{ route('lang.switch', 'en') }}" class="btn btn-sm {{ app()->getLocale() == 'en' ? 'btn-primary' : 'btn-outline-secondary' }}">EN</a>
+      <div class="d-flex gap-2 align-items-center">
+        @auth
+        <div class="dropdown">
+          <button
+            class="btn btn-sm btn-outline-secondary position-relative"
+            type="button"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+            title="Notifications">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+              <path d="M8 16a2 2 0 0 0 1.985-1.75h-3.97A2 2 0 0 0 8 16Zm.104-14.995a1 1 0 0 0-.208 0A5.002 5.002 0 0 0 3 6c0 1.098-.5 6-2 7h14c-1.5-1-2-5.902-2-7a5.002 5.002 0 0 0-4.896-4.995Z" />
+            </svg>
+            @if($unreadCount > 0)
+              <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill badge-notification bg-danger">{{ $unreadCount }}</span>
+            @endif
+          </button>
+
+          <div class="dropdown-menu dropdown-menu-end p-0 overflow-hidden notification-dropdown">
+            <div class="px-3 py-2 border-bottom d-flex justify-content-between align-items-center">
+              <strong class="small">{{ __('messages.notifications') }}</strong>
+              @if($unreadCount > 0)
+                <a href="{{ route('notifications.read_all') }}" class="text-primary x-small fw-bold text-decoration-none" style="font-size: 10px;">{{ __('messages.mark_all_as_read') }}</a>
+              @endif
+            </div>
+
+            <div style="max-height: 280px; overflow-y: auto;">
+              @forelse($recentNotifications as $notification)
+                <a class="dropdown-item py-2 border-bottom js-notification-link {{ $notification->read_at ? 'notification-read' : '' }}" 
+                   href="{{ route('notifications.open', $notification->id) }}" 
+                   id="notification-{{ $notification->id }}">
+                  <div class="fw-semibold small">{{ __($notification->data['title'] ?? 'Thong bao', $notification->data['params'] ?? []) }}</div>
+                  <div class="small text-muted">{{ __($notification->data['message'] ?? '', $notification->data['params'] ?? []) }}</div>
+                  <div class="small text-muted">{{ $notification->created_at->diffForHumans() }}</div>
+                </a>
+              @empty
+                <div class="px-3 py-3 small text-muted">{{ __('messages.no_notifications') }}</div>
+              @endforelse
+            </div>
+          </div>
+        </div>
+        @endauth
+
+        <a href="{{ route('lang.switch', 'vi') }}" class="btn btn-sm nav-btn-lang {{ app()->getLocale() == 'vi' ? 'btn-primary' : 'btn-outline-secondary' }}">VN</a>
+        <a href="{{ route('lang.switch', 'zh') }}" class="btn btn-sm nav-btn-lang {{ app()->getLocale() == 'zh' ? 'btn-primary' : 'btn-outline-secondary' }}">CN</a>
+        <a href="{{ route('lang.switch', 'en') }}" class="btn btn-sm nav-btn-lang {{ app()->getLocale() == 'en' ? 'btn-primary' : 'btn-outline-secondary' }}">EN</a>
       </div>
 
     </div>
   </nav>
 
-  <div class="container-fluid my-4" style="max-width: {{ $maxWidth ?? '1100px' }};">
+  <div class="container-fluid my-4" style="max-width: <?php echo e($maxWidth ?? '1100px'); ?>;">
 
     @if(session('success'))
     <div class="alert alert-success border-0 shadow-sm d-flex align-items-center gap-2 mb-4">
@@ -162,6 +249,61 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      const notificationDropdown = document.querySelector(".dropdown-menu");
+      if (notificationDropdown) {
+        notificationDropdown.addEventListener("click", function(e) {
+          e.stopPropagation();
+        });
+      }
+
+      const notifLinks = document.querySelectorAll(".js-notification-link");
+      const badge = document.querySelector(".badge-notification");
+
+      notifLinks.forEach(link => {
+        link.addEventListener("click", function(e) {
+          // If already marked as read visually, let the normal navigation happen
+          if (this.classList.contains("notification-read")) {
+            return; 
+          }
+
+          e.preventDefault();
+          e.stopPropagation(); // Keep dropdown open
+
+          const url = this.getAttribute("href");
+          
+          fetch(url, {
+            method: "GET",
+            headers: {
+              "X-Requested-With": "XMLHttpRequest",
+              "Accept": "application/json"
+            }
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.status === "success") {
+              // Mark as read visually
+              this.classList.add("notification-read");
+              
+              // Update badge count
+              if (badge) {
+                let currentCount = parseInt(badge.textContent);
+                if (!isNaN(currentCount) && currentCount > 0) {
+                  currentCount--;
+                  badge.textContent = currentCount;
+                  if (currentCount === 0) {
+                    badge.remove();
+                  }
+                }
+              }
+            }
+          })
+          .catch(error => console.error("Error marking notification as read:", error));
+        });
+      });
+    });
+  </script>
 </body>
 
 </html>

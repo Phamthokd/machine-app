@@ -43,28 +43,32 @@
         <!-- Header Row -->
         <tr class="title-row" style="height: 40px;">
             <td colspan="4">
-                Bộ phận nhận kiểm tra: {{ $audit->template->department_name }}<br style="mso-data-placement:same-cell;">
-                Người kiểm tra: {{ strtoupper($audit->auditor->name ?? 'N/A') }}
+                {{ __('messages.dept_being_audited') }}: {{ $audit->template->department_name }}<br style="mso-data-placement:same-cell;">
+                {{ __('messages.auditor_label') }}: {{ strtoupper($audit->auditor->name ?? 'N/A') }}
             </td>
-            <td colspan="2">Ngày kiểm tra: {{ $audit->created_at->format('d/m/Y') }}</td>
-            <td>Tỷ lệ tuân thủ: {{ $audit->score }}%</td>
+            <td colspan="2">{{ __('messages.audit_date_label') }}: {{ $audit->created_at->format('d/m/Y') }}</td>
+            <td>{{ __('messages.compliance_rate_label') }}: {{ $audit->score }}%</td>
         </tr>
         <!-- Table Column Headers -->
         <tr class="header">
             <th width="40">No</th>
-            <th width="320">Hạng mục yêu cầu</th>
-            <th width="260">Nội dung</th>
-            <th width="70">Điểm quy định</th>
-            <th width="80">Ảnh đi kèm</th>
-            <th width="230">Nội dung đánh giá lần 2</th>
-            <th width="80">Ảnh đánh giá lần 2</th>
+            <th width="320">{{ __('messages.audit_criterion_header') }}</th>
+            <th width="260">{{ __('messages.content_header') }}</th>
+            <th width="70">{{ __('messages.standard_score_header') }}</th>
+            <th width="80">{{ __('messages.attached_image_header') }}</th>
+            <th width="260">{{ __('messages.improvement_content_header') }}</th>
+            <th width="80">{{ __('messages.improvement_image_header') }}</th>
+            <th width="230">{{ __('messages.second_round_eval_header') }}</th>
+            <th width="80">{{ __('messages.second_round_image_header') }}</th>
         </tr>
         <!-- Data Rows -->
         @foreach($audit->results as $index => $result)
         @php
         $imgCount = !$result->is_passed && !empty($result->image_path) ? count((array)$result->image_path) : 0;
+        $compImgCount = $result->is_completed && !empty($result->completion_image_path) ? count((array)$result->completion_image_path) : 0;
         $hasReviewImg = !empty($result->review_image_path);
-        $maxImgs = max($imgCount, $hasReviewImg ? 1 : 0);
+        
+        $maxImgs = max($imgCount, $compImgCount, $hasReviewImg ? 1 : 0);
         $rowHeight = $maxImgs > 0 ? ($maxImgs * 70) : 35;
         @endphp
         <tr style="height: {{ $rowHeight }}px;">
@@ -72,16 +76,13 @@
             <td style="vertical-align: middle;">{{ $result->criterion ? __($result->criterion->content) : 'N/A' }}</td>
             <td class="{{ $result->is_passed ? '' : 'danger' }}" style="vertical-align: middle;">
                 @if($result->is_passed)
-                Đạt
+                {{ __('messages.audit_pass_short') }}
                 @else
-                Không, {{ $result->note }}
+                {{ __('messages.audit_fail_short') }}, {{ $result->note }}
                 @if($result->root_cause)
-                <br style="mso-data-placement:same-cell;"><b>NN gốc rễ:</b> {{ $result->root_cause }}
-                <br style="mso-data-placement:same-cell;"><b>BP khắc phục:</b> {{ $result->corrective_action }}
-                <br style="mso-data-placement:same-cell;"><b>Hạn:</b> {{ \Carbon\Carbon::parse($result->improvement_deadline)->format('d/m/Y') }}
-                @if($result->improver_name)
-                <br style="mso-data-placement:same-cell;"><b>Người cải thiện:</b> {{ $result->improver_name }}
-                @endif
+                <br style="mso-data-placement:same-cell;"><b>{{ __('messages.root_cause_label') }}:</b> {{ $result->root_cause }}
+                <br style="mso-data-placement:same-cell;"><b>{{ __('messages.corrective_action_label') }}:</b> {{ $result->corrective_action }}
+                <br style="mso-data-placement:same-cell;"><b>{{ __('messages.deadline_label') }}:</b> {{ \Carbon\Carbon::parse($result->improvement_deadline)->format('d/m/Y') }}
                 @endif
                 @endif
             </td>
@@ -93,13 +94,31 @@
                 @endforeach
                 @endif
             </td>
+            <td style="vertical-align: middle;">
+                @if($result->is_completed)
+                {{ $result->completion_note }}
+                @if($result->completed_at)
+                <br style="mso-data-placement:same-cell;"><b>{{ __('messages.time') }}:</b> {{ \Carbon\Carbon::parse($result->completed_at)->format('H:i d/m/Y') }}
+                @endif
+                @if($result->improver_name)
+                <br style="mso-data-placement:same-cell;"><b>{{ __('messages.improver_label') }}:</b> {{ $result->improver_name }}
+                @endif
+                @endif
+            </td>
+            <td align="center" style="vertical-align: top; padding: 2px;">
+                @if($result->is_completed && !empty($result->completion_image_path))
+                @foreach((array)$result->completion_image_path as $p_path)
+                <img src="{{ asset($p_path) }}" width="60" height="60"><br>
+                @endforeach
+                @endif
+            </td>
             <td class="{{ $result->reviewer_name ? '' : 'danger' }}" style="vertical-align: middle;">
                 @if($result->reviewer_name)
                 @if($result->review_note)
                 {{ $result->review_note }}
                 @endif
-                <br style="mso-data-placement:same-cell;"><b>Người ĐG:</b> {{ $result->reviewer_name }}
-                <br style="mso-data-placement:same-cell;"><b>Thời gian:</b> {{ \Carbon\Carbon::parse($result->reviewed_at)->format('H:i d/m/Y') }}
+                <br style="mso-data-placement:same-cell;"><b>{{ __('messages.auditor_short_label') }}:</b> {{ $result->reviewer_name }}
+                <br style="mso-data-placement:same-cell;"><b>{{ __('messages.time') }}:</b> {{ \Carbon\Carbon::parse($result->reviewed_at)->format('H:i d/m/Y') }}
                 @endif
             </td>
             <td align="center" style="vertical-align: top; padding: 2px;">

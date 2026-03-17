@@ -7,6 +7,7 @@ use App\Http\Controllers\RepairTicketController;
 use App\Http\Controllers\QrScanController;
 use App\Http\Controllers\MachineCsvImportController;
 use App\Http\Controllers\MachineMovementController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\UserController;
 
 /*
@@ -35,6 +36,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::get('/notifications/{id}/open', [NotificationController::class, 'open'])->name('notifications.open');
+    Route::get('/notifications/read-all', [NotificationController::class, 'readAll'])->name('notifications.read_all');
 
     // Common: Scan QR & View Machine
     Route::get('/scan', [QrScanController::class, 'index']);
@@ -79,6 +82,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/audits/export', [\App\Http\Controllers\AuditController::class, 'export'])->name('audits.export');
         Route::get('/audits/{audit}/export', [\App\Http\Controllers\AuditController::class, 'exportDetail'])->name('audits.export_detail');
         Route::post('/audits/{audit}/improvements', [\App\Http\Controllers\AuditController::class, 'updateImprovements'])->name('audits.improvements');
+        Route::post('/audits/{audit}/confirm-completion', [\App\Http\Controllers\AuditController::class, 'confirmCompletion'])->name('audits.confirm_completion');
+        Route::post('/audits/{audit}/reject-completion/{result}', [\App\Http\Controllers\AuditController::class, 'rejectCompletion'])->name('audits.reject_completion');
         Route::post('/audits/{audit}/agreements', [\App\Http\Controllers\AuditController::class, 'submitAgreements'])->name('audits.agreements');
         Route::post('/audits/{audit}/review-rejections', [\App\Http\Controllers\AuditController::class, 'reviewRejections'])->name('audits.review_rejections');
         Route::post('/audits/{audit}/reviews', [\App\Http\Controllers\AuditController::class, 'storeReviews'])->name('audits.reviews');
