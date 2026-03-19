@@ -139,6 +139,12 @@ return [
 
     // Audit Module
     'internal_audit' => '内部审核',
+    'QA' => 'QA',
+    'BTP' => 'BTP',
+    'Phòng mẫu' => '样品室',
+    'Kiểm vải' => '验布',
+    'Xưởng 6 tầng 1' => '一厂六楼一楼',
+    'Xưởng 6 tầng 2' => '一厂六楼二楼',
     'audit_template_qa' => 'QA 审计',
     'audit_qa_q1' => '样品室：QA是否按规定进行全面且正确的检查？',
     'audit_qa_q2' => 'QA是否按规定批准技术操作/色卡？',

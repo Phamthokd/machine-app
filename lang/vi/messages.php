@@ -145,6 +145,12 @@ return [
 
     // Audit Module
     'internal_audit' => 'Đánh giá nội bộ',
+    'QA' => 'QA',
+    'BTP' => 'BTP',
+    'Phòng mẫu' => 'Phòng mẫu',
+    'Kiểm vải' => 'Kiểm vải',
+    'Xưởng 6 tầng 1' => 'Xưởng 6 tầng 1',
+    'Xưởng 6 tầng 2' => 'Xưởng 6 tầng 2',
     'audit_template_qa' => 'Đánh giá bộ phận QA',
     'audit_qa_q1' => 'Phòng mẫu: QA có kiểm tra đầy đủ và đúng theo quy định không?',
     'audit_qa_q2' => 'QA có duyệt tác nghiệp/bảng màu theo đúng quy định không?',

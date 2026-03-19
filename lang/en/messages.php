@@ -145,6 +145,12 @@ return [
 
     // Audit Module
     'internal_audit' => 'Internal Audit',
+    'QA' => 'QA',
+    'BTP' => 'BTP',
+    'Phòng mẫu' => 'Sample Room',
+    'Kiểm vải' => 'Fabric Inspection',
+    'Xưởng 6 tầng 1' => 'Workshop 6 F1',
+    'Xưởng 6 tầng 2' => 'Workshop 6 F2',
     'audit_template_qa' => 'QA Audit',
     'audit_qa_q1' => 'Sample Room: Does QA perform full and correct inspections according to regulations?',
     'audit_qa_q2' => 'Does QA approve technical operations/color charts according to regulations?',
