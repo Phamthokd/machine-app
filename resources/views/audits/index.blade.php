@@ -376,8 +376,8 @@
                                     $isAdmin = auth()->user()->hasRole('admin');
 
                                     $isDepartmentUser = \Illuminate\Support\Facades\Auth::check() && (
-                                    !$isAdmin &&
-                                    !empty($userDeptMapped) && !empty($auditDept) && $userDeptMapped === $auditDept
+                                    $isAdmin ||
+                                    (!empty($userDeptMapped) && !empty($auditDept) && $userDeptMapped === $auditDept)
                                     );
                                     $canRespond = $isDepartmentUser && $unrespondedResults->isNotEmpty();
 
@@ -454,7 +454,11 @@
                         </td>
                         <td class="text-center">
                             <div class="d-flex justify-content-center gap-2">
-
+                                @if($canRespond)
+                                <button type="button" class="btn btn-sm btn-info text-white shadow-sm fw-bold px-3" data-bs-toggle="modal" data-bs-target="#respondModal_{{ $audit->id }}">
+                                    {{ __('messages.audit_respond_btn') }}
+                                </button>
+                                @endif
                                 <a href="/audits/{{ $audit->id }}" class="btn btn-sm btn-light border text-primary px-2" title="{{ __('messages.view_detail') }}">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
@@ -476,7 +480,63 @@
                                 @endif
                             </div>
 
+                            @if($canRespond)
+                            <!-- Error feedback modal -->
+                            <div class="modal fade" id="respondModal_{{ $audit->id }}" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable text-start">
+                                    <form action="{{ route('audits.agreements', $audit->id) }}" method="POST" class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                                        @csrf
+                                        <div class="modal-header bg-dark text-white border-0 py-3">
+                                            <h5 class="modal-title fw-bold d-flex align-items-center gap-2">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                                                </svg>
+                                                {{ __('messages.audit_feedback_modal_title') }}
+                                            </h5>
+                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body p-4 bg-light">
+                                            <p class="text-secondary mb-4">{{ __('messages.audit_feedback_modal_desc') }}</p>
 
+                                            @foreach($unrespondedResults as $index => $result)
+                                            <div class="card border-0 shadow-sm mb-4 rounded-4 overflow-hidden">
+                                                <div class="card-header bg-danger bg-opacity-10 text-danger fw-bold border-0 py-3 px-4">
+                                                    <div class="d-flex gap-3">
+                                                        <div class="bg-danger text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; flex-shrink: 0;">!</div>
+                                                        <div>
+                                                            <div class="fs-6">{{ $result->criterion ? __($result->criterion->content) : __('messages.question_deleted') }}</div>
+                                                            <div class="fw-normal small mt-2 bg-white bg-opacity-50 p-2 rounded-3 text-dark">
+                                                                <span class="fw-bold">{{ __('messages.detected_error_content') }}</span> {{ $result->note }}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="card-body p-4">
+                                                    <div class="mb-4">
+                                                        <label class="form-label fw-bold text-dark mb-2">{{ __('messages.audit_decision_label') }}</label>
+                                                        <select class="form-select rounded-3 py-2 border-2" name="agreements[{{ $result->id }}][department_agreement]" required
+                                                            onchange="document.getElementById('reject_reason_{{ $audit->id }}_{{ $result->id }}').style.display = this.value === '0' ? 'block' : 'none';">
+                                                            <option value="" disabled selected>{{ __('messages.audit_choose_feedback') }}</option>
+                                                            <option value="1">{{ __('messages.audit_agree_error_option') }}</option>
+                                                            <option value="0">{{ __('messages.audit_dispute_error_option') }}</option>
+                                                        </select>
+                                                    </div>
+                                                    <div id="reject_reason_{{ $audit->id }}_{{ $result->id }}" style="display: none;">
+                                                        <label class="form-label fw-bold text-dark mb-2">{{ __('messages.audit_dispute_reason_label') }}</label>
+                                                        <textarea class="form-control rounded-3 border-2" name="agreements[{{ $result->id }}][department_reject_reason]" rows="3" placeholder="{{ __('messages.audit_dispute_reason_placeholder') }}"></textarea>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            @endforeach
+                                        </div>
+                                        <div class="modal-footer bg-white border-0 p-4">
+                                            <button type="button" class="btn btn-light fw-bold px-4" data-bs-dismiss="modal">{{ __('messages.cancel') }}</button>
+                                            <button type="submit" class="btn btn-dark fw-bold px-4 shadow-sm text-white text-uppercase rounded-3">{{ __('messages.audit_send_feedback_btn') }}</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                            @endif
                         </td>
                     </tr>
                     @empty

@@ -5,26 +5,15 @@ $audit->results->filter(function($r) { return !empty($r->improver_name) && empty
 
 // Quyền truy cập
 $userDept = auth()->user()->managed_department;
-$templateName = $audit->template->name;
+$auditDept = $audit->template->department_name ?? null;
 $isAdmin = auth()->user()->hasRole('admin');
 
-$isDepartmentUser = \Illuminate\Support\Facades\Auth::check() && !$isAdmin && (
-    ($userDept === 'Bán thành phẩm' && ($templateName === 'Đánh giá bộ phận BTP' || $templateName === 'messages.audit_template_btp')) ||
-    ($userDept === 'Phòng mẫu' && ($templateName === 'Đánh giá bộ phận Phòng mẫu' || $templateName === 'messages.audit_template_phong_mau')) ||
-    ($userDept === 'Kiểm vải' && ($templateName === 'Đánh giá bộ phận Kiểm vải' || $templateName === 'messages.audit_template_kiem_vai')) ||
-    (in_array($userDept, ['Xưởng 6 tầng 1', 'Xưởng 6 Tầng 1']) && ($templateName === 'Đánh giá Xưởng 6 tầng 1' || $templateName === 'messages.audit_template_x6_t1')) ||
-    (in_array($userDept, ['Xưởng 6 tầng 2', 'Xưởng 6 Tầng 2']) && ($templateName === 'Đánh giá Xưởng 6 tầng 2' || $templateName === 'messages.audit_template_x6_t2')) ||
-    ($userDept === 'Thêu' && ($templateName === 'Đánh giá bộ phận Thêu' || $templateName === 'messages.audit_template_theu')) ||
-    ($userDept === 'May lập trình' && ($templateName === 'messages.audit_template_may_lap_trinh')) ||
-    ($userDept === 'Kế toán' && ($templateName === 'messages.audit_template_ke_toan')) ||
-    ($userDept === 'Sale + Đơn hàng' && ($templateName === 'messages.audit_template_sale_don_hang')) ||
-    ($userDept === 'Kho vải + PL' && ($templateName === 'messages.audit_template_kho_vai_pl')) ||
-    ($userDept === 'Nhà cắt' && ($templateName === 'messages.audit_template_nha_cat')) ||
-    ($userDept === 'Nhà giặt' && ($templateName === 'messages.audit_template_nha_giat')) ||
-    ($userDept === 'Thống kê tổng' && ($templateName === 'messages.audit_template_thong_ke_tong')) ||
-    ($userDept === 'IE' && ($templateName === 'messages.audit_template_ie')) ||
-    ($userDept === 'KHSX' && ($templateName === 'messages.audit_template_khsx'))
+$userDeptMapped = $userDept === 'Bán thành phẩm' ? 'BTP' : $userDept;
+
+$isDepartmentUser = \Illuminate\Support\Facades\Auth::check() && (
+    $isAdmin || (!empty($userDeptMapped) && !empty($auditDept) && $userDeptMapped === $auditDept)
 );
+
 $isAuditUser = \Illuminate\Support\Facades\Auth::check()
 && (auth()->user()->hasRole('audit') || auth()->user()->hasRole('admin'))
 && empty(auth()->user()->managed_department);
