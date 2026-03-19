@@ -16,6 +16,7 @@ class DepartmentSeeder extends Seeder
             ['code' => 'CD1', 'name' => 'CD1', 'type' => 'team'],
             ['code' => 'CD2', 'name' => 'CD2', 'type' => 'team'],
             ['code' => 'PHONG_MAU', 'name' => 'Phòng mẫu', 'type' => 'team'],
+            ['code' => 'QA', 'name' => 'QA', 'type' => 'team'],
         ];
 
         // Add Team 01 to 40

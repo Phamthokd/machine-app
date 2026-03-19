@@ -24,7 +24,7 @@ class UserController extends Controller
     public function create()
     {
         $roles = Role::all();
-        $departments = ['XNK', 'Xưởng 6 Tầng 1', 'Xưởng 6 Tầng 2', 'Xưởng 5', 'Bán thành phẩm', 'Phòng mẫu', 'Kiểm vải', 'Thêu', 'May lập trình', 'Kế toán', 'Sale + Đơn hàng', 'Kho vải + PL', 'Nhà cắt', 'Nhà giặt', 'Thống kê tổng', 'IE', 'KHSX', 'Khác'];
+        $departments = ['QA', 'XNK', 'Xưởng 6 Tầng 1', 'Xưởng 6 Tầng 2', 'Xưởng 5', 'Bán thành phẩm', 'Phòng mẫu', 'Kiểm vải', 'Thêu', 'May lập trình', 'Kế toán', 'Sale + Đơn hàng', 'Kho vải + PL', 'Nhà cắt', 'Nhà giặt', 'Thống kê tổng', 'IE', 'KHSX', 'Khác'];
         return view('users.create', compact('roles', 'departments'));
     }
 
@@ -35,7 +35,7 @@ class UserController extends Controller
             'username' => 'required|string|max:255|unique:users',
             'password' => 'required|string|min:6',
             'role' => 'required|string|exists:roles,name',
-            'managed_department' => 'nullable|string|in:XNK,Xưởng 6 Tầng 1,Xưởng 6 Tầng 2,Xưởng 5,Bán thành phẩm,Phòng mẫu,Kiểm vải,Thêu,May lập trình,Kế toán,Sale + Đơn hàng,Kho vải + PL,Nhà cắt,Nhà giặt,Thống kê tổng,IE,KHSX,Khác',
+            'managed_department' => 'nullable|string|in:QA,XNK,Xưởng 6 Tầng 1,Xưởng 6 Tầng 2,Xưởng 5,Bán thành phẩm,Phòng mẫu,Kiểm vải,Thêu,May lập trình,Kế toán,Sale + Đơn hàng,Kho vải + PL,Nhà cắt,Nhà giặt,Thống kê tổng,IE,KHSX,Khác',
         ]);
 
         $user = User::create([
@@ -53,7 +53,7 @@ class UserController extends Controller
     public function edit(User $user)
     {
         $roles = Role::all();
-        $departments = ['XNK', 'Xưởng 6 Tầng 1', 'Xưởng 6 Tầng 2', 'Xưởng 5', 'Bán thành phẩm', 'Phòng mẫu', 'Kiểm vải', 'Thêu', 'May lập trình', 'Kế toán', 'Sale + Đơn hàng', 'Kho vải + PL', 'Nhà cắt', 'Nhà giặt', 'Thống kê tổng', 'IE', 'KHSX', 'Khác'];
+        $departments = ['QA', 'XNK', 'Xưởng 6 Tầng 1', 'Xưởng 6 Tầng 2', 'Xưởng 5', 'Bán thành phẩm', 'Phòng mẫu', 'Kiểm vải', 'Thêu', 'May lập trình', 'Kế toán', 'Sale + Đơn hàng', 'Kho vải + PL', 'Nhà cắt', 'Nhà giặt', 'Thống kê tổng', 'IE', 'KHSX', 'Khác'];
         return view('users.edit', compact('user', 'roles', 'departments'));
     }
 
@@ -64,7 +64,7 @@ class UserController extends Controller
             'username' => 'required|string|max:255|unique:users,username,' . $user->id,
             'role' => 'required|string|exists:roles,name',
             'password' => 'nullable|string|min:6',
-            'managed_department' => 'nullable|string|in:XNK,Xưởng 6 Tầng 1,Xưởng 6 Tầng 2,Xưởng 5,Bán thành phẩm,Phòng mẫu,Kiểm vải,Thêu,May lập trình,Kế toán,Sale + Đơn hàng,Kho vải + PL,Nhà cắt,Nhà giặt,Thống kê tổng,IE,KHSX,Khác',
+            'managed_department' => 'nullable|string|in:QA,XNK,Xưởng 6 Tầng 1,Xưởng 6 Tầng 2,Xưởng 5,Bán thành phẩm,Phòng mẫu,Kiểm vải,Thêu,May lập trình,Kế toán,Sale + Đơn hàng,Kho vải + PL,Nhà cắt,Nhà giặt,Thống kê tổng,IE,KHSX,Khác',
         ]);
 
         $updateData = [

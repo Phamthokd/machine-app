@@ -25,6 +25,8 @@ class DatabaseSeeder extends Seeder
             AuditThongKeTongSeeder::class,
             AuditIESeeder::class,
             AuditKHSXSeeder::class,
+            AuditPhongMauSeeder::class,
+            AuditQASeeder::class,
         ]);
     }
 }

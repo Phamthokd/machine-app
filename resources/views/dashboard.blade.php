@@ -10,8 +10,12 @@ $maxWidth = '1200px';
     <div class="col-12 col-lg-4">
         <div class="card border-0 shadow-lg rounded-4 overflow-hidden h-100">
             <div class="card-header bg-primary text-white p-4 text-center border-0" style="background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);">
-                <div class="avatar rounded-circle bg-white text-primary fw-bold d-flex align-items-center justify-content-center mx-auto mb-3 shadow-sm" style="width: 100px; height: 100px; font-size: 2.5rem;">
-                    {{ substr(Auth::user()->name, 0, 1) }}
+                <div class="avatar rounded-circle bg-white text-primary fw-bold d-flex align-items-center justify-content-center mx-auto mb-3 shadow-sm position-relative overflow-hidden" style="width: 100px; height: 100px; font-size: 2.5rem;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="opacity-10 position-absolute" style="top: 50%; left: 50%; transform: translate(-50%, -50%);">
+                        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                        <circle cx="12" cy="7" r="4" />
+                    </svg>
+                    <span class="position-relative" style="z-index: 1;">{{ substr(Auth::user()->name, 0, 1) }}</span>
                 </div>
                 <h3 class="fw-bold mb-1">{{ Auth::user()->name }}</h3>
                 <div class="opacity-75 fs-5">
@@ -24,6 +28,16 @@ $maxWidth = '1200px';
                 <div class="p-3 bg-light rounded-3 text-center mb-4">
                     <div class="text-xs text-uppercase text-secondary fw-bold mb-1">{{ __('messages.username') }}</div>
                     <div class="fw-bold text-dark fs-5">{{ Auth::user()->username }}</div>
+                </div>
+
+                <div class="mb-4">
+                    <button type="button" class="btn btn-outline-primary btn-sm w-100 rounded-pill py-2 d-flex align-items-center justify-content-center gap-2" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                        </svg>
+                        {{ __('messages.change_password') }}
+                    </button>
                 </div>
 
                 <div class="mt-auto">
@@ -205,3 +219,65 @@ $maxWidth = '1200px';
     </div>
 </div>
 @endsection
+
+@push('modals')
+<!-- Change Password Modal -->
+<div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form method="POST" action="{{ route('password.update') }}" class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            @csrf
+            @method('put')
+            <div class="modal-header bg-primary text-white border-0 p-4">
+                <h5 class="modal-title fw-bold d-flex align-items-center gap-2" id="changePasswordModalLabel">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                    </svg>
+                    {{ __('messages.change_password') }}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                @if (session('status') === 'password-updated')
+                    <div class="alert alert-success border-0 rounded-3 mb-4 small">
+                        {{ __('messages.password_updated_success') }}
+                    </div>
+                @endif
+
+                <div class="mb-3">
+                    <label for="current_password" class="form-label fw-bold small text-secondary text-uppercase">{{ __('messages.current_password') }}</label>
+                    <input type="password" name="current_password" id="current_password" class="form-control bg-light border-0 rounded-3" required autocomplete="current-password">
+                    <x-input-error :messages="$errors->updatePassword->get('current_password')" class="mt-2 text-danger small" />
+                </div>
+
+                <div class="mb-3">
+                    <label for="password" class="form-label fw-bold small text-secondary text-uppercase">{{ __('messages.new_password') }}</label>
+                    <input type="password" name="password" id="password" class="form-control bg-light border-0 rounded-3" required autocomplete="new-password">
+                    <x-input-error :messages="$errors->updatePassword->get('password')" class="mt-2 text-danger small" />
+                </div>
+
+                <div class="mb-0">
+                    <label for="password_confirmation" class="form-label fw-bold small text-secondary text-uppercase">{{ __('messages.confirm_password') }}</label>
+                    <input type="password" name="password_confirmation" id="password_confirmation" class="form-control bg-light border-0 rounded-3" required autocomplete="new-password">
+                    <x-input-error :messages="$errors->updatePassword->get('password_confirmation')" class="mt-2 text-danger small" />
+                </div>
+            </div>
+            <div class="modal-footer border-0 p-4 pt-0">
+                <button type="button" class="btn btn-light fw-bold px-4 rounded-3 tap" data-bs-dismiss="modal">{{ __('messages.cancel') }}</button>
+                <button type="submit" class="btn btn-primary fw-bold px-4 rounded-3 tap shadow-sm btn-lg flex-grow-1">
+                    {{ __('messages.save') }}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@if($errors->updatePassword->any() || session('status') === 'password-updated')
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var myModal = new bootstrap.Modal(document.getElementById('changePasswordModal'));
+        myModal.show();
+    });
+</script>
+@endif
+@endpush
