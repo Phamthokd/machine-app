@@ -151,6 +151,7 @@ return [
     'Kiểm vải' => 'Fabric Inspection',
     'Thu mua' => 'Purchasing',
     'Kho cơ khí' => 'Mechanical Warehouse',
+    'Công trình + cơ điện' => 'Construction & Electromechanical',
     'Xưởng 6 tầng 1' => 'Workshop 6 F1',
     'Xưởng 6 tầng 2' => 'Workshop 6 F2',
     'audit_template_qa' => 'QA Audit',
@@ -192,6 +193,13 @@ return [
     'audit_kck_q8' => 'Are inventory reports sent to the accounting department according to regulations?',
     'audit_kck_q9' => 'Are there full SOPs for the department and are they updated when there are changes?',
     'audit_kck_q10' => 'Are expired documents removed according to storage time regulations?',
+
+    'audit_template_cong_trinh' => 'Construction & Electromechanical Audit',
+    'audit_ct_q1' => 'Has the repair application been performed according to regulations?',
+    'audit_ct_q2' => 'During repair, does the repair staff hang warning signs at the repair location?',
+    'audit_ct_q3' => 'Is maintenance carried out according to regulations?',
+    'audit_ct_q4' => 'Are there full SOPs for the department and are they updated when there are changes?',
+    'audit_ct_q5' => 'Are expired documents removed according to storage time regulations?',
 
     'manage_audits_subtitle' => 'Manage quality inspections and evaluations of departments',
     'start_new_audit' => 'Start New Audit',

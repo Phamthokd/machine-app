@@ -151,6 +151,7 @@ return [
     'Kiểm vải' => 'Kiểm vải',
     'Thu mua' => 'Thu mua',
     'Kho cơ khí' => 'Kho cơ khí',
+    'Công trình + cơ điện' => 'Công trình + cơ điện',
     'Xưởng 6 tầng 1' => 'Xưởng 6 tầng 1',
     'Xưởng 6 tầng 2' => 'Xưởng 6 tầng 2',
     'audit_template_qa' => 'Đánh giá bộ phận QA',
@@ -192,6 +193,13 @@ return [
     'audit_kck_q8' => 'Có gửi báo cáo tồn kho cho bộ phận kế toán theo đúng quy định không?',
     'audit_kck_q9' => 'Có đầy đủ các SOP của bộ phận và được cập nhật khi có thay đổi không?',
     'audit_kck_q10' => 'Có loại bỏ những tài liệu quá hạn theo quy định về thời gian lưu trữ không?',
+
+    'audit_template_cong_trinh' => 'Đánh giá bộ phận Công trình + cơ điện',
+    'audit_ct_q1' => 'Đơn xin sửa chữa đã thực hiện đúng theo quy định chưa?',
+    'audit_ct_q2' => 'Trong quá trình sửa chữa, nhân viên sửa chữa có treo biển cảnh báo tại vị trí sửa chữa không?',
+    'audit_ct_q3' => 'Việc bảo dưỡng có được tiến hành đúng theo quy định không?',
+    'audit_ct_q4' => 'Có đầy đủ các SOP của bộ phận và được cập nhật khi có thay đổi không?',
+    'audit_ct_q5' => 'Có loại bỏ những tài liệu quá hạn theo quy định về thời gian lưu trữ không?',
 
     'manage_audits_subtitle' => 'Quản lý các đợt kiểm tra và đánh giá chất lượng các bộ phận',
     'start_new_audit' => 'Thực hiện đánh giá mới',

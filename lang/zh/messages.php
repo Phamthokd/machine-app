@@ -145,6 +145,7 @@ return [
     'Kiểm vải' => '验布',
     'Thu mua' => '采购',
     'Kho cơ khí' => '机械仓库',
+    'Công trình + cơ điện' => '工程与机电',
     'Xưởng 6 tầng 1' => '一厂六楼一楼',
     'Xưởng 6 tầng 2' => '一厂六楼二楼',
     'audit_template_qa' => 'QA 审计',
@@ -186,6 +187,13 @@ return [
     'audit_kck_q8' => '是否按规定向会计部门发送库存报告？',
     'audit_kck_q9' => '部门的所有 SOP 是否齐全并在有变动时更新？',
     'audit_kck_q10' => '是否按文件保存期限的规定清理过期文件？',
+
+    'audit_template_cong_trinh' => '工程与机电部门审核',
+    'audit_ct_q1' => '维修申请是否按规定执行？',
+    'audit_ct_q2' => '维修过程中，维修人员是否在维修现场挂警示牌？',
+    'audit_ct_q3' => '保养是否按规定进行？',
+    'audit_ct_q4' => '部门的所有 SOP 是否齐全并在有变动时更新？',
+    'audit_ct_q5' => '是否按文件保存期限的规定清理过期文件？',
 
     'manage_audits_subtitle' => '管理各部门的质量检查和评估',
     'start_new_audit' => '开始新审核',
