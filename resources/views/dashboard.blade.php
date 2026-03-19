@@ -11,11 +11,10 @@ $maxWidth = '1200px';
         <div class="card border-0 shadow-lg rounded-4 overflow-hidden h-100">
             <div class="card-header bg-primary text-white p-4 text-center border-0" style="background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);">
                 <div class="avatar rounded-circle bg-white text-primary fw-bold d-flex align-items-center justify-content-center mx-auto mb-3 shadow-sm position-relative overflow-hidden" style="width: 100px; height: 100px; font-size: 2.5rem;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="opacity-10 position-absolute" style="top: 50%; left: 50%; transform: translate(-50%, -50%);">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
                         <circle cx="12" cy="7" r="4" />
                     </svg>
-                    <span class="position-relative" style="z-index: 1;">{{ substr(Auth::user()->name, 0, 1) }}</span>
                 </div>
                 <h3 class="fw-bold mb-1">{{ Auth::user()->name }}</h3>
                 <div class="opacity-75 fs-5">
