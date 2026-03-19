@@ -753,6 +753,7 @@ class AuditController extends Controller
             'phòng mẫu' => 'phong mau',
             'kiểm vải' => 'kiem vai',
             'thu mua' => 'thu mua',
+            'kho cơ khí' => 'kho co khi',
             'xưởng 6 tầng 1' => 'xuong 6 tang 1',
             'xưởng 6 tầng 2' => 'xuong 6 tang 2',
         ];
