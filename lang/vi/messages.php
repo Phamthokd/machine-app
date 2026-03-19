@@ -156,6 +156,7 @@ return [
     'Nhân quyền' => 'Nhân quyền',
     'Nhân sự' => 'Nhân sự',
     'Hành chính' => 'Hành chính',
+    'XNK' => 'XNK',
     'Xưởng 6 tầng 1' => 'Xưởng 6 tầng 1',
     'Xưởng 6 tầng 2' => 'Xưởng 6 tầng 2',
     'audit_template_qa' => 'Đánh giá bộ phận QA',

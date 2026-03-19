@@ -156,6 +156,7 @@ return [
     'Nhân quyền' => 'Human Rights & Compliance',
     'Nhân sự' => 'Human Resources',
     'Hành chính' => 'Administration',
+    'XNK' => 'Import-Export',
     'Xưởng 6 tầng 1' => 'Workshop 6 F1',
     'Xưởng 6 tầng 2' => 'Workshop 6 F2',
     'audit_template_qa' => 'QA Audit',

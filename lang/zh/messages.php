@@ -150,6 +150,7 @@ return [
     'Nhân quyền' => '人权与合规',
     'Nhân sự' => '人力资源',
     'Hành chính' => '行政',
+    'XNK' => '进出口',
     'Xưởng 6 tầng 1' => '一厂六楼一楼',
     'Xưởng 6 tầng 2' => '一厂六楼二楼',
     'audit_template_qa' => 'QA 审计',
