@@ -155,6 +155,7 @@ return [
     'Phòng thí nghiệm' => 'Phòng thí nghiệm',
     'Nhân quyền' => 'Nhân quyền',
     'Nhân sự' => 'Nhân sự',
+    'Hành chính' => 'Hành chính',
     'Xưởng 6 tầng 1' => 'Xưởng 6 tầng 1',
     'Xưởng 6 tầng 2' => 'Xưởng 6 tầng 2',
     'audit_template_qa' => 'Đánh giá bộ phận QA',
@@ -250,6 +251,14 @@ return [
     'audit_ns_q6' => 'Chấm dứt hợp đồng lao động có được thực hiện theo đúng quy trình không',
     'audit_ns_q7' => 'Có đầy đủ các SOP của bộ phận và được cập nhật khi có thay đổi không?',
     'audit_ns_q8' => 'Có loại bỏ những tài liệu quá hạn theo quy định về thời gian lưu trữ không?',
+
+    'audit_template_hanh_chinh' => 'Đánh giá bộ phận Hành chính',
+    'audit_hc_q1' => 'Quy trình điều xe có được thực hiện đúng không?',
+    'audit_hc_q2' => 'Quy trình đặt phòng có được thực hiện đúng không?',
+    'audit_hc_q3' => 'Quy trình báo phế hàng hoá có được thực hiện đúng không?',
+    'audit_hc_q4' => 'Việc phát hành/cập nhật SOP có được thực hiện theo đúng quy định không?',
+    'audit_hc_q5' => 'Có đầy đủ các SOP của bộ phận và được cập nhật khi có thay đổi không?',
+    'audit_hc_q6' => 'Có loại bỏ những tài liệu quá hạn theo quy định về thời gian lưu trữ không?',
 
     'manage_audits_subtitle' => 'Quản lý các đợt kiểm tra và đánh giá chất lượng các bộ phận',
     'start_new_audit' => 'Thực hiện đánh giá mới',

@@ -155,6 +155,7 @@ return [
     'Phòng thí nghiệm' => 'Laboratory',
     'Nhân quyền' => 'Human Rights & Compliance',
     'Nhân sự' => 'Human Resources',
+    'Hành chính' => 'Administration',
     'Xưởng 6 tầng 1' => 'Workshop 6 F1',
     'Xưởng 6 tầng 2' => 'Workshop 6 F2',
     'audit_template_qa' => 'QA Audit',
@@ -250,6 +251,14 @@ return [
     'audit_ns_q6' => 'Is the termination of labor contracts performed according to the correct process?',
     'audit_ns_q7' => 'Are there full SOPs for the department and are they updated when there are changes?',
     'audit_ns_q8' => 'Are expired documents removed according to storage time regulations?',
+
+    'audit_template_hanh_chinh' => 'Administration Audit',
+    'audit_hc_q1' => 'Is the vehicle dispatch process performed correctly?',
+    'audit_hc_q2' => 'Is the room booking process performed correctly?',
+    'audit_hc_q3' => 'Is the goods disposal/scrap reporting process performed correctly?',
+    'audit_hc_q4' => 'Is the issuance/update of SOPs performed according to regulations?',
+    'audit_hc_q5' => 'Are there full SOPs for the department and are they updated when there are changes?',
+    'audit_hc_q6' => 'Are expired documents removed according to storage time regulations?',
 
     'manage_audits_subtitle' => 'Manage quality inspections and evaluations of departments',
     'start_new_audit' => 'Start New Audit',

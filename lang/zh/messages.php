@@ -149,6 +149,7 @@ return [
     'Phòng thí nghiệm' => '实验室',
     'Nhân quyền' => '人权与合规',
     'Nhân sự' => '人力资源',
+    'Hành chính' => '行政',
     'Xưởng 6 tầng 1' => '一厂六楼一楼',
     'Xưởng 6 tầng 2' => '一厂六楼二楼',
     'audit_template_qa' => 'QA 审计',
@@ -244,6 +245,14 @@ return [
     'audit_ns_q6' => '终止劳动合同是否按流程执行？',
     'audit_ns_q7' => '部门的所有 SOP 是否齐全并在有变动时更新？',
     'audit_ns_q8' => '是否按文件保存期限的规定清理过期文件？',
+
+    'audit_template_hanh_chinh' => '行政部审核',
+    'audit_hc_q1' => '派车流程是否按规定执行？',
+    'audit_hc_q2' => '订房流程是否按规定执行？',
+    'audit_hc_q3' => '报废物资流程是否按规定执行？',
+    'audit_hc_q4' => 'SOP 的发布/更新是否按规定执行？',
+    'audit_hc_q5' => '部门的所有 SOP 是否齐全并在有变动时更新？',
+    'audit_hc_q6' => '是否按文件保存期限的规定清理过期文件？',
 
     'manage_audits_subtitle' => '管理各部门的质量检查和评估',
     'start_new_audit' => '开始新审核',
