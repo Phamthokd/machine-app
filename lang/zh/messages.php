@@ -210,6 +210,18 @@ return [
     'audit_lab_q11' => '部门的所有 SOP 是否齐全并在有变动时更新？',
     'audit_lab_q12' => '是否按文件保存期限的规定清理过期文件？',
 
+    'audit_template_xnk' => '进出口部门审核',
+    'audit_xnk_q1' => '是否按流程在各表格中输入完整且准确的信息？',
+    'audit_xnk_q2' => '出货计划表中输入的信息是否完整且准确？',
+    'audit_xnk_q3' => '出货系统中 INV、PKL、相关单据及报关信息是否准确？',
+    'audit_xnk_q4' => '出口 CO 是否准确？',
+    'audit_xnk_q5' => '进货系统中 INV、PKL、相关单据及报关信息是否准确？',
+    'audit_xnk_q6' => '定额是否准确？',
+    'audit_xnk_q7' => '平衡报告是否按规定执行？',
+    'audit_xnk_q8' => '待处理的 NPL/BTP/TP 缺陷库存是否按规定处理？',
+    'audit_xnk_q9' => '部门的所有 SOP 是否齐全并在有变动时更新？',
+    'audit_xnk_q10' => '是否按文件保存期限的规定清理过期文件？',
+
     'manage_audits_subtitle' => '管理各部门的质量检查和评估',
     'start_new_audit' => '开始新审核',
     'filter_department' => '部门筛选',

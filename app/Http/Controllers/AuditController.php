@@ -748,6 +748,7 @@ class AuditController extends Controller
 
         $name = mb_strtolower(trim($departmentName));
         $map = [
+            'xnk' => 'XNK',
             'btp' => 'btp',
             'bán thành phẩm' => 'btp',
             'phòng mẫu' => 'phong mau',

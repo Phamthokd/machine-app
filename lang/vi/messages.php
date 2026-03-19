@@ -216,6 +216,18 @@ return [
     'audit_lab_q11' => 'Có đầy đủ các SOP của bộ phận và được cập nhật khi có thay đổi không?',
     'audit_lab_q12' => 'Có loại bỏ những tài liệu quá hạn theo quy định về thời gian lưu trữ không?',
 
+    'audit_template_xnk' => 'Đánh giá bộ phận XNK',
+    'audit_xnk_q1' => 'Có nhập đầy đủ thông tin đầy đủ và chính xác vào các bảng biểu theo quy trình không?',
+    'audit_xnk_q2' => 'Có nhập đầy đủ thông tin đầy đủ và chính xác vào bảng kế hoạch xuất hàng không?',
+    'audit_xnk_q3' => 'INV, PKL, Các giấy tờ liên quan, Khai báo hải quan trên hệ thống xuất hàng có chính xác không?',
+    'audit_xnk_q4' => 'CO xuất hàng có chính xác không?',
+    'audit_xnk_q5' => 'INV, PKL, Các giấy tờ liên quan, Khai báo hải quan trên hệ thống nhập hàng có chính xác không?',
+    'audit_xnk_q6' => 'Định mức có chính xác không?',
+    'audit_xnk_q7' => 'Báo cáo cân bằng có được thực hiện theo đúng quy định không?',
+    'audit_xnk_q8' => 'NPL/BTP/TP tồn lỗi có được xử lý theo đúng quy định',
+    'audit_xnk_q9' => 'Có đầy đủ các SOP của bộ phận và được cập nhật khi có thay đổi không?',
+    'audit_xnk_q10' => 'Có loại bỏ những tài liệu quá hạn theo quy định về thời gian lưu trữ không?',
+
     'manage_audits_subtitle' => 'Quản lý các đợt kiểm tra và đánh giá chất lượng các bộ phận',
     'start_new_audit' => 'Thực hiện đánh giá mới',
     'filter_department' => 'Lọc bộ phận',

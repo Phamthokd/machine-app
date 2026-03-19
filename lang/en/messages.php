@@ -216,6 +216,18 @@ return [
     'audit_lab_q11' => 'Are there full SOPs for the department and are they updated when there are changes?',
     'audit_lab_q12' => 'Are expired documents removed according to storage time regulations?',
 
+    'audit_template_xnk' => 'Import-Export Audit',
+    'audit_xnk_q1' => 'Is full and accurate information entered into the forms according to the process?',
+    'audit_xnk_q2' => 'Is full and accurate information entered into the shipping plan table?',
+    'audit_xnk_q3' => 'Are INV, PKL, related documents, and customs declarations on the shipping system accurate?',
+    'audit_xnk_q4' => 'Is the export CO accurate?',
+    'audit_xnk_q5' => 'Are INV, PKL, related documents, and customs declarations on the receiving system accurate?',
+    'audit_xnk_q6' => 'Are the consumption norms accurate?',
+    'audit_xnk_q7' => 'Is the reconciliation report performed according to regulations?',
+    'audit_xnk_q8' => 'Are defective RAW/BTP/TP stock handled according to regulations?',
+    'audit_xnk_q9' => 'Are there full SOPs for the department and are they updated when there are changes?',
+    'audit_xnk_q10' => 'Are expired documents removed according to storage time regulations?',
+
     'manage_audits_subtitle' => 'Manage quality inspections and evaluations of departments',
     'start_new_audit' => 'Start New Audit',
     'filter_department' => 'Filter Department',
