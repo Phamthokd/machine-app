@@ -600,11 +600,10 @@ class AuditController extends Controller
     {
         $audit = AuditRecord::with('results', 'template')->findOrFail($id);
 
-        // Authorization: Current user must belong to the department being audited or be an Admin
+        // Authorization: Current user must belong to the department being audited
         $user = auth()->user();
         $targetDept = $audit->template->department_name === 'BTP' ? 'Bán thành phẩm' : $audit->template->department_name;
-        $isAdmin = $user->hasRole('admin');
-        abort_unless($isAdmin || $user->managed_department === $targetDept, 403, 'Bạn không thuộc bộ phận này nên không thể phản hồi lỗi.');
+        abort_unless($user->managed_department === $targetDept, 403, 'Bạn không thuộc bộ phận này nên không thể phản hồi lỗi.');
 
         $request->validate([
             'agreements' => 'required|array',

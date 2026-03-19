@@ -376,7 +376,7 @@
                                     $isAdmin = auth()->user()->hasRole('admin');
 
                                     $isDepartmentUser = \Illuminate\Support\Facades\Auth::check() && (
-                                    $isAdmin ||
+                                    !$isAdmin &&
                                     (!empty($userDeptMapped) && !empty($auditDept) && $userDeptMapped === $auditDept)
                                     );
                                     $canRespond = $isDepartmentUser && $unrespondedResults->isNotEmpty();

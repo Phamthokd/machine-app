@@ -11,7 +11,7 @@ $isAdmin = auth()->user()->hasRole('admin');
 $userDeptMapped = $userDept === 'Bán thành phẩm' ? 'BTP' : $userDept;
 
 $isDepartmentUser = \Illuminate\Support\Facades\Auth::check() && (
-    $isAdmin || (!empty($userDeptMapped) && !empty($auditDept) && $userDeptMapped === $auditDept)
+    !$isAdmin && (!empty($userDeptMapped) && !empty($auditDept) && $userDeptMapped === $auditDept)
 );
 
 $isAuditUser = \Illuminate\Support\Facades\Auth::check()
