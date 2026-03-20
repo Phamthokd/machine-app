@@ -18,7 +18,8 @@ class DatabaseSeeder extends Seeder
             AuditTheuSeeder::class,
             AuditMayLapTrinhSeeder::class,
             AuditKeToanSeeder::class,
-            AuditSaleDonHangSeeder::class,
+            AuditSaleSeeder::class,
+            AuditDonHangSeeder::class,
             AuditKhoVaiPLSeeder::class,
             AuditNhaCatSeeder::class,
             AuditNhaGiatSeeder::class,
@@ -27,6 +28,7 @@ class DatabaseSeeder extends Seeder
             AuditKHSXSeeder::class,
             AuditPhongMauSeeder::class,
             AuditQASeeder::class,
+            CleanupSaleDonHangSeeder::class,
         ]);
     }
 }

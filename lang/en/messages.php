@@ -467,7 +467,8 @@ return [
     'audit_template_theu' => 'Embroidery Audit',
     'audit_template_may_lap_trinh' => 'Programmable Sewing Audit',
     'audit_template_ke_toan' => 'Accounting Audit',
-    'audit_template_sale_don_hang' => 'Sale + Order Audit',
+    'audit_template_sale' => 'Sale Audit',
+    'audit_template_don_hang' => 'Order Audit',
     'audit_template_kho_vai_pl' => 'Fabric & Material Warehouse Audit',
     'audit_template_nha_cat' => 'Cutting Room Audit',
     'audit_template_nha_giat' => 'Washing Room Audit',
@@ -511,14 +512,23 @@ return [
     'audit_kt_q14' => 'Are there full SOPs for the department and are they updated when there are changes?',
     'audit_kt_q15' => 'Are expired documents removed according to storage time regulations?',
 
-    // Sale + Order
-    'audit_sdh_q1' => 'Are the documents distributed to relevant departments accurate?',
-    'audit_sdh_q2' => 'Are pre-production meetings organized fully?',
-    'audit_sdh_q3' => 'Are production raw materials and sub-materials ordered according to the procurement process?',
-    'audit_sdh_q4' => 'Are full sub-material standards provided to the warehouse for inspection before goods arrive?',
-    'audit_sdh_q5' => 'Are costing, SO, and shipping advice performed according to regulations?',
-    'audit_sdh_q6' => 'Are there full SOPs for the department and are they updated when there are changes?',
-    'audit_sdh_q7' => 'Are expired documents removed according to storage time regulations?',
+    // Sale
+    'audit_sale_q1' => 'Are the documents distributed to relevant departments accurate?',
+    'audit_sale_q2' => 'Are pre-production meetings organized fully?',
+    'audit_sale_q3' => 'Are production raw materials and sub-materials ordered according to the procurement process?',
+    'audit_sale_q4' => 'Are full sub-material standards provided to the warehouse for inspection before goods arrive?',
+    'audit_sale_q5' => 'Are costing, SO, and shipping advice performed according to regulations?',
+    'audit_sale_q6' => 'Are there full SOPs for the department and are they updated when there are changes?',
+    'audit_sale_q7' => 'Are expired documents removed according to storage time regulations?',
+
+    // Order
+    'audit_dh_q1' => 'Are the documents distributed to relevant departments accurate?',
+    'audit_dh_q2' => 'Are pre-production meetings organized fully?',
+    'audit_dh_q3' => 'Are production raw materials and sub-materials ordered according to the procurement process?',
+    'audit_dh_q4' => 'Are full sub-material standards provided to the warehouse for inspection before goods arrive?',
+    'audit_dh_q5' => 'Are costing, SO, and shipping advice performed according to regulations?',
+    'audit_dh_q6' => 'Are there full SOPs for the department and are they updated when there are changes?',
+    'audit_dh_q7' => 'Are expired documents removed according to storage time regulations?',
 
     // Fabric & Material Warehouse
     'audit_kvpl_q1' => 'Are goods compared against documents when they arrive?',
@@ -599,7 +609,8 @@ return [
     'Thêu' => 'Embroidery',
     'May lập trình' => 'Programmable Sewing',
     'Kế toán' => 'Accounting',
-    'Sale + Đơn hàng' => 'Sale + Order',
+    'Sale' => 'Sale',
+    'Đơn hàng' => 'Order',
     'Kho vải + PL' => 'Fabric & Material Warehouse',
     'Nhà cắt' => 'Cutting Room',
     'Nhà giặt' => 'Washing Room',

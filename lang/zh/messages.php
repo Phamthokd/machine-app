@@ -460,7 +460,8 @@ return [
     'audit_template_theu' => '绣花部评估',
     'audit_template_may_lap_trinh' => '电脑缝纫部评估',
     'audit_template_ke_toan' => '会计部评估',
-    'audit_template_sale_don_hang' => '销售+订单部评估',
+    'audit_template_sale' => '销售部评估',
+    'audit_template_don_hang' => '订单部评估',
     'audit_template_kho_vai_pl' => '面料+辅料仓库评估',
     'audit_template_nha_cat' => '裁剪间评估',
     'audit_template_nha_giat' => '洗衣房评估',
@@ -504,14 +505,23 @@ return [
     'audit_kt_q14' => '该部门是否有完整的SOP，并在有变化时进行更新？',
     'audit_kt_q15' => '是否根据储存时间规定清除过期文件？',
 
-    // Sale + Order
-    'audit_sdh_q1' => '发给相关部门的资料是否准确？',
-    'audit_sdh_q2' => '产前会议是否组织充分？',
-    'audit_sdh_q3' => '生产原材料和辅料是否按照采购流程订购？',
-    'audit_sdh_q4' => '货物到仓前是否向仓库提供完整的辅料标准以供检查？',
-    'audit_sdh_q5' => '成本核算、SO、装运通知是否按规定执行？',
-    'audit_sdh_q6' => '该部门是否有完整的SOP，并在有变化时进行更新？',
-    'audit_sdh_q7' => '是否根据储存时间规定清除过期文件？',
+    // Sale
+    'audit_sale_q1' => '发给相关部门的资料是否准确？',
+    'audit_sale_q2' => '产前会议是否组织充分？',
+    'audit_sale_q3' => '生产原材料和辅料是否按照采购流程订购？',
+    'audit_sale_q4' => '货物到仓前是否向仓库提供完整的辅料标准以供检查？',
+    'audit_sale_q5' => '成本核算、SO、装运通知是否按规定执行？',
+    'audit_sale_q6' => '该部门是否有完整的SOP，并在有变化时进行更新？',
+    'audit_sale_q7' => '是否根据储存时间规定清除过期文件？',
+
+    // Order
+    'audit_dh_q1' => '发给相关部门的资料是否准确？',
+    'audit_dh_q2' => '产前会议是否组织充分？',
+    'audit_dh_q3' => '生产原材料和辅料是否按照采购流程订购？',
+    'audit_dh_q4' => '货物到仓前是否向仓库提供完整的辅料标准以供检查？',
+    'audit_dh_q5' => '成本核算、SO、装运通知是否按规定执行？',
+    'audit_dh_q6' => '该部门是否有完整的SOP，并在有变化时进行更新？',
+    'audit_dh_q7' => '是否根据储存时间规定清除过期文件？',
 
     // Fabric & Material Warehouse
     'audit_kvpl_q1' => '货物到达时是否核对单件？',
@@ -592,7 +602,8 @@ return [
     'Thêu' => '绣花部',
     'May lập trình' => '电脑缝纫部',
     'Kế toán' => '会计',
-    'Sale + Đơn hàng' => '销售 + 订单',
+    'Sale' => '销售',
+    'Đơn hàng' => '订单',
     'Kho vải + PL' => '面料 + 辅料仓库',
     'Nhà cắt' => '裁剪间',
     'Nhà giặt' => '洗衣房',
