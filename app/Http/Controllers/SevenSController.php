@@ -10,12 +10,16 @@ use Illuminate\Http\Request;
 class SevenSController extends Controller
 {
   /* Danh sách phiếu kiểm tra */
-  public function index()
+  public function index(Request $request)
   {
     $user = auth()->user();
+    
+    // Get unique departments for "New 7S Check" grid
+    $templates = SevenSChecklist::distinct()->pluck('department');
+
     $query = SevenSRecord::with(['inspector', 'results'])->orderByDesc('created_at');
 
-    // Non-admin 7s users see their own records OR records of their managed department
+    // 1. Base Filter by Role/Managed Department
     if (!$user->hasRole('admin')) {
       $query->where(function ($q) use ($user) {
         $q->where('inspector_id', $user->id);
@@ -25,8 +29,22 @@ class SevenSController extends Controller
       });
     }
 
-    $records = $query->paginate(20);
-    return view('seven_s.index', compact('records'));
+    // 2. History Filters
+    if ($request->filled('history_dept') && $request->history_dept !== 'all') {
+      $query->where('department', $request->history_dept);
+    }
+
+    if ($request->filled('start_date')) {
+      $query->whereDate('created_at', '>=', $request->start_date);
+    }
+
+    if ($request->filled('end_date')) {
+      $query->whereDate('created_at', '<=', $request->end_date);
+    }
+
+    $records = $query->paginate(20)->withQueryString();
+    
+    return view('seven_s.index', compact('records', 'templates'));
   }
 
   /* Form tạo phiếu kiểm tra */
@@ -94,6 +112,7 @@ class SevenSController extends Controller
         'note'         => $notes[$checklistId] ?? null,
         'image_path'   => empty($imagePaths) ? null : $imagePaths,
         'points'       => $points,
+        'review_status' => $grade === 'B' ? null : 'pending_improvement',
       ]);
 
       $totalScore += $points;
@@ -205,6 +224,7 @@ class SevenSController extends Controller
           'note'       => $notes[$checklistId] ?? null,
           'image_path' => empty($imagePaths) ? null : array_values($imagePaths),
           'points'     => $points,
+          'review_status' => $grade === 'B' ? null : 'pending_improvement',
         ]);
       } else {
         SevenSResult::create([
@@ -214,6 +234,7 @@ class SevenSController extends Controller
           'note'         => $notes[$checklistId] ?? null,
           'image_path'   => empty($imagePaths) ? null : $imagePaths,
           'points'       => $points,
+          'review_status' => $grade === 'B' ? null : 'pending_improvement',
         ]);
       }
 
@@ -238,7 +259,7 @@ class SevenSController extends Controller
 
     $gradeColors = ['B' => '#d4edda', 'C' => '#fff3cd', 'D' => '#f8d7da', 'E' => '#c82333'];
     $gradeFontColor = ['B' => '#000', 'C' => '#000', 'D' => '#000', 'E' => '#fff'];
-    $gradeScores = ['B' => '2', 'C' => '1', 'D' => '0', 'E' => '-2'];
+    $gradeScores = ['B' => '2', 'C' => '1', 'D' => '0', 'E' => '-5'];
 
     $fileName = "7S_{$record->department}_#{$record->id}_" . now()->format('Ymd') . '.xls';
 
@@ -413,7 +434,7 @@ td, th { border: 1px solid #999; padding: 4px 6px; vertical-align: middle; mso-n
   public function storeImprovement(Request $request, SevenSResult $result)
   {
     $user = auth()->user();
-    if (!$user->hasRole('admin') && !($user->hasRole('7s') && $user->managed_department === 'XNK')) {
+    if (!$user->hasRole('admin') && !($user->hasRole('7s') && $user->managed_department === $result->record->department)) {
       abort(403);
     }
     if ($result->grade === 'B') {
@@ -435,6 +456,7 @@ td, th { border: 1px solid #999; padding: 4px 6px; vertical-align: middle; mso-n
       'improvement_image_path' => $imagePaths,
       'improver_id' => $user->id,
       'improved_at' => now(),
+      'review_status' => 'pending_review',
     ]);
     return back()->with('success', 'Đã lưu nội dung cải thiện thành công.');
   }
@@ -443,7 +465,7 @@ td, th { border: 1px solid #999; padding: 4px 6px; vertical-align: middle; mso-n
   public function storeImprovements(Request $request, SevenSRecord $record)
   {
     $user = auth()->user();
-    if (!$user->hasRole('admin') && !($user->hasRole('7s') && $user->managed_department === 'XNK')) {
+    if (!$user->hasRole('admin') && !($user->hasRole('7s') && $user->managed_department === $record->department)) {
       abort(403);
     }
 
@@ -469,10 +491,43 @@ td, th { border: 1px solid #999; padding: 4px 6px; vertical-align: middle; mso-n
         'improvement_image_path' => $imagePaths,
         'improver_id' => $user->id,
         'improved_at' => now(),
+        'review_status' => 'pending_review',
       ]);
     }
 
     return back()->with('success', 'Đã lưu nội dung cải thiện thành công.');
+  }
+
+  /* Phê duyệt / Từ chối cải thiện */
+  public function reviewImprovements(Request $request, SevenSRecord $record)
+  {
+    $user = auth()->user();
+    // Only admin or the inspector can review
+    if (!$user->hasRole('admin') && $record->inspector_id !== $user->id) {
+      abort(403);
+    }
+
+    $request->validate([
+      'reviews' => 'required|array',
+      'reviews.*.status' => 'required|in:approved,rejected',
+      'reviews.*.review_note' => 'nullable|string',
+    ]);
+
+    foreach ($request->input('reviews') as $resultId => $data) {
+      $result = SevenSResult::find($resultId);
+      if (!$result || $result->record_id !== $record->id) {
+        continue;
+      }
+
+      $result->update([
+        'review_status' => $data['status'],
+        'review_note'   => $data['review_note'] ?? null,
+        'reviewer_id'   => $user->id,
+        'reviewed_at'   => now(),
+      ]);
+    }
+
+    return back()->with('success', 'Đã lưu phản hồi đánh giá thành công.');
   }
 
   /* Xoá phiếu kiểm tra — chỉ Admin */

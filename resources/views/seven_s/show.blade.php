@@ -4,12 +4,20 @@
 @section('content')
 @php
 $nonBResults = $record->results->where('grade', '!=', 'B');
-$isFullyImproved = $nonBResults->isNotEmpty() && $nonBResults->every(fn($r) => !empty($r->improvement_note));
+$isFullyImproved = $nonBResults->isNotEmpty() && $nonBResults->every(fn($r) => $r->review_status === 'approved');
+
+$isAuditor = auth()->user()->hasRole('admin') || 
+            (auth()->user()->hasRole('7s') && empty(auth()->user()->managed_department) && $record->inspector_id === auth()->id());
+
+$isDeptUser = auth()->user()->hasRole('7s') && auth()->user()->managed_department === $record->department;
+
 $canImprove = (
-(auth()->user()->hasRole('admin') || (auth()->user()->hasRole('7s') && auth()->user()->managed_department === 'XNK'))
-&& $nonBResults->isNotEmpty()
-&& $nonBResults->contains(fn($r) => !$r->improvement_note)
+    (auth()->user()->hasRole('admin') || $isDeptUser)
+    && $nonBResults->isNotEmpty()
+    && $nonBResults->contains(fn($r) => in_array($r->review_status, ['pending_improvement', 'rejected']))
 );
+
+$needsReview = $isAuditor && $nonBResults->contains(fn($r) => $r->review_status === 'pending_review');
 @endphp
 
 <div class="d-flex align-items-center justify-content-between gap-3 mb-4">
@@ -28,13 +36,13 @@ $canImprove = (
         @endif
     </div>
     <div class="d-flex align-items-center gap-2">
-        @if($canImprove)
-        <button type="button" class="btn btn-sm btn-warning d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#singleImprovementModal">
+        @if($needsReview)
+        <button type="button" class="btn btn-sm btn-primary d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#reviewModal">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 20h9" />
-                <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                <polyline points="22 4 12 14.01 9 11.01" />
             </svg>
-            {{ __('messages.7s_improve_btn') }}
+            {{ __('messages.7s_review_btn') }}
         </button>
         @endif
         @php
@@ -148,6 +156,21 @@ $color = $pct >= 80 ? 'success' : ($pct >= 60 ? 'warning' : 'danger');
                     <span class="fw-semibold">{{ $result->checklist?->content }}</span>
                 </div>
                 <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                    @if($result->grade !== 'B')
+                    @php
+                    $statusColors = [
+                    'pending_improvement' => 'secondary',
+                    'pending_review' => 'info',
+                    'approved' => 'success',
+                    'rejected' => 'danger'
+                    ];
+                    $statusColor = $statusColors[$result->review_status] ?? 'secondary';
+                    $statusText = __('messages.7s_status_' . ($result->review_status ?? 'pending_improvement'));
+                    @endphp
+                    <span class="badge bg-{{ $statusColor }} bg-opacity-10 text-{{ $statusColor }} border border-{{ $statusColor }} px-2 py-1 small">
+                        {{ $statusText }}
+                    </span>
+                    @endif
                     <span class="badge bg-{{ $gradeColor }} px-3 py-2">{{ $result->grade }} — {{ $gradeLabels[$result->grade] }}</span>
                     <span class="fw-bold text-{{ $result->points >= 0 ? ($result->points > 0 ? 'success' : 'secondary') : 'danger' }}">
                         {{ $result->points > 0 ? '+' : '' }}{{ $result->points }}đ
@@ -173,12 +196,32 @@ $color = $pct >= 80 ? 'success' : ($pct >= 60 ? 'warning' : 'danger');
             @if($result->grade !== 'B')
             @if($result->improvement_note)
             <div class="mt-4 bg-warning bg-opacity-10 border border-warning border-opacity-25 rounded p-3 text-dark mb-3">
-                <h6 class="fw-bold text-warning mb-3 d-flex align-items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 20h9" />
-                        <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
-                    </svg>
-                    {{ __('messages.7s_improvement_modal_title') }}
+                <h6 class="fw-bold text-warning mb-3 d-flex align-items-center justify-content-between gap-2">
+                    <div class="d-flex align-items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 20h9" />
+                            <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                        </svg>
+                        {{ __('messages.7s_improvement_modal_title') }}
+                    </div>
+                    @if($result->review_status === 'approved')
+                    <span class="badge bg-success small fw-normal">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                            <polyline points="22 4 12 14.01 9 11.01" />
+                        </svg>
+                        {{ __('messages.7s_status_approved') }}
+                    </span>
+                    @elseif($result->review_status === 'rejected')
+                    <span class="badge bg-danger small fw-normal">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1">
+                            <circle cx="12" cy="12" r="10" />
+                            <line x1="15" y1="9" x2="9" y2="15" />
+                            <line x1="9" y1="9" x2="15" y2="15" />
+                        </svg>
+                        {{ __('messages.7s_status_rejected') }}
+                    </span>
+                    @endif
                 </h6>
                 <div class="row g-3">
                     <div class="col-md-12">
@@ -205,16 +248,53 @@ $color = $pct >= 80 ? 'success' : ($pct >= 60 ? 'warning' : 'danger');
                     </div>
                     @endif
 
-                    <div class="col-md-12 mt-3">
-                        <div class="d-flex align-items-center gap-3 text-muted small">
-                            <span>👤 Người cải thiện: <strong class="text-dark">{{ $result->improver->name ?? 'Unknown' }}</strong></span>
-                            <span>🕒 Thời gian: <strong>{{ \Carbon\Carbon::parse($result->improved_at)->format('H:i d/m/Y') }}</strong></span>
+                        <div class="col-md-12 mt-3">
+                            <div class="d-flex align-items-center gap-3 text-muted small">
+                                <span>👤 {{ __('messages.7s_improver_label') }}: <strong class="text-dark">{{ $result->improver->name ?? '—' }}</strong></span>
+                                <span>🕒 {{ __('messages.7s_improvement_time_label') ?? 'Thời gian' }}: <strong>{{ \Carbon\Carbon::parse($result->improved_at)->format('H:i d/m/Y') }}</strong></span>
+                            </div>
+                        </div>
+
+                    @if($result->review_status === 'rejected' && $result->review_note)
+                    <div class="col-md-12 mt-3 p-3 bg-danger bg-opacity-10 border-start border-danger border-4 rounded-end">
+                        <div class="text-danger fw-bold small mb-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1">
+                                <circle cx="12" cy="12" r="10" />
+                                <line x1="12" y1="8" x2="12" y2="12" />
+                                <line x1="12" y1="16" x2="12.01" y2="16" />
+                            </svg>
+                            {{ __('messages.7s_review_note_label') }}
+                        </div>
+                        <div class="text-dark">{{ $result->review_note }}</div>
+                        <div class="text-muted smaller mt-2">
+                            👤 <strong>{{ $result->reviewer->name ?? '—' }}</strong> — {{ \Carbon\Carbon::parse($result->reviewed_at)->format('H:i d/m/Y') }}
                         </div>
                     </div>
+                    @elseif($result->review_status === 'approved')
+                    <div class="col-md-12 mt-3 p-2 bg-success bg-opacity-10 rounded text-success small">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                            <polyline points="22 4 12 14.01 9 11.01" />
+                        </svg>
+                        <strong>{{ __('messages.7s_status_approved') }}</strong> bởi {{ $result->reviewer->name ?? '—' }} vào {{ \Carbon\Carbon::parse($result->reviewed_at)->format('d/m/Y') }}
+                    </div>
+                    @endif
                 </div>
             </div>
+            
+            @if(in_array($result->review_status, ['rejected']) && ($isDeptUser || auth()->user()->hasRole('admin')))
+            <div class="mt-2 text-end">
+                <button type="button" class="btn btn-sm btn-warning d-inline-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#improveModal{{ $result->id }}">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 20h9" />
+                        <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                    </svg>
+                    {{ __('messages.7s_improve_action_btn') }} ({{ __('messages.7s_status_rejected') }})
+                </button>
+            </div>
+            @endif
             @else
-            @if(auth()->user()->hasRole('admin') || (auth()->user()->hasRole('7s') && auth()->user()->managed_department === $record->department))
+            @if(in_array($result->review_status, ['pending_improvement', 'rejected']) && ($isDeptUser || auth()->user()->hasRole('admin')))
             <div class="mt-3 text-end">
                 <button type="button" class="btn btn-sm btn-warning d-inline-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#improveModal{{ $result->id }}">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -228,7 +308,7 @@ $color = $pct >= 80 ? 'success' : ($pct >= 60 ? 'warning' : 'danger');
             @endif
 
             {{-- Improve Modal --}}
-            @if(!$result->improvement_note && (auth()->user()->hasRole('admin') || (auth()->user()->hasRole('7s') && auth()->user()->managed_department === $record->department)))
+            @if(in_array($result->review_status, ['pending_improvement', 'rejected']) && ($isDeptUser || auth()->user()->hasRole('admin')))
             <div class="modal fade" id="improveModal{{ $result->id }}" tabindex="-1" aria-hidden="true">
                 <div class="modal-dialog modal-lg modal-dialog-centered">
                     <div class="modal-content border-0 shadow-lg rounded-4">
@@ -330,6 +410,84 @@ $color = $pct >= 80 ? 'success' : ($pct >= 60 ? 'warning' : 'danger');
             <div class="modal-footer border-top-0 pt-0 pb-4 px-4">
                 <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">{{ __('messages.cancel') }}</button>
                 <button type="submit" class="btn btn-warning fw-bold px-4 shadow-sm">{{ __('messages.7s_improvement_save') }}</button>
+            </div>
+        </form>
+    </div>
+</div>
+@endif
+
+@if($needsReview)
+{{-- Review Modal for Auditor --}}
+<div class="modal fade" id="reviewModal" tabindex="-1" aria-labelledby="reviewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <form action="{{ route('seven_s.review_improvements', $record->id) }}" method="POST" class="modal-content border-0 shadow-lg rounded-4">
+            @csrf
+            <div class="modal-header bg-primary bg-opacity-10 border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2" id="reviewModalLabel">
+                    <svg class="text-primary" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                        <polyline points="22 4 12 14.01 9 11.01" />
+                    </svg>
+                    {{ __('messages.7s_review_modal_title') }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body py-4">
+                <p class="text-muted mb-4">{{ __('messages.7s_review_modal_desc') }}</p>
+
+                @foreach($nonBResults->where('review_status', 'pending_review') as $result)
+                <div class="card bg-light border-0 shadow-sm mb-4 rounded-3">
+                    <div class="card-header bg-info bg-opacity-10 text-info fw-bold border-0 py-3">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <div class="fs-6">{{ $result->checklist?->content }}</div>
+                                <div class="fw-normal small mt-1">
+                                    {{ __('messages.7s_improver_label') }}: <strong>{{ $result->improver->name ?? '—' }}</strong>
+                                </div>
+                            </div>
+                            <span class="badge bg-{{ $result->grade === 'C' ? 'warning' : ($result->grade === 'D' ? 'danger' : 'dark') }}">{{ $result->grade }}</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="small fw-bold text-muted mb-2">{{ __('messages.7s_improvement_note_label') }}</div>
+                                <div class="bg-white p-2 border rounded small" style="white-space: pre-wrap;">{{ $result->improvement_note }}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="small fw-bold text-muted mb-2">{{ __('messages.7s_improvement_img_label') }}</div>
+                                <div class="d-flex flex-wrap gap-1">
+                                    @foreach((array)$result->improvement_image_path as $img)
+                                    <a href="/{{ $img }}" target="_blank">
+                                        <img src="/{{ $img }}" class="img-thumbnail" style="width:50px;height:50px;object-fit:cover;">
+                                    </a>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-3">
+
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-5">
+                                <label class="form-label fw-bold small text-dark">{{ __('messages.status') }}</label>
+                                <select class="form-select form-select-sm" name="reviews[{{ $result->id }}][status]" required>
+                                    <option value="approved" selected>{{ __('messages.7s_review_status_ok') }}</option>
+                                    <option value="rejected">{{ __('messages.7s_review_status_reject') }}</option>
+                                </select>
+                            </div>
+                            <div class="col-md-7">
+                                <label class="form-label fw-bold small text-dark">{{ __('messages.7s_review_note_label') }}</label>
+                                <input type="text" class="form-control form-control-sm" name="reviews[{{ $result->id }}][review_note]" placeholder="{{ __('messages.7s_review_note_placeholder') }}">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                @endforeach
+            </div>
+            <div class="modal-footer border-top-0 pt-0 pb-4 px-4">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">{{ __('messages.cancel') }}</button>
+                <button type="submit" class="btn btn-primary fw-bold px-4 shadow-sm">{{ __('messages.7s_review_save') }}</button>
             </div>
         </form>
     </div>

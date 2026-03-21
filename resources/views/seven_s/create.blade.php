@@ -9,20 +9,7 @@
         </svg>
         Quay lại
     </a>
-    <h4 class="mb-0 fw-bold">📋 {{ __('messages.7s_create_form') }}</h4>
-</div>
-
-{{-- Department selector --}}
-<div class="card border-0 shadow-sm rounded-4 mb-4 p-4">
-    <div class="d-flex align-items-center gap-3 flex-wrap">
-        <span class="fw-semibold">{{ __('messages.7s_department_selector') }}</span>
-        @foreach($departments as $dept)
-        <a href="{{ route('seven-s.create', ['department' => $dept]) }}"
-            class="btn @if($dept == $department) btn-primary @else btn-outline-secondary @endif rounded-pill px-4 fw-bold">
-            {{ $dept }}
-        </a>
-        @endforeach
-    </div>
+    <h4 class="mb-0 fw-bold">📋 {{ __('messages.7s_create_form') }} - <span class="text-primary">{{ $department }}</span></h4>
 </div>
 
 @if ($errors->any())
@@ -50,7 +37,7 @@
 
                 {{-- Grade radio buttons --}}
                 <div class="d-flex flex-wrap gap-2 mb-3">
-                    @foreach(['B' => [__('messages.7s_grade_good'), 'success', '+2đ'], 'C' => [__('messages.7s_grade_acceptable'), 'warning', '+1đ'], 'D' => [__('messages.7s_grade_fail'), 'danger', '0đ'], 'E' => [__('messages.7s_grade_poor'), 'dark', '-2đ']] as $grade => [$label, $color, $pts])
+                    @foreach(['B' => [__('messages.7s_grade_good'), 'success', '+2đ'], 'C' => [__('messages.7s_grade_acceptable'), 'warning', '+1đ'], 'D' => [__('messages.7s_grade_fail'), 'danger', '0đ'], 'E' => [__('messages.7s_grade_poor'), 'dark', '-5đ']] as $grade => [$label, $color, $pts])
                     <div>
                         <input type="radio" class="btn-check grade-radio"
                             id="grade_{{ $item->id }}_{{ $grade }}"

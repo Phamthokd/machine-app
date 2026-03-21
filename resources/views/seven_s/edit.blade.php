@@ -73,7 +73,7 @@
                 @else
                 {{-- Editable grade --}}
                 <div class="d-flex flex-wrap gap-2 mb-3">
-                    @foreach(['B' => [__('messages.7s_grade_good'), 'success', '+2đ'], 'C' => [__('messages.7s_grade_acceptable'), 'warning', '+1đ'], 'D' => [__('messages.7s_grade_fail'), 'danger', '0đ'], 'E' => [__('messages.7s_grade_poor'), 'dark', '-2đ']] as $grade => [$label, $color, $pts])
+                    @foreach(['B' => [__('messages.7s_grade_good'), 'success', '+2đ'], 'C' => [__('messages.7s_grade_acceptable'), 'warning', '+1đ'], 'D' => [__('messages.7s_grade_fail'), 'danger', '0đ'], 'E' => [__('messages.7s_grade_poor'), 'dark', '-5đ']] as $grade => [$label, $color, $pts])
                     <div>
                         <input type="radio" class="btn-check grade-radio"
                             id="grade_{{ $item->id }}_{{ $grade }}"
