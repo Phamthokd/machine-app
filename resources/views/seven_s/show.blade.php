@@ -9,7 +9,12 @@ $isFullyImproved = $nonBResults->isNotEmpty() && $nonBResults->every(fn($r) => $
 $isAuditor = auth()->user()->hasRole('admin') || 
             (auth()->user()->hasRole('7s') && empty(auth()->user()->managed_department) && $record->inspector_id === auth()->id());
 
-$isDeptUser = auth()->user()->hasRole('7s') && auth()->user()->managed_department === $record->department;
+$userDept = \App\Models\AuditTemplate::normalizeDepartmentName(auth()->user()->managed_department);
+$recordDept = \App\Models\AuditTemplate::normalizeDepartmentName($record->department);
+$isDeptUser = auth()->user()->hasRole('7s') && !empty($userDept) && $userDept === $recordDept;
+
+$canRespond = (auth()->user()->hasRole('admin') || $isDeptUser) 
+            && $nonBResults->contains(fn($r) => $r->review_status === 'pending_feedback' && is_null($r->department_agreement));
 
 $canImprove = (
     (auth()->user()->hasRole('admin') || $isDeptUser)
@@ -18,6 +23,7 @@ $canImprove = (
 );
 
 $needsReview = $isAuditor && $nonBResults->contains(fn($r) => $r->review_status === 'pending_review');
+$needsDisputeReview = $isAuditor && $nonBResults->contains(fn($r) => $r->review_status === 'pending_dispute_review');
 @endphp
 
 <div class="d-flex align-items-center justify-content-between gap-3 mb-4">
@@ -36,6 +42,26 @@ $needsReview = $isAuditor && $nonBResults->contains(fn($r) => $r->review_status 
         @endif
     </div>
     <div class="d-flex align-items-center gap-2">
+        @if($canRespond)
+        <button type="button" class="btn btn-sm btn-info text-white shadow-sm fw-bold px-3 d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#agreementModal">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 1 1-7.6-14.1 8.38 8.38 0 0 1 3.8.9L21 3.5Z" />
+            </svg>
+            {{ __('messages.audit_respond_btn') ?? 'Phản hồi' }}
+        </button>
+        @endif
+
+        @if($needsDisputeReview)
+        <button type="button" class="btn btn-sm btn-primary d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#disputeReviewModal">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <polyline points="16 11 18 13 22 9" />
+            </svg>
+            {{ __('messages.audit_review_disputes_btn') ?? 'Duyệt phản đối' }}
+        </button>
+        @endif
+
         @if($needsReview)
         <button type="button" class="btn btn-sm btn-primary d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#reviewModal">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -192,8 +218,45 @@ $color = $pct >= 80 ? 'success' : ($pct >= 60 ? 'warning' : 'danger');
             </div>
             @endif
 
-            {{-- Improvement Section --}}
+            {{-- Department Response Section (Dispute/Agree) --}}
             @if($result->grade !== 'B')
+                @if(!is_null($result->department_agreement))
+                <div class="mt-3 p-3 rounded shadow-sm border {{ $result->department_agreement ? 'bg-success bg-opacity-10 border-success border-opacity-25' : 'bg-danger bg-opacity-10 border-danger border-opacity-25' }}">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="fw-bold mb-0 {{ $result->department_agreement ? 'text-success' : 'text-danger' }}">
+                            @if($result->department_agreement)
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1">
+                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                                    <polyline points="22 4 12 14.01 9 11.01" />
+                                </svg>
+                                {{ __('messages.audit_agreed_label') ?? 'Bộ phận đã đồng ý' }}
+                            @else
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1">
+                                    <circle cx="12" cy="12" r="10" />
+                                    <line x1="12" y1="8" x2="12" y2="12" />
+                                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                                </svg>
+                                {{ __('messages.audit_disputed_label') ?? 'Bộ phận đã phản đối' }}
+                            @endif
+                        </h6>
+                    </div>
+                    
+                    @if(!$result->department_agreement && $result->department_reject_reason)
+                        <div class="bg-white p-2 rounded border small mb-2">
+                            <strong>{{ __('messages.audit_reject_reason_label') ?? 'Lý do' }}:</strong> {{ $result->department_reject_reason }}
+                        </div>
+                    @endif
+
+                    @if(!is_null($result->auditor_rejection_decision))
+                        <div class="p-2 rounded mt-2 {{ $result->auditor_rejection_decision ? 'bg-success bg-opacity-25 text-success' : 'bg-danger bg-opacity-25 text-danger' }} small">
+                            <strong>{{ __('messages.audit_inspector_decision_label') ?? 'Quyết định Auditor' }}:</strong> 
+                            {{ $result->auditor_rejection_decision ? (__('messages.audit_decision_waived_label') ?? 'Đã huỷ lỗi') : (__('messages.audit_decision_maintained_label') ?? 'Giữ nguyên lỗi') }}
+                        </div>
+                    @endif
+                </div>
+                @endif
+
+            {{-- Improvement Section --}}
             @if($result->improvement_note)
             <div class="mt-4 bg-warning bg-opacity-10 border border-warning border-opacity-25 rounded p-3 text-dark mb-3">
                 <h6 class="fw-bold text-warning mb-3 d-flex align-items-center justify-content-between gap-2">

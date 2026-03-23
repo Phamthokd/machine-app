@@ -710,6 +710,10 @@ return [
     'notif_audit_completed_report_message' => 'Bộ phận :department đã gửi báo cáo hoàn thành cải thiện cho phiếu đánh giá #:id.',
     'notif_audit_completion_rejected_title' => 'Yêu cầu cập nhật lại báo cáo hoàn thành',
     'notif_audit_completion_rejected_message' => 'Admin đã yêu cầu bộ phận :department cập nhật lại báo cáo hoàn thành cho phiếu #:id. Vui lòng kiểm tra lại.',
+    'notif_7s_responded_title' => 'Phản hồi được gửi từ :department',
+    'notif_7s_responded_message' => 'Bộ phận :department đã gửi phản hồi cho phiếu kiểm tra 7S #:id.',
+    'notif_7s_dispute_reviewed_title' => 'Phản hồi 7S đã được duyệt',
+    'notif_7s_dispute_reviewed_message' => 'Người kiểm tra đã duyệt các lời phản đối trong phiếu 7S #:id của bộ phận bạn.',
 
     // Audit additional labels
     'confirm_delete_audit' => 'Bạn có chắc chắn muốn xóa bản đánh giá này không? Điều này không thể hoàn tác.',
@@ -787,6 +791,8 @@ return [
     '7s_grade_acceptable_short' => 'Chấp nhận',
     '7s_grade_fail_short' => 'Không đạt',
     '7s_grade_poor_short' => 'Rất tệ',
+    '7s_status_pending_feedback' => 'Chờ phản hồi',
+    '7s_status_pending_dispute_review' => 'Chờ duyệt phản đối',
     '7s_status_pending_improvement' => 'Chờ cải thiện',
     '7s_status_pending_review' => 'Chờ duyệt',
     '7s_status_approved' => 'Đã duyệt OK',

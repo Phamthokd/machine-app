@@ -3,8 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\SevenSChecklist;
+use App\Models\User;
 use App\Models\SevenSRecord;
 use App\Models\SevenSResult;
+use App\Notifications\SevenSStatusChangedNotification;
+use App\Models\AuditTemplate;
 use Illuminate\Http\Request;
 
 class SevenSController extends Controller
@@ -112,7 +115,7 @@ class SevenSController extends Controller
         'note'         => $notes[$checklistId] ?? null,
         'image_path'   => empty($imagePaths) ? null : $imagePaths,
         'points'       => $points,
-        'review_status' => $grade === 'B' ? null : 'pending_improvement',
+        'review_status' => $grade === 'B' ? null : 'pending_feedback',
       ]);
 
       $totalScore += $points;
@@ -224,7 +227,7 @@ class SevenSController extends Controller
           'note'       => $notes[$checklistId] ?? null,
           'image_path' => empty($imagePaths) ? null : array_values($imagePaths),
           'points'     => $points,
-          'review_status' => $grade === 'B' ? null : 'pending_improvement',
+          'review_status' => $grade === 'B' ? null : 'pending_feedback',
         ]);
       } else {
         SevenSResult::create([
@@ -234,7 +237,7 @@ class SevenSController extends Controller
           'note'         => $notes[$checklistId] ?? null,
           'image_path'   => empty($imagePaths) ? null : $imagePaths,
           'points'       => $points,
-          'review_status' => $grade === 'B' ? null : 'pending_improvement',
+          'review_status' => $grade === 'B' ? null : 'pending_feedback',
         ]);
       }
 
@@ -434,7 +437,7 @@ td, th { border: 1px solid #999; padding: 4px 6px; vertical-align: middle; mso-n
   public function storeImprovement(Request $request, SevenSResult $result)
   {
     $user = auth()->user();
-    if (!$user->hasRole('admin') && !($user->hasRole('7s') && $user->managed_department === $result->record->department)) {
+    if (!$user->hasRole('admin') && !($user->hasRole('7s') && \App\Models\AuditTemplate::normalizeDepartmentName($user->managed_department) === \App\Models\AuditTemplate::normalizeDepartmentName($result->record->department))) {
       abort(403);
     }
     if ($result->grade === 'B') {
@@ -465,7 +468,7 @@ td, th { border: 1px solid #999; padding: 4px 6px; vertical-align: middle; mso-n
   public function storeImprovements(Request $request, SevenSRecord $record)
   {
     $user = auth()->user();
-    if (!$user->hasRole('admin') && !($user->hasRole('7s') && $user->managed_department === $record->department)) {
+    if (!$user->hasRole('admin') && !($user->hasRole('7s') && \App\Models\AuditTemplate::normalizeDepartmentName($user->managed_department) === \App\Models\AuditTemplate::normalizeDepartmentName($record->department))) {
       abort(403);
     }
 
@@ -530,6 +533,101 @@ td, th { border: 1px solid #999; padding: 4px 6px; vertical-align: middle; mso-n
     return back()->with('success', 'Đã lưu phản hồi đánh giá thành công.');
   }
 
+
+  /* Phản hồi (Đồng ý/Phản đối) từ bộ phận */
+  public function submitAgreements(Request $request, SevenSRecord $record)
+  {
+    $user = auth()->user();
+    $userDept = \App\Models\AuditTemplate::normalizeDepartmentName($user->managed_department);
+    $recordDept = \App\Models\AuditTemplate::normalizeDepartmentName($record->department);
+
+    if (!$user->hasRole('admin') && $userDept !== $recordDept) {
+      abort(403, 'Bạn không thuộc bộ phận này nên không thể phản hồi.');
+    }
+
+    $request->validate([
+      'agreements' => 'required|array',
+      'agreements.*.department_agreement' => 'required|in:1,0',
+      'agreements.*.department_reject_reason' => 'required_if:agreements.*.department_agreement,0'
+    ], [
+      'agreements.*.department_reject_reason.required_if' => 'Vui lòng nhập lý do nếu bạn phản đối kết quả.'
+    ]);
+
+    foreach ($request->agreements as $resultId => $data) {
+      $result = SevenSResult::where('id', $resultId)->where('record_id', $record->id)->first();
+      if ($result && $result->grade !== 'B' && is_null($result->department_agreement)) {
+        $isAgreement = $data['department_agreement'] == '1';
+        $result->update([
+          'department_agreement' => $isAgreement,
+          'department_reject_reason' => $isAgreement ? null : ($data['department_reject_reason'] ?? null),
+          'review_status' => $isAgreement ? 'pending_improvement' : 'pending_dispute_review'
+        ]);
+      }
+    }
+
+    $this->notifySevenSParticipants(
+      $record,
+      '7s_responded',
+      'messages.notif_7s_responded_title',
+      'messages.notif_7s_responded_message',
+      ['id' => $record->id, 'department' => $record->department]
+    );
+
+    return back()->with('success', 'Đã ghi nhận phản hồi thành công.');
+  }
+
+  /* Duyệt phản đối từ Auditor/Admin */
+  public function reviewRejections(Request $request, SevenSRecord $record)
+  {
+    $user = auth()->user();
+    // Only admin or the inspector (who performed the check) can review disputes
+    if (!$user->hasRole('admin') && $record->inspector_id !== $user->id) {
+      abort(403, 'Bạn không có quyền duyệt phản đối.');
+    }
+
+    $request->validate([
+      'rejections' => 'required|array',
+      'rejections.*.decision' => 'required|in:1,0'
+    ]);
+
+    foreach ($request->rejections as $resultId => $data) {
+      $result = SevenSResult::where('id', $resultId)->where('record_id', $record->id)->first();
+      if ($result && $result->department_agreement === false && is_null($result->auditor_rejection_decision)) {
+        $decision = $data['decision'] == '1';
+        if ($decision) {
+          // Auditor waives the error (Agree with department dispute)
+          $result->update([
+            'auditor_rejection_decision' => true,
+            'review_status' => 'approved',
+            'points' => 2, // Reset to standard B points
+          ]);
+        } else {
+          // Auditor maintains the error (Reject department dispute)
+          $result->update([
+            'auditor_rejection_decision' => false,
+            'review_status' => 'pending_improvement'
+          ]);
+        }
+      }
+    }
+
+    // Update total score if any item was waived
+    $totalScore = $record->results->sum('points');
+    $record->update(['score' => $totalScore]);
+
+    $this->notifySevenSDepartmentUsers(
+      $record->department,
+      $record->id,
+      '7s_dispute_reviewed',
+      'messages.notif_7s_dispute_reviewed_title',
+      'messages.notif_7s_dispute_reviewed_message',
+      [auth()->id()],
+      ['id' => $record->id]
+    );
+
+    return back()->with('success', 'Đã duyệt các lời phản đối kết quả.');
+  }
+
   /* Xoá phiếu kiểm tra — chỉ Admin */
   public function destroy($id)
   {
@@ -543,5 +641,50 @@ td, th { border: 1px solid #999; padding: 4px 6px; vertical-align: middle; mso-n
 
     return redirect()->route('seven-s.index')
       ->with('success', "Đã xoá phiếu kiểm tra 7S #{$id} thành công.");
+  }
+  /* Private Notification Methods */
+  private function notifySevenSDepartmentUsers(
+    string $departmentName,
+    int $recordId,
+    string $eventKey,
+    string $title,
+    string $message,
+    array $excludeUserIds = [],
+    array $params = []
+  ): void {
+    $normalizedDepartment = AuditTemplate::normalizeDepartmentName($departmentName);
+    if (empty($normalizedDepartment)) {
+      return;
+    }
+
+    $users = User::query()
+      ->whereNotNull('managed_department')
+      ->whereNotIn('id', $excludeUserIds)
+      ->get()
+      ->filter(function (User $user) use ($normalizedDepartment) {
+        return AuditTemplate::normalizeDepartmentName($user->managed_department) === $normalizedDepartment;
+      });
+
+    $notification = new SevenSStatusChangedNotification($recordId, $eventKey, $title, $message, $params);
+    foreach ($users as $user) {
+      $user->notify($notification);
+    }
+  }
+
+  private function notifySevenSParticipants(SevenSRecord $record, string $eventKey, string $title, string $message, array $params = []): void
+  {
+    $users = User::query()
+      ->where('id', $record->inspector_id)
+      ->orWhereHas('roles', function ($q) {
+        $q->whereIn('name', ['admin', '7s']);
+      })
+      ->get()
+      ->where('id', '!=', auth()->id())
+      ->unique('id');
+
+    $notification = new SevenSStatusChangedNotification($record->id, $eventKey, $title, $message, $params);
+    foreach ($users as $user) {
+      $user->notify($notification);
+    }
   }
 }

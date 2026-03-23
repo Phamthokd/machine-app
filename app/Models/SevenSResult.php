@@ -20,7 +20,10 @@ class SevenSResult extends Model
         'review_status',
         'reviewer_id',
         'review_note',
-        'reviewed_at'
+        'reviewed_at',
+        'department_agreement',
+        'department_reject_reason',
+        'auditor_rejection_decision',
     ];
 
     protected $casts = [

@@ -293,10 +293,33 @@
                 <tbody>
                     @forelse($records as $record)
                     @php
+                    $failedResults = $record->results->where('grade', '!=', 'B');
+                    $unrespondedResults = $failedResults->filter(fn($r) => is_null($r->department_agreement));
+                    $rejectedResultsPendingAudit = $failedResults->filter(fn($r) => $r->department_agreement === false && is_null($r->auditor_rejection_decision));
+
+                    $userDept = auth()->user()->managed_department;
+                    $auditDept = $record->department;
+                    $isAdmin = auth()->user()->hasRole('admin');
+
+                    $userDeptMapped = \App\Models\AuditTemplate::normalizeDepartmentName($userDept);
+                    $auditDeptMapped = \App\Models\AuditTemplate::normalizeDepartmentName($auditDept);
+
+                    $isDepartmentUser = \Illuminate\Support\Facades\Auth::check() && (
+                        !empty($userDeptMapped) && !empty($auditDeptMapped) && $userDeptMapped === $auditDeptMapped
+                    );
+                    $canRespond = $isDepartmentUser && $unrespondedResults->isNotEmpty();
+
+                    $improveableResults = $failedResults->filter(function($r) {
+                        return $r->department_agreement === true ||
+                        ($r->department_agreement === false && $r->auditor_rejection_decision === false);
+                    });
+                    $pendingImprovements = $improveableResults->filter(fn($r) => empty($r->improvement_note));
+
+                    $hasImprovements = $record->results->contains(fn($r) => !empty($r->improvement_note));
+                    $unreviewed = $record->results->filter(fn($r) => !empty($r->improvement_note) && empty($r->reviewer_id));
+                    $anyRejected = $record->results->contains(fn($r) => $r->review_status === 'rejected');
                     $hasE = $record->results->contains('grade', 'E');
-                    $nonBResults = $record->results->where('grade', '!=', 'B');
-                    $hasNonB = $nonBResults->isNotEmpty();
-                    $isFullyImproved = $hasNonB && $nonBResults->every(fn($r) => !empty($r->improvement_note));
+                    
                     $pct = $record->max_score > 0 ? round(($record->score / $record->max_score) * 100) : 0;
                     @endphp
                     <tr class="{{ $hasE ? 'table-danger bg-opacity-10' : '' }}">
@@ -305,23 +328,33 @@
                             <div class="d-flex flex-column gap-1">
                                 <span class="fw-bold">{{ __('messages.' . $record->department) }}</span>
                                 <div class="d-flex align-items-center gap-2">
-                                    @if($hasE)
+                                    @if($unrespondedResults->isNotEmpty())
                                     <span class="status-badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 shadow-none" style="padding: 2px 8px;">
-                                        {{ __('messages.7s_has_e_grade') }}
+                                        {{ __('messages.7s_status_pending_feedback') }}
                                     </span>
-                                    @endif
-                                    
-                                    @if(!$hasNonB)
-                                    <span class="status-badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 shadow-none" style="padding: 2px 8px;">
-                                        {{ __('messages.7s_improved_done') }}
+                                    @elseif($rejectedResultsPendingAudit->isNotEmpty())
+                                    <span class="status-badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 shadow-none" style="padding: 2px 8px;">
+                                        {{ __('messages.7s_status_pending_dispute_review') }}
                                     </span>
-                                    @elseif($isFullyImproved)
+                                    @elseif($pendingImprovements->isNotEmpty())
+                                    <span class="status-badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 shadow-none" style="padding: 2px 8px;">
+                                        {{ __('messages.7s_status_pending_improvement') }}
+                                    </span>
+                                    @elseif($anyRejected)
+                                    <span class="status-badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 shadow-none" style="padding: 2px 8px;">
+                                        {{ __('messages.7s_status_rejected') }}
+                                    </span>
+                                    @elseif($unreviewed->isNotEmpty())
+                                    <span class="status-badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 shadow-none" style="padding: 2px 8px;">
+                                        {{ __('messages.7s_status_pending_review') }}
+                                    </span>
+                                    @elseif($failedResults->isNotEmpty())
                                     <span class="status-badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 shadow-none" style="padding: 2px 8px;">
-                                        {{ __('messages.7s_improved_done') }}
+                                        {{ __('messages.7s_status_approved') }}
                                     </span>
                                     @else
-                                    <span class="status-badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 shadow-none" style="padding: 2px 8px;">
-                                        {{ __('messages.7s_improvement_pending') }}
+                                    <span class="status-badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 shadow-none" style="padding: 2px 8px;">
+                                        100% OK
                                     </span>
                                     @endif
                                 </div>
@@ -349,6 +382,11 @@
                         </td>
                         <td class="text-center">
                             <div class="d-flex justify-content-center gap-2">
+                                @if($canRespond)
+                                <a href="{{ route('seven-s.show', $record->id) }}" class="btn btn-sm btn-info text-white shadow-sm fw-bold px-3" title="{{ __('messages.audit_respond_btn') ?? 'Phản hồi' }}">
+                                    {{ __('messages.audit_respond_btn') ?? 'Phản hồi' }}
+                                </a>
+                                @endif
                                 <a href="{{ route('seven-s.show', $record->id) }}" class="btn btn-sm btn-light border text-primary px-2" title="{{ __('messages.view_detail') }}">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />

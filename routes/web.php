@@ -105,6 +105,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::delete('/seven-s/{id}', [\App\Http\Controllers\SevenSController::class, 'destroy'])->name('seven-s.destroy')->whereNumber('id');
         Route::post('/seven-s/{result}/improve', [\App\Http\Controllers\SevenSController::class, 'storeImprovement'])->name('seven_s.improve');
         Route::post('/seven-s/{record}/improvements', [\App\Http\Controllers\SevenSController::class, 'storeImprovements'])->name('seven_s.improvements');
+        Route::post('/seven-s/{record}/submit-agreements', [\App\Http\Controllers\SevenSController::class, 'submitAgreements'])->name('seven_s.submit_agreements');
+        Route::post('/seven-s/{record}/review-rejections', [\App\Http\Controllers\SevenSController::class, 'reviewRejections'])->name('seven_s.review_rejections');
         Route::post('/seven-s/{record}/review-improvements', [\App\Http\Controllers\SevenSController::class, 'reviewImprovements'])->name('seven_s.review_improvements');
         Route::get('/seven-s/{id}/export', [\App\Http\Controllers\SevenSController::class, 'exportDetail'])->name('seven-s.export')->whereNumber('id');
         Route::get('/seven-s/{id}', [\App\Http\Controllers\SevenSController::class, 'show'])->name('seven-s.show')->whereNumber('id');
