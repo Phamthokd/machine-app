@@ -8,10 +8,11 @@ $userDept = auth()->user()->managed_department;
 $auditDept = $audit->template->department_name ?? null;
 $isAdmin = auth()->user()->hasRole('admin');
 
-$userDeptMapped = $userDept === 'Bán thành phẩm' ? 'BTP' : $userDept;
+$userDeptMapped = \App\Models\AuditTemplate::normalizeDepartmentName($userDept);
+$auditDeptMapped = \App\Models\AuditTemplate::normalizeDepartmentName($auditDept);
 
 $isDepartmentUser = \Illuminate\Support\Facades\Auth::check() && (
-    !$isAdmin && (!empty($userDeptMapped) && !empty($auditDept) && $userDeptMapped === $auditDept)
+    !empty($userDeptMapped) && !empty($auditDeptMapped) && $userDeptMapped === $auditDeptMapped
 );
 
 $isAuditUser = \Illuminate\Support\Facades\Auth::check()

@@ -22,7 +22,7 @@ class AuditController extends Controller
 
         // 1. Authorization/Base Filter: Filter by managed department if the user has one
         if (!empty($user->managed_department)) {
-            $mappedDept = $user->managed_department === 'Bán thành phẩm' ? 'BTP' : $user->managed_department;
+            $mappedDept = AuditTemplate::normalizeDepartmentName($user->managed_department);
             $query->whereHas('template', function ($q) use ($mappedDept) {
                 $q->where('department_name', $mappedDept);
             });
@@ -426,8 +426,10 @@ class AuditController extends Controller
         // Check if user is from the department being audited
         $template = $audit->template;
         if (!empty($user->managed_department)) {
-            $mappedDept = $user->managed_department === 'Bán thành phẩm' ? 'BTP' : $user->managed_department;
-            if ($mappedDept !== $template->department_name && !$user->hasRole('admin')) {
+            $userMapped = AuditTemplate::normalizeDepartmentName($user->managed_department);
+            $auditMapped = AuditTemplate::normalizeDepartmentName($template->department_name);
+
+            if ($userMapped !== $auditMapped && !$user->hasRole('admin')) {
                 abort(403, 'Bạn không có quyền xác nhận hoàn thành cho phiếu thuộc bộ phận khác.');
             }
         }
@@ -602,8 +604,10 @@ class AuditController extends Controller
 
         // Authorization: Current user must belong to the department being audited
         $user = auth()->user();
-        $targetDept = $audit->template->department_name === 'BTP' ? 'Bán thành phẩm' : $audit->template->department_name;
-        abort_unless($user->managed_department === $targetDept, 403, 'Bạn không thuộc bộ phận này nên không thể phản hồi lỗi.');
+        $userMapped = AuditTemplate::normalizeDepartmentName($user->managed_department);
+        $auditMapped = AuditTemplate::normalizeDepartmentName($audit->template->department_name);
+
+        abort_unless($userMapped === $auditMapped || $user->hasRole('admin'), 403, 'Bạn không thuộc bộ phận này nên không thể phản hồi lỗi.');
 
         $request->validate([
             'agreements' => 'required|array',
@@ -704,7 +708,7 @@ class AuditController extends Controller
         array $excludeUserIds = [],
         array $params = []
     ): void {
-        $normalizedDepartment = $this->normalizeDepartmentName($departmentName);
+        $normalizedDepartment = AuditTemplate::normalizeDepartmentName($departmentName);
         if (empty($normalizedDepartment)) {
             return;
         }
@@ -714,7 +718,7 @@ class AuditController extends Controller
             ->whereNotIn('id', $excludeUserIds)
             ->get()
             ->filter(function (User $user) use ($normalizedDepartment) {
-                return $this->normalizeDepartmentName($user->managed_department) === $normalizedDepartment;
+                return AuditTemplate::normalizeDepartmentName($user->managed_department) === $normalizedDepartment;
             });
 
         $notification = new AuditStatusChangedNotification($auditId, $eventKey, $title, $message, $params);
@@ -740,30 +744,4 @@ class AuditController extends Controller
         }
     }
 
-    private function normalizeDepartmentName(?string $departmentName): ?string
-    {
-        if (empty($departmentName)) {
-            return null;
-        }
-
-        $name = mb_strtolower(trim($departmentName));
-        $map = [
-            'xnk' => 'XNK',
-            'btp' => 'btp',
-            'bán thành phẩm' => 'btp',
-            'phòng mẫu' => 'phong mau',
-            'kiểm vải' => 'kiem vai',
-            'thu mua' => 'thu mua',
-            'kho cơ khí' => 'kho co khi',
-            'công trình + cơ điện' => 'cong trinh + co dien',
-            'phòng thí nghiệm' => 'phong thi nghiem',
-            'nhân quyền' => 'nhan quyen',
-            'nhân sự' => 'nhan su',
-            'hành chính' => 'hanh chinh',
-            'xưởng 6 tầng 1' => 'xuong 6 tang 1',
-            'xưởng 6 tầng 2' => 'xuong 6 tang 2',
-        ];
-
-        return $map[$name] ?? $name;
-    }
 }

@@ -21,4 +21,34 @@ class AuditTemplate extends Model
     {
         return $this->hasMany(AuditRecord::class);
     }
+
+    /**
+     * Normalize department names for consistent comparison and notifications.
+     */
+    public static function normalizeDepartmentName(?string $departmentName): ?string
+    {
+        if (empty($departmentName)) {
+            return null;
+        }
+
+        $name = mb_strtolower(trim($departmentName));
+        $map = [
+            'xnk' => 'xnk',
+            'btp' => 'btp',
+            'bán thành phẩm' => 'btp',
+            'phòng mẫu' => 'phong mau',
+            'kiểm vải' => 'kiem vai',
+            'thu mua' => 'thu mua',
+            'kho cơ khí' => 'kho co khi',
+            'công trình + cơ điện' => 'cong trinh + co dien',
+            'phòng thí nghiệm' => 'phong thi nghiem',
+            'nhân quyền' => 'nhan quyen',
+            'nhân sự' => 'nhan su',
+            'hành chính' => 'hanh chinh',
+            'xưởng 6 tầng 1' => 'xuong 6 tang 1',
+            'xưởng 6 tầng 2' => 'xuong 6 tang 2',
+        ];
+
+        return $map[$name] ?? $name;
+    }
 }

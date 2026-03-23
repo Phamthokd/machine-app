@@ -372,12 +372,13 @@
 
                                     $userDept = auth()->user()->managed_department;
                                     $auditDept = $audit->template->department_name ?? null;
-                                    $userDeptMapped = $userDept === 'Bán thành phẩm' ? 'BTP' : $userDept;
                                     $isAdmin = auth()->user()->hasRole('admin');
 
+                                    $userDeptMapped = \App\Models\AuditTemplate::normalizeDepartmentName($userDept);
+                                    $auditDeptMapped = \App\Models\AuditTemplate::normalizeDepartmentName($auditDept);
+
                                     $isDepartmentUser = \Illuminate\Support\Facades\Auth::check() && (
-                                    !$isAdmin &&
-                                    (!empty($userDeptMapped) && !empty($auditDept) && $userDeptMapped === $auditDept)
+                                        !empty($userDeptMapped) && !empty($auditDeptMapped) && $userDeptMapped === $auditDeptMapped
                                     );
                                     $canRespond = $isDepartmentUser && $unrespondedResults->isNotEmpty();
 
