@@ -11,5 +11,21 @@
     "Các tài liệu, báo cáo, tiêu chuẩn có đầy đủ thông tin, chữ ký, đóng dấu của bộ phận phụ trách không?": "文件、报告和标准是否包含负责部门的完整信息、签名和盖章？",
     "Số liệu, thông tin trên các tài liệu, bảng biểu có đúng và khớp với thực tế không?": "文件和图表上的数据和信息是否正确并与实际相符？",
     "Có đầy đủ các SOP của bộ phận và được cập nhật khi có thay đổi không?": "部门是否有完整的SOP，并且在发生变更时是否进行了更新？",
-    "Có loại bỏ những tài liệu quá hạn theo quy định về thời gian lưu trữ không?": "是否按照保留期规定销毁过期文件？"
+    "Có loại bỏ những tài liệu quá hạn theo quy định về thời gian lưu trữ không?": "是否按照保留期规定销毁过期文件？",
+    "S1&S2&S3 — Sàng lọc, Sắp xếp, Sạch sẽ": "整理, 整顿, 清扫",
+    "Số liệu trên báo cáo chính xác, loại bỏ các báo cáo tài liệu cũ, không liên quan hay chưa": "报告上的数据是否正确，是否已删除旧报告、无关或未完成的文件？",
+    "Lưu trình khai báo hải quan, làm thủ tục khai báo gia công lại, Nhập khẩu, Xuất khẩu, Xin CO, Báo cáo cân bằng hải quan, Tính định mức XK, \nKiểm soát mã liệu nhập khẩu, Thêm mã phụ liệu mới có thực hiện đúng lưu trình chưa": "海关申报流程和复检申报程序，进口流程，出口流程，申请CO，海关结算报告填写，出口配额计算过程，导入代码控制，加新物料 编码的流程是否正确执行？",
+    "Lưu trình khai báo hải quan, làm thủ tục khai báo gia công lại, Nhập khẩu, Xuất khẩu, Xin CO, Báo cáo cân bằng hải quan, Tính định mức XK, Kiểm soát mã liệu nhập khẩu, Thêm mã phụ liệu mới có thực hiện đúng lưu trình chưa": "海关申报流程和复检申报程序，进口流程，出口流程，申请CO，海关结算报告填写，出口配额计算过程，导入代码控制，加新物料 编码的流程是否正确执行？",
+    "Lưu trình khai báo hải quan, làm thủ tục khai báo gia công lại, Nhập khẩu, Xuất khẩu, Xin CO, Báo cáo cân bằng hải quan, Tính định mức XK, \r\nKiểm soát mã liệu nhập khẩu, Thêm mã phụ liệu mới có thực hiện đúng lưu trình chưa": "海关申报流程和复检申报程序，进口流程，出口流程，申请CO，海关结算报告填写，出口配额计算过程，导入代码控制，加新物料 编码的流程是否正确执行？",
+    "S4&S5 — Săn sóc, Sẵn sàng": "清洁",
+    "Các báo cáo, tài liệu cũ rách, hỏng hóc có được thay thế chưa": "旧的、破损的报告与文件是否已更换？",
+    "Toàn bộ công nhân viên có tuân thủ theo quy định chưa ( Mặc đồng phục, đeo thẻo NV đúng quy định…": "全体员工是否遵守公司规定？（请按规定穿着制服并佩戴员工证……）",
+    "Toàn bộ công nhân viên có tuân thủ theo quy định chưa ( Mặc đồng phục, đeo thẻo NV đúng quy định....": "全体员工是否遵守公司规定？（请按规定穿着制服并佩戴员工证……）",
+    "Toàn bộ công nhân viên có tuân thủ theo quy định chưa ( Mặc đồng phục, đeo thẻo NV đúng quy định...": "全体员工是否遵守公司规定？（请按规定穿着制服并佩戴员工证……）",
+    "Báo cáo cân bằng hải quan có chính xác không": "海关平衡报告是否准确",
+    "S6&S7 — An toàn, Tích cực": "安全&节约",
+    "Có vật dụng nguy hiểm trong khu vực làm việc không": "工作区内是否有员工放置危险工具？",
+    "In tài liệu nhưng không lấy, tạo lệnh in trên máy in rất nhiều nhưng không in ra để sử dụng dẫn đến quá tải": "打印了资料却不取走，在打印机上创建了大量打印指令却不实际打印使用，导致打印机超负荷",
+    "Tái chế giấy 1  mặt": "单面纸回收。",
+    "Tái chế giấy 1 mặt": "单面纸回收。"
 }

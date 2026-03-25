@@ -30,6 +30,8 @@ class SevenSResult extends Model
         'image_path' => 'array',
         'improvement_image_path' => 'array',
         'improved_at' => 'datetime',
+        'department_agreement' => 'boolean',
+        'auditor_rejection_decision' => 'boolean',
     ];
 
     public function record()

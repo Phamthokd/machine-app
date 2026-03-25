@@ -34,7 +34,7 @@
 
     @foreach($checklist as $section => $items)
     <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden">
-        <div class="card-header fw-bold bg-dark text-white py-3 px-4 fs-6">{{ $section }}</div>
+        <div class="card-header fw-bold bg-dark text-white py-3 px-4 fs-6">{{ __($section) }}</div>
         <div class="card-body p-0">
             @foreach($items as $item)
             @php
@@ -42,13 +42,14 @@
             $currentGrade = old("grades.{$item->id}", $existing?->grade ?? '');
             $currentNote = old("notes.{$item->id}", $existing?->note ?? '');
             $isImproved = $existing && !empty($existing->improvement_note);
-            $isLocked = $isImproved && $existing->grade !== 'B';
+            $isResponded = $existing && !is_null($existing->department_agreement);
+            $isLocked = $isResponded || ($isImproved && $existing->grade !== 'B');
             @endphp
             <div class="p-4 @if(!$loop->last) border-bottom @endif {{ $isLocked ? 'bg-light' : '' }}" id="item_{{ $item->id }}">
                 <div class="mb-3 d-flex align-items-start justify-content-between gap-2">
                     <div>
                         <span class="badge bg-secondary me-2">{{ $item->sort_order }}</span>
-                        <span class="fw-semibold text-dark">{{ $item->content }}</span>
+                        <span class="fw-semibold text-dark">{{ __($item->content) }}</span>
                     </div>
                     @if($isLocked)
                     <span class="badge bg-success bg-opacity-10 text-success border border-success flex-shrink-0">
@@ -60,6 +61,7 @@
                 @if($isLocked)
                 {{-- Locked: show read-only grade and note, hidden input to preserve value --}}
                 <input type="hidden" name="grades[{{ $item->id }}]" value="{{ $existing->grade }}">
+                <input type="hidden" name="notes[{{ $item->id }}]" value="{{ $existing->note }}">
                 <div class="d-flex flex-wrap gap-2 mb-2">
                     @foreach(['B' => [__('messages.7s_grade_good'), 'success'], 'C' => [__('messages.7s_grade_acceptable'), 'warning'], 'D' => [__('messages.7s_grade_fail'), 'danger'], 'E' => [__('messages.7s_grade_poor'), 'dark']] as $grade => [$label, $color])
                     <span class="btn btn-{{ $color }} btn-sm rounded-3 px-3 py-2 fw-bold {{ $existing->grade === $grade ? '' : 'opacity-25' }}" style="pointer-events:none;">

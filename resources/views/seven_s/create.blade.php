@@ -7,7 +7,7 @@
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M19 12H5M12 19l-7-7 7-7" />
         </svg>
-        Quay lại
+        {{ __('messages.back') }}
     </a>
     <h4 class="mb-0 fw-bold">📋 {{ __('messages.7s_create_form') }} - <span class="text-primary">{{ $department }}</span></h4>
 </div>
@@ -25,14 +25,14 @@
     @foreach($checklist as $section => $items)
     <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden">
         <div class="card-header fw-bold bg-dark text-white py-3 px-4 fs-6">
-            {{ $section }}
+            {{ __($section) }}
         </div>
         <div class="card-body p-0">
             @foreach($items as $index => $item)
             <div class="p-4 @if(!$loop->last) border-bottom @endif" id="item_{{ $item->id }}">
                 <div class="mb-3">
                     <span class="badge bg-secondary me-2">{{ $item->sort_order }}</span>
-                    <span class="fw-semibold text-dark">{{ $item->content }}</span>
+                    <span class="fw-semibold text-dark">{{ __($item->content) }}</span>
                 </div>
 
                 {{-- Grade radio buttons --}}

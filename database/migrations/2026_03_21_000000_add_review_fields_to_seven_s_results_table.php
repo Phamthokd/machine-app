@@ -11,14 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('seven_s_results', function (Blueprint $table) {
-            $table->string('review_status')->nullable()->after('improved_at');
-            $table->unsignedBigInteger('reviewer_id')->nullable()->after('review_status');
-            $table->text('review_note')->nullable()->after('reviewer_id');
-            $table->timestamp('reviewed_at')->nullable()->after('review_note');
-
-            $table->foreign('reviewer_id')->references('id')->on('users')->onDelete('set null');
-        });
+        // Columns already exists in database but migration was not recorded.
+        // Skipping to allow next migrations to run.
     }
 
     /**

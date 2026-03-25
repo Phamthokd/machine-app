@@ -12,9 +12,15 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('seven_s_results', function (Blueprint $table) {
-            $table->boolean('department_agreement')->nullable()->after('points')->comment('true = đồng ý lỗi, false = phản đối lỗi');
-            $table->text('department_reject_reason')->nullable()->after('department_agreement')->comment('lý do phản đối từ bộ phận');
-            $table->boolean('auditor_rejection_decision')->nullable()->after('department_reject_reason')->comment('true = chấp nhận huỷ lỗi, false = bác bỏ phản đối phải cải thiện');
+            if (!Schema::hasColumn('seven_s_results', 'department_agreement')) {
+                $table->boolean('department_agreement')->nullable()->after('points')->comment('true = đồng ý lỗi, false = phản đối lỗi');
+            }
+            if (!Schema::hasColumn('seven_s_results', 'department_reject_reason')) {
+                $table->text('department_reject_reason')->nullable()->after('department_agreement')->comment('lý do phản đối từ bộ phận');
+            }
+            if (!Schema::hasColumn('seven_s_results', 'auditor_rejection_decision')) {
+                $table->boolean('auditor_rejection_decision')->nullable()->after('department_reject_reason')->comment('true = chấp nhận huỷ lỗi, false = bác bỏ phản đối phải cải thiện');
+            }
         });
     }
 

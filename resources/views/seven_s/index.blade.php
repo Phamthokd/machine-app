@@ -143,6 +143,32 @@
         font-weight: 800;
         font-size: 0.9rem;
     }
+    .btn-export {
+        background: white;
+        color: #1e293b;
+        border: 1px solid #e2e8f0;
+        padding: 10px 18px;
+        border-radius: 12px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        font-size: 0.9rem;
+    }
+
+    .btn-export:hover {
+        background: #f8fafc;
+        border-color: #cbd5e1;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        color: #2563eb;
+    }
+
+    .btn-export svg {
+        color: #2563eb;
+    }
 </style>
 
 <div class="page-header d-flex flex-wrap align-items-center justify-content-between gap-3">
@@ -150,6 +176,14 @@
         <h2 class="h3 mb-1 fw-bold text-dark">{{ __('messages.7s_inspection') }}</h2>
         <div class="text-muted small">{{ __('messages.7s_manage_subtitle') ?? 'Quản lý các đợt kiểm tra và đánh giá 7S các bộ phận' }}</div>
     </div>
+    <button type="button" id="exportSelectedBtn" class="btn-export text-decoration-none">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
+        </svg>
+        <span>{{ __('messages.export_excel') }} ({{ __('messages.selected') }})</span>
+    </button>
 </div>
 
 @if(session('success'))
@@ -282,6 +316,11 @@
             <table class="table table-hover mb-0 align-middle">
                 <thead>
                     <tr>
+                        <th width="40" class="text-center">
+                            <div class="form-check d-flex justify-content-center">
+                                <input class="form-check-input" type="checkbox" id="selectAllSevenSRecords">
+                            </div>
+                        </th>
                         <th width="80">ID</th>
                         <th>{{ __('messages.7s_department') }}</th>
                         <th width="100">{{ __('messages.7s_score') }}</th>
@@ -293,9 +332,15 @@
                 <tbody>
                     @forelse($records as $record)
                     @php
-                    $failedResults = $record->results->where('grade', '!=', 'B');
+                     $failedResults = $record->results->where('grade', '!=', 'B');
                     $unrespondedResults = $failedResults->filter(fn($r) => is_null($r->department_agreement));
-                    $rejectedResultsPendingAudit = $failedResults->filter(fn($r) => $r->department_agreement === false && is_null($r->auditor_rejection_decision));
+                    
+                    // Status priority logic
+                    $isPendingFeedback = $unrespondedResults->isNotEmpty();
+                    $isPendingDisputeReview = $failedResults->contains(fn($r) => $r->review_status === 'pending_dispute_review');
+                    $isPendingImprovement = $failedResults->contains(fn($r) => $r->review_status === 'pending_improvement');
+                    $isRejectedImprovement = $failedResults->contains(fn($r) => $r->review_status === 'rejected');
+                    $isPendingAuditReview = $failedResults->contains(fn($r) => $r->review_status === 'pending_review');
 
                     $userDept = auth()->user()->managed_department;
                     $auditDept = $record->department;
@@ -307,7 +352,7 @@
                     $isDepartmentUser = \Illuminate\Support\Facades\Auth::check() && (
                         !empty($userDeptMapped) && !empty($auditDeptMapped) && $userDeptMapped === $auditDeptMapped
                     );
-                    $canRespond = $isDepartmentUser && $unrespondedResults->isNotEmpty();
+                    $canRespond = $isDepartmentUser && $isPendingFeedback;
 
                     $improveableResults = $failedResults->filter(function($r) {
                         return $r->department_agreement === true ||
@@ -322,29 +367,34 @@
                     
                     $pct = $record->max_score > 0 ? round(($record->score / $record->max_score) * 100) : 0;
                     @endphp
-                    <tr class="{{ $hasE ? 'table-danger bg-opacity-10' : '' }}">
+                    <tr class="{{ $hasE ? 'table-danger bg-opacity-10' : '' }} history-row" data-dept="{{ $record->department }}">
+                        <td class="text-center">
+                            <div class="form-check d-flex justify-content-center">
+                                <input class="form-check-input record-select" type="checkbox" value="{{ $record->id }}">
+                            </div>
+                        </td>
                         <td class="text-muted small">#{{ $record->id }}</td>
                         <td>
                             <div class="d-flex flex-column gap-1">
                                 <span class="fw-bold">{{ __('messages.' . $record->department) }}</span>
-                                <div class="d-flex align-items-center gap-2">
-                                    @if($unrespondedResults->isNotEmpty())
+                                 <div class="d-flex align-items-center gap-2">
+                                    @if($isPendingFeedback)
                                     <span class="status-badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 shadow-none" style="padding: 2px 8px;">
                                         {{ __('messages.7s_status_pending_feedback') }}
                                     </span>
-                                    @elseif($rejectedResultsPendingAudit->isNotEmpty())
+                                    @elseif($isPendingDisputeReview)
                                     <span class="status-badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 shadow-none" style="padding: 2px 8px;">
                                         {{ __('messages.7s_status_pending_dispute_review') }}
                                     </span>
-                                    @elseif($pendingImprovements->isNotEmpty())
-                                    <span class="status-badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 shadow-none" style="padding: 2px 8px;">
-                                        {{ __('messages.7s_status_pending_improvement') }}
-                                    </span>
-                                    @elseif($anyRejected)
+                                    @elseif($isRejectedImprovement)
                                     <span class="status-badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 shadow-none" style="padding: 2px 8px;">
                                         {{ __('messages.7s_status_rejected') }}
                                     </span>
-                                    @elseif($unreviewed->isNotEmpty())
+                                    @elseif($isPendingImprovement)
+                                    <span class="status-badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 shadow-none" style="padding: 2px 8px;">
+                                        {{ __('messages.7s_status_pending_improvement') }}
+                                    </span>
+                                    @elseif($isPendingAuditReview)
                                     <span class="status-badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 shadow-none" style="padding: 2px 8px;">
                                         {{ __('messages.7s_status_pending_review') }}
                                     </span>
@@ -383,9 +433,9 @@
                         <td class="text-center">
                             <div class="d-flex justify-content-center gap-2">
                                 @if($canRespond)
-                                <a href="{{ route('seven-s.show', $record->id) }}" class="btn btn-sm btn-info text-white shadow-sm fw-bold px-3" title="{{ __('messages.audit_respond_btn') ?? 'Phản hồi' }}">
-                                    {{ __('messages.audit_respond_btn') ?? 'Phản hồi' }}
-                                </a>
+                                <button type="button" class="btn btn-sm btn-info text-white shadow-sm fw-bold px-3" data-bs-toggle="modal" data-bs-target="#respondModal_{{ $record->id }}">
+                                    {{ __('messages.audit_respond_btn') }}
+                                </button>
                                 @endif
                                 <a href="{{ route('seven-s.show', $record->id) }}" class="btn btn-sm btn-light border text-primary px-2" title="{{ __('messages.view_detail') }}">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -407,11 +457,69 @@
                                 </form>
                                 @endif
                             </div>
+
+                            @if($canRespond)
+                            <!-- Error feedback modal -->
+                            <div class="modal fade" id="respondModal_{{ $record->id }}" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable text-start">
+                                    <form action="{{ route('seven-s.submit_agreements', $record->id) }}" method="POST" class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                                        @csrf
+                                        <div class="modal-header bg-dark text-white border-0 py-3">
+                                            <h5 class="modal-title fw-bold d-flex align-items-center gap-2">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                                                </svg>
+                                                {{ __('messages.audit_feedback_modal_title') }}
+                                            </h5>
+                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body p-4 bg-light">
+                                            <p class="text-secondary mb-4">{{ __('messages.audit_feedback_modal_desc') }}</p>
+
+                                            @foreach($unrespondedResults as $result)
+                                            <div class="card border-0 shadow-sm mb-4 rounded-4 overflow-hidden">
+                                                <div class="card-header bg-danger bg-opacity-10 text-danger fw-bold border-0 py-3 px-4">
+                                                    <div class="d-flex gap-3">
+                                                        <div class="bg-danger text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; flex-shrink: 0;">!</div>
+                                                        <div>
+                                                            <div class="fs-6">{{ $result->checklist?->content ?? __('messages.question_deleted') }}</div>
+                                                            <div class="fw-normal small mt-2 bg-white bg-opacity-50 p-2 rounded-3 text-dark">
+                                                                <span class="fw-bold">{{ __('messages.detected_error_content') }}</span> {{ $result->note }}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="card-body p-4">
+                                                    <div class="mb-4">
+                                                        <label class="form-label fw-bold text-dark mb-2">{{ __('messages.audit_decision_label') }}</label>
+                                                        <select class="form-select rounded-3 py-2 border-2" name="agreements[{{ $result->id }}][department_agreement]" required
+                                                            onchange="document.getElementById('reject_reason_{{ $record->id }}_{{ $result->id }}').style.display = this.value === '0' ? 'block' : 'none';">
+                                                            <option value="" disabled selected>{{ __('messages.audit_choose_feedback') }}</option>
+                                                            <option value="1">{{ __('messages.audit_agree_error_option') }}</option>
+                                                            <option value="0">{{ __('messages.audit_dispute_error_option') }}</option>
+                                                        </select>
+                                                    </div>
+                                                    <div id="reject_reason_{{ $record->id }}_{{ $result->id }}" style="display: none;">
+                                                        <label class="form-label fw-bold text-dark mb-2">{{ __('messages.audit_dispute_reason_label') }}</label>
+                                                        <textarea class="form-control rounded-3 border-2" name="agreements[{{ $result->id }}][department_reject_reason]" rows="3" placeholder="{{ __('messages.audit_dispute_reason_placeholder') }}"></textarea>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            @endforeach
+                                        </div>
+                                        <div class="modal-footer bg-white border-0 p-4">
+                                            <button type="button" class="btn btn-light fw-bold px-4" data-bs-dismiss="modal">{{ __('messages.cancel') }}</button>
+                                            <button type="submit" class="btn btn-dark fw-bold px-4 shadow-sm text-white text-uppercase rounded-3">{{ __('messages.audit_send_feedback_btn') }}</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                            @endif
                         </td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="6" class="py-5 text-center">
+                        <td colspan="7" class="py-5 text-center">
                             <div class="text-muted d-flex flex-column align-items-center">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="mb-3 opacity-25">
                                     <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
@@ -434,4 +542,94 @@
         @endif
     </div>
 </div>
-@endsection
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const exportBtn = document.getElementById('exportSelectedBtn');
+        const selectAll = document.getElementById('selectAllSevenSRecords');
+        const storageKey = 'sevens.selected.ids';
+
+        function readSelectedSet() {
+            try {
+                const raw = localStorage.getItem(storageKey);
+                const ids = raw ? JSON.parse(raw) : [];
+                if (!Array.isArray(ids)) return new Set();
+                return new Set(ids.map((id) => String(id)));
+            } catch (e) {
+                return new Set();
+            }
+        }
+
+        function writeSelectedSet(selectedSet) {
+            try {
+                localStorage.setItem(storageKey, JSON.stringify(Array.from(selectedSet)));
+            } catch (e) {
+                // Ignore
+            }
+        }
+
+        function getRecordCheckboxes() {
+            return Array.from(document.querySelectorAll('.record-select'));
+        }
+
+        function syncSelectAllState() {
+            const boxes = getRecordCheckboxes();
+            if (!selectAll || boxes.length === 0) return;
+            selectAll.checked = boxes.every((cb) => cb.checked);
+        }
+
+        function restoreSelection() {
+            const selectedSet = readSelectedSet();
+            getRecordCheckboxes().forEach((cb) => {
+                cb.checked = selectedSet.has(String(cb.value));
+            });
+            syncSelectAllState();
+        }
+
+        function saveSelection() {
+            const selectedSet = readSelectedSet();
+            getRecordCheckboxes().forEach((cb) => {
+                const id = String(cb.value);
+                if (cb.checked) {
+                    selectedSet.add(id);
+                } else {
+                    selectedSet.delete(id);
+                }
+            });
+            writeSelectedSet(selectedSet);
+        }
+
+        if (selectAll) {
+            selectAll.addEventListener('change', function() {
+                getRecordCheckboxes().forEach((cb) => {
+                    cb.checked = selectAll.checked;
+                });
+                saveSelection();
+            });
+        }
+
+        document.addEventListener('change', function(event) {
+            if (event.target.classList.contains('record-select')) {
+                saveSelection();
+                syncSelectAllState();
+            }
+        });
+
+        restoreSelection();
+
+        if (exportBtn) {
+            exportBtn.addEventListener('click', function() {
+                const selectedIds = Array.from(readSelectedSet());
+                if (selectedIds.length === 0) {
+                    alert("{{ __('messages.select_7s_export_error') ?? 'Vui lòng chọn ít nhất 1 phiếu trước khi xuất Excel.' }}");
+                    return;
+                }
+
+                const params = new URLSearchParams();
+                selectedIds.forEach((id) => params.append('record_ids[]', id));
+                window.location.href = "{{ route('seven-s.export') }}?" + params.toString();
+            });
+        }
+    });
+</script>
+@endsection

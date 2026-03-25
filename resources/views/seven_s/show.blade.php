@@ -19,7 +19,7 @@ $canRespond = (auth()->user()->hasRole('admin') || $isDeptUser)
 $canImprove = (
     (auth()->user()->hasRole('admin') || $isDeptUser)
     && $nonBResults->isNotEmpty()
-    && $nonBResults->contains(fn($r) => in_array($r->review_status, ['pending_improvement', 'rejected']))
+    && $nonBResults->contains(fn($r) => in_array($r->review_status, ['pending_improvement', 'pending_review', 'rejected']))
 );
 
 $needsReview = $isAuditor && $nonBResults->contains(fn($r) => $r->review_status === 'pending_review');
@@ -47,7 +47,7 @@ $needsDisputeReview = $isAuditor && $nonBResults->contains(fn($r) => $r->review_
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 1 1-7.6-14.1 8.38 8.38 0 0 1 3.8.9L21 3.5Z" />
             </svg>
-            {{ __('messages.audit_respond_btn') ?? 'Phản hồi' }}
+            {{ __('messages.audit_respond_btn') }}
         </button>
         @endif
 
@@ -58,7 +58,7 @@ $needsDisputeReview = $isAuditor && $nonBResults->contains(fn($r) => $r->review_
                 <circle cx="9" cy="7" r="4" />
                 <polyline points="16 11 18 13 22 9" />
             </svg>
-            {{ __('messages.audit_review_disputes_btn') ?? 'Duyệt phản đối' }}
+            {{ __('messages.audit_review_disputes_btn') }}
         </button>
         @endif
 
@@ -86,7 +86,7 @@ $needsDisputeReview = $isAuditor && $nonBResults->contains(fn($r) => $r->review_
             {{ __('messages.7s_edit_btn') }}
         </a>
         @endif
-        <a href="{{ route('seven-s.export', $record->id) }}"
+        <a href="{{ route('seven-s.export_detail', $record->id) }}"
             class="btn btn-sm btn-outline-success d-flex align-items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -167,7 +167,7 @@ $color = $pct >= 80 ? 'success' : ($pct >= 60 ? 'warning' : 'danger');
 @php $grouped = $record->results->groupBy(fn($r) => $r->checklist?->section ?? 'Khác') @endphp
 @foreach($grouped as $section => $results)
 <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden">
-    <div class="card-header fw-bold bg-dark text-white py-3 px-4">{{ $section }}</div>
+    <div class="card-header fw-bold bg-dark text-white py-3 px-4">{{ __($section) }}</div>
     <div class="card-body p-0">
         @foreach($results as $result)
         @php
@@ -179,7 +179,7 @@ $color = $pct >= 80 ? 'success' : ($pct >= 60 ? 'warning' : 'danger');
             <div class="d-flex justify-content-between align-items-start gap-3">
                 <div>
                     <span class="badge bg-secondary me-1">{{ $result->checklist?->sort_order }}</span>
-                    <span class="fw-semibold">{{ $result->checklist?->content }}</span>
+                    <span class="fw-semibold">{{ __($result->checklist?->content) }}</span>
                 </div>
                 <div class="d-flex align-items-center gap-2 flex-shrink-0">
                     @if($result->grade !== 'B')
@@ -229,28 +229,31 @@ $color = $pct >= 80 ? 'success' : ($pct >= 60 ? 'warning' : 'danger');
                                     <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
                                     <polyline points="22 4 12 14.01 9 11.01" />
                                 </svg>
-                                {{ __('messages.audit_agreed_label') ?? 'Bộ phận đã đồng ý' }}
+                                {{ __('messages.audit_agreed_label') }}
                             @else
                                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1">
                                     <circle cx="12" cy="12" r="10" />
                                     <line x1="12" y1="8" x2="12" y2="12" />
                                     <line x1="12" y1="16" x2="12.01" y2="16" />
                                 </svg>
-                                {{ __('messages.audit_disputed_label') ?? 'Bộ phận đã phản đối' }}
+                                {{ __('messages.audit_disputed_label') }}
                             @endif
                         </h6>
                     </div>
                     
                     @if(!$result->department_agreement && $result->department_reject_reason)
                         <div class="bg-white p-2 rounded border small mb-2">
-                            <strong>{{ __('messages.audit_reject_reason_label') ?? 'Lý do' }}:</strong> {{ $result->department_reject_reason }}
+                            <strong>{{ __('messages.audit_reject_reason_label') }}:</strong> {{ $result->department_reject_reason }}
                         </div>
                     @endif
 
                     @if(!is_null($result->auditor_rejection_decision))
                         <div class="p-2 rounded mt-2 {{ $result->auditor_rejection_decision ? 'bg-success bg-opacity-25 text-success' : 'bg-danger bg-opacity-25 text-danger' }} small">
-                            <strong>{{ __('messages.audit_inspector_decision_label') ?? 'Quyết định Auditor' }}:</strong> 
-                            {{ $result->auditor_rejection_decision ? (__('messages.audit_decision_waived_label') ?? 'Đã huỷ lỗi') : (__('messages.audit_decision_maintained_label') ?? 'Giữ nguyên lỗi') }}
+                            <strong>{{ __('messages.audit_inspector_decision_label') }}:</strong> 
+                            {{ $result->auditor_rejection_decision ? __('messages.audit_decision_waived_label') : __('messages.audit_decision_maintained_label') }}
+                            @if($result->auditor_rejection_decision && $result->grade !== 'B')
+                                <span class="ms-1">({{ __('messages.7s_auditor_decision_final') }} <strong>{{ $result->grade }}</strong>)</span>
+                            @endif
                         </div>
                     @endif
                 </div>
@@ -345,7 +348,7 @@ $color = $pct >= 80 ? 'success' : ($pct >= 60 ? 'warning' : 'danger');
                 </div>
             </div>
             
-            @if(in_array($result->review_status, ['rejected']) && ($isDeptUser || auth()->user()->hasRole('admin')))
+            @if(in_array($result->review_status, ['rejected', 'pending_review']) && ($isDeptUser || auth()->user()->hasRole('admin')))
             <div class="mt-2 text-end">
                 <button type="button" class="btn btn-sm btn-warning d-inline-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#improveModal{{ $result->id }}">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -357,7 +360,7 @@ $color = $pct >= 80 ? 'success' : ($pct >= 60 ? 'warning' : 'danger');
             </div>
             @endif
             @else
-            @if(in_array($result->review_status, ['pending_improvement', 'rejected']) && ($isDeptUser || auth()->user()->hasRole('admin')))
+            @if(in_array($result->review_status, ['pending_improvement', 'pending_review', 'rejected']) && ($isDeptUser || auth()->user()->hasRole('admin')))
             <div class="mt-3 text-end">
                 <button type="button" class="btn btn-sm btn-warning d-inline-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#improveModal{{ $result->id }}">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -375,7 +378,7 @@ $color = $pct >= 80 ? 'success' : ($pct >= 60 ? 'warning' : 'danger');
             <div class="modal fade" id="improveModal{{ $result->id }}" tabindex="-1" aria-hidden="true">
                 <div class="modal-dialog modal-lg modal-dialog-centered">
                     <div class="modal-content border-0 shadow-lg rounded-4">
-                        <form action="{{ route('seven_s.improve', $result->id) }}" method="POST" enctype="multipart/form-data">
+                        <form action="{{ route('seven-s.improve', $result->id) }}" method="POST" enctype="multipart/form-data">
                             @csrf
                             <div class="modal-header bg-warning bg-opacity-10 border-bottom-0 pb-0">
                                 <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2">
@@ -394,8 +397,27 @@ $color = $pct >= 80 ? 'success' : ($pct >= 60 ? 'warning' : 'danger');
 
                                 <div class="mb-4">
                                     <label class="form-label fw-bold text-dark">{{ __('messages.7s_improvement_note_label') }} <span class="text-danger">*</span></label>
-                                    <textarea class="form-control" name="improvement_note" rows="4" required placeholder="{{ __('messages.7s_improvement_note_placeholder') }}"></textarea>
+                                    <textarea class="form-control" name="improvement_note" rows="4" required placeholder="{{ __('messages.7s_improvement_note_placeholder') }}">{{ $result->improvement_note }}</textarea>
                                 </div>
+
+                                @if(!empty($result->improvement_image_path))
+                                <div class="mb-4">
+                                    <label class="form-label fw-bold text-dark">{{ __('messages.7s_improvement_existing_photos') }}</label>
+                                    <div class="d-flex flex-wrap gap-3 mt-2">
+                                        @foreach((array)$result->improvement_image_path as $path)
+                                        <div class="position-relative border rounded p-1" style="width: 82px; height: 82px;">
+                                            <img src="{{ asset($path) }}" class="rounded" style="width: 72px; height: 72px; object-fit: cover;">
+                                            <input type="hidden" name="keep_images[]" value="{{ $path }}">
+                                            <button type="button" class="btn btn-danger btn-sm rounded-circle position-absolute d-flex align-items-center justify-content-center shadow-sm" 
+                                                    style="width: 22px; height: 22px; top: -10px; right: -10px; padding: 0; border: 2px solid #fff;" 
+                                                    onclick="this.parentElement.remove()" title="Remove image">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                            </button>
+                                        </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                                @endif
 
                                 <div class="mb-3">
                                     <label class="form-label fw-bold text-dark">{{ __('messages.7s_improvement_photo_label') }}</label>
@@ -424,7 +446,7 @@ $color = $pct >= 80 ? 'success' : ($pct >= 60 ? 'warning' : 'danger');
 {{-- Single Combined Improvement Modal (like Audit) --}}
 <div class="modal fade" id="singleImprovementModal" tabindex="-1" aria-labelledby="singleImprovementModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-        <form action="{{ route('seven_s.improvements', $record->id) }}" method="POST" enctype="multipart/form-data" class="modal-content border-0 shadow-lg rounded-4">
+        <form action="{{ route('seven-s.improvements', $record->id) }}" method="POST" enctype="multipart/form-data" class="modal-content border-0 shadow-lg rounded-4">
             @csrf
             <div class="modal-header bg-warning bg-opacity-10 border-bottom-0 pb-0">
                 <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2" id="singleImprovementModalLabel">
@@ -439,7 +461,7 @@ $color = $pct >= 80 ? 'success' : ($pct >= 60 ? 'warning' : 'danger');
             <div class="modal-body py-4">
                 <p class="text-muted mb-4">{{ __('messages.7s_improvement_modal_desc') }}</p>
 
-                @foreach($nonBResults->filter(fn($r) => !$r->improvement_note) as $result)
+                @foreach($nonBResults->filter(fn($r) => in_array($r->review_status, ['pending_improvement', 'pending_review', 'rejected'])) as $result)
                 <div class="card bg-light border-0 shadow-sm mb-4 rounded-3">
                     <div class="card-header bg-danger bg-opacity-10 text-danger fw-bold border-0 py-3">
                         <div class="d-flex gap-2">
@@ -459,8 +481,27 @@ $color = $pct >= 80 ? 'success' : ($pct >= 60 ? 'warning' : 'danger');
                     <div class="card-body">
                         <div class="mb-3">
                             <label class="form-label fw-bold">{{ __('messages.7s_improvement_note_label') }} <span class="text-danger">*</span></label>
-                            <textarea class="form-control bg-white" name="improvements[{{ $result->id }}][improvement_note]" rows="2" required placeholder="{{ __('messages.7s_improvement_note_placeholder') }}"></textarea>
+                            <textarea class="form-control bg-white" name="improvements[{{ $result->id }}][improvement_note]" rows="2" required placeholder="{{ __('messages.7s_improvement_note_placeholder') }}">{{ $result->improvement_note }}</textarea>
                         </div>
+                        @if(!empty($result->improvement_image_path))
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small">{{ __('messages.7s_improvement_existing_photos') }}</label>
+                            <div class="d-flex flex-wrap gap-3 mt-2">
+                                @foreach((array)$result->improvement_image_path as $path)
+                                <div class="position-relative border rounded p-1" style="width: 62px; height: 62px;">
+                                    <img src="{{ asset($path) }}" class="rounded" style="width: 52px; height: 52px; object-fit: cover;">
+                                    <input type="hidden" name="improvements[{{ $result->id }}][keep_images][]" value="{{ $path }}">
+                                    <button type="button" class="btn btn-danger btn-sm rounded-circle position-absolute d-flex align-items-center justify-content-center shadow-sm" 
+                                            style="width: 18px; height: 18px; top: -8px; right: -8px; padding: 0; border: 2px solid #fff;" 
+                                            onclick="this.parentElement.remove()" title="Remove image">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                    </button>
+                                </div>
+                                @endforeach
+                            </div>
+                        </div>
+                        @endif
+
                         <div>
                             <label class="form-label fw-bold">{{ __('messages.7s_improvement_photo_label') }}</label>
                             <input type="file" class="form-control bg-white" name="improvements[{{ $result->id }}][improvement_images][]" multiple accept="image/*">
@@ -483,7 +524,7 @@ $color = $pct >= 80 ? 'success' : ($pct >= 60 ? 'warning' : 'danger');
 {{-- Review Modal for Auditor --}}
 <div class="modal fade" id="reviewModal" tabindex="-1" aria-labelledby="reviewModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-        <form action="{{ route('seven_s.review_improvements', $record->id) }}" method="POST" class="modal-content border-0 shadow-lg rounded-4">
+        <form action="{{ route('seven-s.review_improvements', $record->id) }}" method="POST" class="modal-content border-0 shadow-lg rounded-4">
             @csrf
             <div class="modal-header bg-primary bg-opacity-10 border-bottom-0 pb-0">
                 <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2" id="reviewModalLabel">
@@ -557,4 +598,180 @@ $color = $pct >= 80 ? 'success' : ($pct >= 60 ? 'warning' : 'danger');
 </div>
 @endif
 
+@if($canRespond)
+{{-- Combined Response Modal (like Audit) --}}
+<div class="modal fade" id="agreementModal" tabindex="-1" aria-labelledby="agreementModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <form action="{{ route('seven-s.submit_agreements', $record->id) }}" method="POST" class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            @csrf
+            <div class="modal-header bg-dark text-white border-0 py-3">
+                <h5 class="modal-title fw-bold d-flex align-items-center gap-2" id="agreementModalLabel">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                    </svg>
+                    {{ __('messages.audit_feedback_modal_title') }}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 bg-light">
+                <p class="text-secondary mb-4">{{ __('messages.audit_feedback_modal_desc') }}</p>
+
+                @foreach($nonBResults->whereNull('department_agreement') as $result)
+                <div class="card border-0 shadow-sm mb-4 rounded-4 overflow-hidden">
+                    <div class="card-header bg-danger bg-opacity-10 text-danger fw-bold border-0 py-3 px-4">
+                        <div class="d-flex gap-3">
+                            <div class="bg-danger text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; flex-shrink: 0;">!</div>
+                            <div>
+                                <div class="fs-6">{{ $result->checklist?->content ?? __('messages.question_deleted') }}</div>
+                                <div class="fw-normal small mt-2 bg-white bg-opacity-50 p-2 rounded-3 text-dark">
+                                    <span class="fw-bold">{{ __('messages.detected_error_content') }}</span> {{ $result->note }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="mb-4">
+                            <label class="form-label fw-bold text-dark mb-2">{{ __('messages.audit_decision_label') }}</label>
+                            <div class="d-flex gap-3">
+                                <div class="form-check border p-3 rounded-4 flex-fill px-4 transition-all hover-shadow-sm cursor-pointer" onclick="document.getElementById('agree_{{ $result->id }}').checked = true; document.getElementById('reject_reason_show_{{ $result->id }}').style.display = 'none';">
+                                    <input class="form-check-input" type="radio" name="agreements[{{ $result->id }}][department_agreement]" id="agree_{{ $result->id }}" value="1" required>
+                                    <label class="form-check-label fw-bold cursor-pointer" for="agree_{{ $result->id }}">
+                                        {{ __('messages.audit_agree_error_option') }}
+                                    </label>
+                                </div>
+                                <div class="form-check border p-3 rounded-4 flex-fill px-4 transition-all hover-shadow-sm cursor-pointer" onclick="document.getElementById('dispute_{{ $result->id }}').checked = true; document.getElementById('reject_reason_show_{{ $result->id }}').style.display = 'block';">
+                                    <input class="form-check-input" type="radio" name="agreements[{{ $result->id }}][department_agreement]" id="dispute_{{ $result->id }}" value="0">
+                                    <label class="form-check-label fw-bold cursor-pointer" for="dispute_{{ $result->id }}">
+                                        {{ __('messages.audit_dispute_error_option') }}
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="reject_reason_show_{{ $result->id }}" style="display: none;">
+                            <label class="form-label fw-bold text-dark mb-2">{{ __('messages.audit_dispute_reason_label') }}</label>
+                            <textarea class="form-control rounded-3 border-2" name="agreements[{{ $result->id }}][department_reject_reason]" rows="3" placeholder="{{ __('messages.audit_dispute_reason_placeholder') }}"></textarea>
+                        </div>
+                    </div>
+                </div>
+                @endforeach
+            </div>
+            <div class="modal-footer bg-white border-0 p-4">
+                <button type="button" class="btn btn-light fw-bold px-4" data-bs-dismiss="modal">{{ __('messages.cancel') }}</button>
+                <button type="submit" class="btn btn-dark fw-bold px-4 shadow-sm text-white text-uppercase rounded-3">{{ __('messages.audit_send_feedback_btn') }}</button>
+            </div>
+        </form>
+    </div>
+</div>
+@endif
+
+@if($needsDisputeReview)
+{{-- Dispute Review Modal --}}
+<div class="modal fade" id="disputeReviewModal" tabindex="-1" aria-labelledby="disputeReviewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <form action="{{ route('seven-s.review_rejections', $record->id) }}" method="POST" class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            @csrf
+            <div class="modal-header bg-primary text-white border-0 py-3">
+                <h5 class="modal-title fw-bold d-flex align-items-center gap-2" id="disputeReviewModalLabel">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                        <circle cx="9" cy="7" r="4" />
+                        <polyline points="16 11 18 13 22 9" />
+                    </svg>
+                    {{ __('messages.audit_review_disputes_btn') }}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 bg-light">
+                <p class="text-secondary mb-4">{{ __('messages.audit_review_disputes_desc') }}</p>
+
+                @foreach($nonBResults->where('department_agreement', false)->whereNull('auditor_rejection_decision') as $result)
+                <div class="card border-0 shadow-sm mb-4 rounded-4 overflow-hidden">
+                    <div class="card-header bg-warning bg-opacity-10 text-dark fw-bold border-0 py-3 px-4">
+                        <div class="fs-6 mb-2">{{ $result->checklist?->content }}</div>
+                        <div class="bg-white p-2 rounded small border text-danger">
+                            <strong>{{ __('messages.audit_reject_reason_label') }}:</strong> {{ $result->department_reject_reason }}
+                        </div>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="mb-3 d-flex align-items-center gap-3 p-3 bg-white rounded-4 border shadow-sm">
+                            <span class="text-secondary small fw-bold text-uppercase letter-spacing-1">{{ __('messages.7s_current_grade_label') }}</span>
+                            @php
+                                $gradeColor = match($result->grade) {
+                                    'B' => 'success',
+                                    'C' => 'warning',
+                                    'D' => 'danger',
+                                    'E' => 'dark',
+                                    default => 'secondary'
+                                };
+                                $gradeLabel = match($result->grade) {
+                                    'B' => __('messages.7s_grade_good'),
+                                    'C' => __('messages.7s_grade_acceptable'),
+                                    'D' => __('messages.7s_grade_fail'),
+                                    'E' => __('messages.7s_grade_poor'),
+                                    default => $result->grade
+                                };
+                            @endphp
+                            <span class="badge bg-{{ $gradeColor }} bg-opacity-10 text-{{ $gradeColor }} border border-{{ $gradeColor }} border-opacity-25 px-3 py-2 rounded-3 fs-6">
+                                {{ $gradeLabel }} ({{ $result->grade }})
+                            </span>
+                        </div>
+
+                        <label class="form-label fw-bold text-dark mb-2">{{ __('messages.audit_inspector_decision_label') }}</label>
+                        <div class="d-flex gap-3 mt-2">
+                            <div class="form-check border p-3 rounded-4 flex-fill px-4 transition-all hover-shadow-sm cursor-pointer" onclick="document.getElementById('waive_{{ $result->id }}').checked = true; document.getElementById('waive_{{ $result->id }}').dispatchEvent(new Event('change'));">
+                                <input class="form-check-input" type="radio" name="reviews[{{ $result->id }}][decision]" id="waive_{{ $result->id }}" value="waive" required>
+                                <label class="form-check-label fw-bold cursor-pointer" for="waive_{{ $result->id }}">
+                                    {{ __('messages.audit_decision_waived_label') }}
+                                </label>
+                            </div>
+                            <div class="form-check border p-3 rounded-4 flex-fill px-4 transition-all hover-shadow-sm cursor-pointer" onclick="document.getElementById('maintain_{{ $result->id }}').checked = true; document.getElementById('maintain_{{ $result->id }}').dispatchEvent(new Event('change'));">
+                                <input class="form-check-input" type="radio" name="reviews[{{ $result->id }}][decision]" id="maintain_{{ $result->id }}" value="maintain">
+                                <label class="form-check-label fw-bold cursor-pointer" for="maintain_{{ $result->id }}">
+                                    {{ __('messages.audit_decision_maintained_label') }}
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 p-3 bg-white rounded-4 border-start border-4 border-primary shadow-sm" id="new_grade_container_{{ $result->id }}" style="display: none;">
+                            <label class="form-label fw-bold text-dark mb-2 small text-uppercase letter-spacing-1">{{ __('messages.7s_new_grade_label') }}</label>
+                            <select class="form-select rounded-3 py-2 border-2" name="reviews[{{ $result->id }}][new_grade]">
+                                <option value="B">{{ __('messages.7s_grade_good') }} (B)</option>
+                                <option value="C">{{ __('messages.7s_grade_acceptable') }} (C)</option>
+                                <option value="D">{{ __('messages.7s_grade_fail') }} (D)</option>
+                                <option value="E">{{ __('messages.7s_grade_poor') }} (E)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                @endforeach
+            </div>
+            <div class="modal-footer bg-white border-0 p-4">
+                <button type="button" class="btn btn-light fw-bold px-4" data-bs-dismiss="modal">{{ __('messages.cancel') }}</button>
+                <button type="submit" class="btn btn-primary fw-bold px-4 shadow-sm text-white text-uppercase rounded-3">{{ __('messages.save') }}</button>
+            </div>
+        </form>
+    </div>
+</div>
+@endif
+
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle decision change to toggle new grade visibility
+    document.querySelectorAll('input[name$="[decision]"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            const resultId = this.name.match(/\[(\d+)\]/)[1];
+            const container = document.getElementById('new_grade_container_' + resultId);
+            if (this.value === 'waive') {
+                container.style.display = 'block';
+                // Slide down effect if possible, or just block
+            } else {
+                container.style.display = 'none';
+            }
+        });
+    });
+});
+</script>
+@endpush

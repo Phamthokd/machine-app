@@ -188,6 +188,11 @@ class SevenSController extends Controller
     // Validate: C/D/E must have note
     $errors = [];
     foreach ($grades as $checklistId => $grade) {
+      $result = $record->results->firstWhere('checklist_id', $checklistId);
+      if ($result && (!is_null($result->department_agreement) || ($result->review_status === 'approved' && !empty($result->improvement_note)))) {
+        continue;
+      }
+
       if (in_array($grade, ['C', 'D', 'E']) && empty(trim($notes[$checklistId] ?? ''))) {
         $errors["notes.{$checklistId}"] = 'Vui lòng nhập nhận xét cho mục ' . $checklistId;
       }
@@ -200,8 +205,19 @@ class SevenSController extends Controller
     $maxScore   = 0;
 
     foreach ($grades as $checklistId => $grade) {
-      $points = SevenSResult::gradeToPoints($grade);
       $result = $record->results->firstWhere('checklist_id', $checklistId);
+      
+      // Check if locked: Responded OR already improved
+      $isLocked = $result && (!is_null($result->department_agreement) || ($result->review_status === 'approved' && !empty($result->improvement_note)));
+      
+      if ($isLocked) {
+        // Locked: Keep existing values for score calculation
+        $totalScore += $result->points;
+        $maxScore   += 2;
+        continue;
+      }
+
+      $points = SevenSResult::gradeToPoints($grade);
 
       // Append new images to existing ones
       $imagePaths = $result ? ($result->image_path ?? []) : [];
@@ -251,6 +267,132 @@ class SevenSController extends Controller
       ->with('success', "Đã cập nhật phiếu kiểm tra 7S! Điểm: {$totalScore}/{$maxScore}");
   }
 
+
+  /* Xuất Excel danh sách các phiếu đã chọn (giống Audit) */
+  public function export(Request $request)
+  {
+    $user = auth()->user();
+    $selectedIds = collect($request->input('record_ids', []))
+      ->map(fn($id) => (int) $id)
+      ->filter(fn($id) => $id > 0)
+      ->unique()
+      ->values();
+
+    if ($selectedIds->isEmpty()) {
+      return redirect()->route('seven-s.index')
+        ->with('error', 'Vui lòng chọn ít nhất 1 phiếu trước khi xuất Excel.');
+    }
+
+    $query = SevenSRecord::with(['inspector', 'results']);
+
+    if (!empty($user->managed_department)) {
+      $mappedDept = \App\Models\AuditTemplate::normalizeDepartmentName($user->managed_department);
+      $query->where('department', $mappedDept);
+    }
+
+    $records = $query
+      ->whereIn('id', $selectedIds)
+      ->orderByDesc('created_at')
+      ->get();
+
+    if ($records->isEmpty()) {
+      return redirect()->route('seven-s.index')
+        ->with('error', 'Không có phiếu hợp lệ để xuất.');
+    }
+
+    $headers = [
+      'ID',
+      'Bộ phận',
+      'Người kiểm tra',
+      'Thời gian',
+      'Điểm số',
+      'Điểm tối đa',
+      'Tỷ lệ (%)',
+      'Trạng thái'
+    ];
+
+    $renderRow = function ($r) {
+      $pct = $r->max_score > 0 ? round(($r->score / $r->max_score) * 100) : 0;
+      
+      // Determine Status (simplified for export)
+      $status = 'Đã xong';
+      $failedResults = $r->results->where('grade', '!=', 'B');
+      $unresponded = $failedResults->filter(fn($res) => is_null($res->department_agreement));
+      if ($unresponded->isNotEmpty()) {
+          $status = 'Chờ phản hồi';
+      } else {
+          $pendingImp = $failedResults->filter(fn($res) => $res->review_status === 'pending_improvement' || $res->review_status === 'rejected');
+          if ($pendingImp->isNotEmpty()) {
+              $status = 'Chờ cải thiện';
+          } else {
+              $pendingRev = $failedResults->filter(fn($res) => $res->review_status === 'pending_review');
+              if ($pendingRev->isNotEmpty()) {
+                  $status = 'Chờ phê duyệt';
+              }
+          }
+      }
+
+      $cells = [
+        $r->id,
+        $r->department,
+        $r->inspector->name ?? '',
+        $r->created_at ? $r->created_at->format('Y-m-d H:i:s') : '',
+        $r->score,
+        $r->max_score,
+        $pct,
+        $status
+      ];
+
+      $xml = "    <Row>\n";
+      foreach ($cells as $cell) {
+        $safe = htmlspecialchars((string)$cell, ENT_XML1, 'UTF-8');
+        $xml .= "     <Cell><Data ss:Type=\"String\">{$safe}</Data></Cell>\n";
+      }
+      $xml .= "    </Row>\n";
+      return $xml;
+    };
+
+    $startSheet = function ($name) use ($headers) {
+      $safeName = preg_replace('/[\\\\\\/?*:\\[\\]]/', ' ', $name);
+      if (mb_strlen($safeName) > 31) $safeName = mb_substr($safeName, 0, 31);
+
+      $xml = " <Worksheet ss:Name=\"{$safeName}\">\n";
+      $xml .= "  <Table>\n";
+      $xml .= "   <Row>\n";
+      foreach ($headers as $h) {
+        $xml .= "    <Cell><Data ss:Type=\"String\">{$h}</Data></Cell>\n";
+      }
+      $xml .= "   </Row>\n";
+      return $xml;
+    };
+
+    $endSheet = "  </Table>\n </Worksheet>\n";
+
+    $fileName = '7s-report-' . now()->format('Ymd-His') . '.xls';
+    return response()->streamDownload(function () use ($records, $renderRow, $startSheet, $endSheet) {
+      $output = fopen('php://output', 'w');
+
+      $preamble = '<?xml version="1.0"?>' . "\n";
+      $preamble .= '<?mso-application progid="Excel.Sheet"?>' . "\n";
+      $preamble .= '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" ' . "\n";
+      $preamble .= ' xmlns:o="urn:schemas-microsoft-com:office:office" ' . "\n";
+      $preamble .= ' xmlns:x="urn:schemas-microsoft-com:office:excel" ' . "\n";
+      $preamble .= ' xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet" ' . "\n";
+      $preamble .= ' xmlns:html="http://www.w3.org/TR/REC-html40">' . "\n";
+
+      fwrite($output, $preamble);
+      fwrite($output, $startSheet('Lịch sử 7S'));
+      foreach ($records as $r) {
+        fwrite($output, $renderRow($r));
+      }
+      fwrite($output, $endSheet);
+      fwrite($output, "</Workbook>");
+      fclose($output);
+    }, $fileName, [
+      'Content-Type' => 'application/vnd.ms-excel',
+    ]);
+  }
+
   /* Xuất Excel chi tiết phiếu */
   public function exportDetail($id)
   {
@@ -295,42 +437,44 @@ td, th { border: 1px solid #999; padding: 4px 6px; vertical-align: middle; mso-n
   <colgroup>
     <col width="45">  <!-- No. -->
     <col width="280"> <!-- VN Content -->
-    <col width="250"> <!-- CN Content -->
+    <col width="280"> <!-- CN Content -->
     <col width="80">  <!-- Grade -->
     <col width="60">  <!-- Score -->
     <col width="220"> <!-- Notes -->
     <col width="80">  <!-- Total -->
     <col width="340"> <!-- Images -->
+    <col width="250"> <!-- Improvement Note -->
+    <col width="340"> <!-- Improvement Images -->
   </colgroup>
-  <tr class="no-border"><td colspan="9" class="title1" style="border:none;">DEPARTMENT INTERNAL CHECKLIST</td></tr>
-  <tr class="no-border"><td colspan="9" class="title2" style="border:none;">DANH MỤC KIỂM TRA 7S BỘ PHẬN ' . htmlspecialchars($record->department) . ' 部门7S检查项目录</td></tr>
-  <tr style="height:8px;"><td colspan="9" style="border:none;"></td></tr>
+  <tr class="no-border"><td colspan="10" class="title1" style="border:none;">DEPARTMENT INTERNAL CHECKLIST</td></tr>
+  <tr class="no-border"><td colspan="10" class="title2" style="border:none;">DANH MỤC KIỂM TRA 7S BỘ PHẬN ' . htmlspecialchars($record->department) . ' 部门7S检查项目录</td></tr>
+  <tr style="height:8px;"><td colspan="10" style="border:none;"></td></tr>
 
   <tr class="info-row">
     <td colspan="3"><b>Ngày check 重厂日期:</b> ' . $record->created_at->format('d/m/Y') . '</td>
-    <td colspan="3"><b>Auditor (Người kiểm tra by):</b> ' . htmlspecialchars($record->inspector->name ?? '—') . '</td>
+    <td colspan="4"><b>Auditor (Người kiểm tra by):</b> ' . htmlspecialchars($record->inspector->name ?? '—') . '</td>
     <td colspan="3"><b>Sup/ Quản lý 上司:</b></td>
   </tr>
   <tr class="info-row">
     <td colspan="3"><b>Line/Chuyền# 班:</b> ' . htmlspecialchars($record->department) . '</td>
-    <td colspan="3"><b>Fact/Xưởng/ 厂:</b></td>
+    <td colspan="4"><b>Fact/Xưởng/ 厂:</b></td>
     <td colspan="3"></td>
   </tr>
-  <tr style="height:8px;"><td colspan="9" style="border:none;"></td></tr>
+  <tr style="height:8px;"><td colspan="10" style="border:none;"></td></tr>
 
   <tr class="legend">
-    <td colspan="9" style="border:1px solid #999; font-size:9pt; background:#FFF9C4;">
+    <td colspan="10" style="border:1px solid #999; font-size:9pt; background:#FFF9C4;">
       <b>B</b> Hoàn thành theo các yêu cầu đã đặt &nbsp;&nbsp;
       <b>C</b> Hoàn thành nhưng chưa tốt, có điểm đó là là có &nbsp;&nbsp;
       <b>D</b>: Không hoàn thành, là ở đó &nbsp;&nbsp;
       <b>E</b> Rất kém, vi phạm nghiêm trọng
     </td>
   </tr>
-  <tr style="height:8px;"><td colspan="9" style="border:none;"></td></tr>
+  <tr style="height:8px;"><td colspan="10" style="border:none;"></td></tr>
 
   <tr class="score-guide">
     <th colspan="4"></th>
-    <th>2</th><th>1</th><th>0</th><th></th><th></th>
+    <th>2</th><th>1</th><th>0</th><th></th><th></th><th></th>
   </tr>
   <tr class="score-guide">
     <td colspan="4" style="background:#fff; color:#000; font-size:9pt; border:1px solid #999;">Nội dung đánh giá 重/ 内容</td>
@@ -339,8 +483,9 @@ td, th { border: 1px solid #999; padding: 4px 6px; vertical-align: middle; mso-n
     <td style="background:#f8d7da;">D</td>
     <td></td>
     <td></td>
+    <td></td>
   </tr>
-  <tr style="height:8px;"><td colspan="9" style="border:none;"></td></tr>
+  <tr style="height:8px;"><td colspan="10" style="border:none;"></td></tr>
 
   <tr class="col-header">
     <td>No.</td>
@@ -351,14 +496,15 @@ td, th { border: 1px solid #999; padding: 4px 6px; vertical-align: middle; mso-n
     <td>Nhận xét / 备注</td>
     <td>Tổng điểm ' . $record->score . '/' . $record->max_score . '</td>
     <td>Ảnh đính kèm / 附件</td>
-    <td>Cải thiện / 改善</td>
+    <td>Chi tiết cải thiện / 改善详情</td>
+    <td>Ảnh cải thiện / 改善照片</td>
   </tr>';
 
     $num = 1;
     foreach ($grouped as $section => $results) {
       $html .= '
   <tr class="section-row">
-    <td colspan="9">' . htmlspecialchars($section) . '</td>
+    <td colspan="10">' . htmlspecialchars($section) . '</td>
   </tr>';
       foreach ($results as $result) {
         $grade = $result->grade;
@@ -369,7 +515,7 @@ td, th { border: 1px solid #999; padding: 4px 6px; vertical-align: middle; mso-n
   <tr style="vertical-align:top; height:' . (!empty((array)($result->image_path ?? [])) ? (ceil(count((array)($result->image_path ?? [])) / 2) * 160) : 40) . 'px;">
     <td class="item-num">' . $num++ . '</td>
     <td>' . htmlspecialchars($result->checklist?->content ?? '—') . '</td>
-    <td style="color:#555; font-size:9pt;"></td>
+    <td style="color:#555; font-size:9pt;">' . ($result->checklist ? __($result->checklist->content, [], 'zh') : '—') . '</td>
     <td class="grade-cell" style="background:' . $bg . '; color:' . $fc . ';">' . $grade . '</td>
     <td class="score-cell">' . $gradeScores[$grade] . '</td>
     <td style="font-size:9pt; color:#c00;">' . htmlspecialchars($result->note ?? '') . '</td>
@@ -393,22 +539,26 @@ td, th { border: 1px solid #999; padding: 4px 6px; vertical-align: middle; mso-n
         })() . '</td>
     <td style="padding:4px; vertical-align:top;">' . (function () use ($result) {
           if (!$result->improvement_note) return '';
-          $out = '<div style="margin-bottom:8px;"><b>' . htmlspecialchars($result->improver->name ?? 'Unknown') . ':</b> ' . nl2br(htmlspecialchars($result->improvement_note)) . '</div>';
+          $time = $result->improved_at ? $result->improved_at->format('d/m/Y H:i') : '';
+          return '<div><b>Người CT:</b> ' . htmlspecialchars($result->improver?->name ?? '—') . '</div>' .
+                 '<div><b>Nội dung:</b> ' . nl2br(htmlspecialchars($result->improvement_note)) . '</div>' .
+                 '<div><b>Thời gian:</b> ' . $time . '</div>';
+        })() . '</td>
+    <td style="padding:4px; vertical-align:top;">' . (function () use ($result) {
           $imgs = (array)($result->improvement_image_path ?? []);
-          if (!empty($imgs)) {
-            $count = count($imgs);
-            $size = $count === 1 ? 250 : ($count === 2 ? 130 : ($count <= 4 ? 90 : 65));
-            $out .= '<div style="display:table; border-collapse:separate; border-spacing:4px;">';
-            foreach (array_chunk($imgs, 2) as $row) {
-              $out .= '<div style="display:table-row;">';
-              foreach ($row as $path) {
-                $url = asset($path);
-                $out .= '<div style="display:table-cell; padding:2px;"><img src="' . htmlspecialchars($url) . '" width="' . $size . '" height="' . $size . '" style="display:block; border:1px solid #bbb; border-radius:2px; object-fit:cover;"></div>';
-              }
-              $out .= '</div>';
+          if (empty($imgs)) return '<span style="color:#999;">—</span>';
+          $count = count($imgs);
+          $size = $count === 1 ? 250 : ($count === 2 ? 130 : ($count <= 4 ? 90 : 65));
+          $out = '<div style="display:table; border-collapse:separate; border-spacing:4px;">';
+          foreach (array_chunk($imgs, 2) as $row) {
+            $out .= '<div style="display:table-row;">';
+            foreach ($row as $path) {
+              $url = asset($path);
+              $out .= '<div style="display:table-cell; padding:2px;"><img src="' . htmlspecialchars($url) . '" width="' . $size . '" height="' . $size . '" style="display:block; border:1px solid #bbb; border-radius:2px; object-fit:cover;"></div>';
             }
             $out .= '</div>';
           }
+          $out .= '</div>';
           return $out;
         })() . '</td>
   </tr>';
@@ -419,7 +569,7 @@ td, th { border: 1px solid #999; padding: 4px 6px; vertical-align: middle; mso-n
   <tr style="background:#1F2937; color:#fff; font-weight:bold;">
     <td colspan="4" style="text-align:right; padding-right:10px; color:#fff;">TỔNG ĐIỂM</td>
     <td class="score-cell" style="color:#fff; font-size:14pt;">' . $record->score . '</td>
-    <td style="color:#fff;">/ ' . $record->max_score . ' (' . $pct . '%)</td>
+    <td colspan="2" style="color:#fff;">/ ' . $record->max_score . ' (' . $pct . '%)</td>
     <td></td>
     <td></td>
     <td></td>
@@ -447,7 +597,7 @@ td, th { border: 1px solid #999; padding: 4px 6px; vertical-align: middle; mso-n
       'improvement_note' => 'required|string',
       'improvement_images.*' => 'image|max:5120',
     ]);
-    $imagePaths = $result->improvement_image_path ?? [];
+    $imagePaths = $request->input('keep_images', []);
     if ($request->hasFile('improvement_images')) {
       foreach ($request->file('improvement_images') as $file) {
         $path = $file->store('uploads/seven_s_improvements', 'public');
@@ -482,7 +632,7 @@ td, th { border: 1px solid #999; padding: 4px 6px; vertical-align: middle; mso-n
       if (!$result || $result->record_id !== $record->id || $result->grade === 'B') {
         continue;
       }
-      $imagePaths = $result->improvement_image_path ?? [];
+      $imagePaths = $data['keep_images'] ?? [];
       if ($request->hasFile("improvements.{$resultId}.improvement_images")) {
         foreach ($request->file("improvements.{$resultId}.improvement_images") as $file) {
           $path = $file->store('uploads/seven_s_improvements', 'public');
@@ -586,20 +736,23 @@ td, th { border: 1px solid #999; padding: 4px 6px; vertical-align: middle; mso-n
     }
 
     $request->validate([
-      'rejections' => 'required|array',
-      'rejections.*.decision' => 'required|in:1,0'
+      'reviews' => 'required|array',
+      'reviews.*.decision' => 'required|in:waive,maintain',
+      'reviews.*.new_grade' => 'nullable|in:B,C,D,E'
     ]);
 
-    foreach ($request->rejections as $resultId => $data) {
+    foreach ($request->reviews as $resultId => $data) {
       $result = SevenSResult::where('id', $resultId)->where('record_id', $record->id)->first();
       if ($result && $result->department_agreement === false && is_null($result->auditor_rejection_decision)) {
-        $decision = $data['decision'] == '1';
+        $decision = $data['decision'] === 'waive';
         if ($decision) {
           // Auditor waives the error (Agree with department dispute)
+          $newGrade = $data['new_grade'] ?? 'B';
           $result->update([
             'auditor_rejection_decision' => true,
-            'review_status' => 'approved',
-            'points' => 2, // Reset to standard B points
+            'grade' => $newGrade,
+            'points' => SevenSResult::gradeToPoints($newGrade),
+            'review_status' => $newGrade === 'B' ? 'approved' : 'pending_improvement'
           ]);
         } else {
           // Auditor maintains the error (Reject department dispute)
