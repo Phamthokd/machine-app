@@ -31,7 +31,6 @@ class AuditCongTrinhSeeder extends Seeder
             'messages.audit_ct_q2',
             'messages.audit_ct_q3',
             'messages.audit_ct_q4',
-            'messages.audit_ct_q5',
         ];
 
         // Delete existing criteria for this template to ensure only new ones exist

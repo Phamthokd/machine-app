@@ -200,11 +200,11 @@ return [
     'audit_kck_q10' => 'Có loại bỏ những tài liệu quá hạn theo quy định về thời gian lưu trữ không?',
 
     'audit_template_cong_trinh' => 'Đánh giá bộ phận Công trình + cơ điện',
-    'audit_ct_q1' => 'Đơn xin sửa chữa đã thực hiện đúng theo quy định chưa?',
-    'audit_ct_q2' => 'Trong quá trình sửa chữa, nhân viên sửa chữa có treo biển cảnh báo tại vị trí sửa chữa không?',
-    'audit_ct_q3' => 'Việc bảo dưỡng có được tiến hành đúng theo quy định không?',
-    'audit_ct_q4' => 'Có đầy đủ các SOP của bộ phận và được cập nhật khi có thay đổi không?',
-    'audit_ct_q5' => 'Có loại bỏ những tài liệu quá hạn theo quy định về thời gian lưu trữ không?',
+    'audit_ct_q1' => 'Quá trình sửa chữa có thực hiện đúng theo quy định không?',
+    'audit_ct_q2' => 'Việc bảo dưỡng có được tiến hành đúng theo quy định không?',
+    'audit_ct_q3' => 'Có đầy đủ các SOP của bộ phận và được cập nhật khi có thay đổi không?',
+    'audit_ct_q4' => 'Có loại bỏ những tài liệu quá hạn theo quy định về thời gian lưu trữ không?',
+
 
     'audit_template_lab' => 'Đánh giá bộ phận Phòng thí nghiệm',
     'audit_lab_q1' => 'Có nhận được đầy đủ các mẫu vải để test không?',

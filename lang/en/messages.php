@@ -200,11 +200,11 @@ return [
     'audit_kck_q10' => 'Are expired documents removed according to storage time regulations?',
 
     'audit_template_cong_trinh' => 'Construction & Electromechanical Audit',
-    'audit_ct_q1' => 'Has the repair application been performed according to regulations?',
-    'audit_ct_q2' => 'During repair, does the repair staff hang warning signs at the repair location?',
-    'audit_ct_q3' => 'Is maintenance carried out according to regulations?',
-    'audit_ct_q4' => 'Are there full SOPs for the department and are they updated when there are changes?',
-    'audit_ct_q5' => 'Are expired documents removed according to storage time regulations?',
+    'audit_ct_q1' => 'Is the repair process performed correctly according to regulations?',
+    'audit_ct_q2' => 'Is maintenance carried out properly according to regulations?',
+    'audit_ct_q3' => 'Are all SOPs of the department available and updated when there are changes?',
+    'audit_ct_q4' => 'Are expired documents eliminated in accordance with storage time regulations?',
+
 
     'audit_template_lab' => 'Laboratory Audit',
     'audit_lab_q1' => 'Are all fabric samples for testing received in full?',
