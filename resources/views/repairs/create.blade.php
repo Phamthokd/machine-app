@@ -236,6 +236,16 @@
         <input type="hidden" name="endline_qc_name" value="N/A">
         @else
         <!-- Standard Form for Repair Tech / Admin -->
+        @if(request('type') == 'maintenance')
+        <input type="hidden" name="ma_hang" value="Bảo dưỡng">
+        <input type="hidden" name="cong_doan" value="Bảo dưỡng">
+        <input type="hidden" name="nguyen_nhan" value="Bảo dưỡng">
+
+        <div class="mb-3">
+            <label class="form-label">Nội dung khắc phục (Bảo dưỡng) <span class="text-danger">*</span></label>
+            <textarea class="form-control" name="noi_dung_sua_chua" placeholder="VD: Tra dầu, lau chùi, kiểm tra định kỳ..." required>{{ old('noi_dung_sua_chua') }}</textarea>
+        </div>
+        @else
         <div class="mb-3">
             <label class="form-label">Mã hàng <span class="text-danger">*</span></label>
             <input class="form-control" name="ma_hang" value="{{ old('ma_hang') }}" placeholder="VD: H1-12345" required>
@@ -255,6 +265,7 @@
             <label class="form-label">Nội dung khắc phục <span class="text-danger">*</span></label>
             <textarea class="form-control" name="noi_dung_sua_chua" placeholder="VD: Thay kim, chỉnh ổ, vệ sinh..." required>{{ old('noi_dung_sua_chua') }}</textarea>
         </div>
+        @endif
         @endhasrole
         @endhasrole
     </div>
