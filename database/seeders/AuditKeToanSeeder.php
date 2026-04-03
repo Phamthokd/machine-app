@@ -22,12 +22,17 @@ class AuditKeToanSeeder extends Seeder
         );
 
         $criteria = [];
-        for ($i = 1; $i <= 15; $i++) {
+        for ($i = 1; $i <= 10; $i++) {
             $criteria[] = "messages.audit_kt_q$i";
         }
 
+        // Clean up any extra lingering criteria not in the above list
+        AuditCriterion::where('audit_template_id', $template->id)
+                      ->whereNotIn('content', $criteria)
+                      ->delete();
+
         foreach ($criteria as $index => $content) {
-            AuditCriterion::firstOrCreate(
+            AuditCriterion::updateOrCreate(
                 [
                     'audit_template_id' => $template->id,
                     'content' => $content
