@@ -850,4 +850,45 @@ return [
     '7s_status_rejected' => 'Rejected',
     '7s_status_pending_review' => 'Pending Review',
     '7s_status_approved' => 'Approved',
+
+    // IT Audit
+    'IT' => 'IT',
+    'audit_template_it' => 'IT Department Audit',
+    'audit_it_q1' => 'Are full repair procedures implemented for IT equipment/systems?',
+    'audit_it_q2' => 'Are full procedures implemented for preparing computers/emails for new hires/revoking for leavers?',
+    'audit_it_q3' => 'Does IT manage equipment and machines fully and accurately?',
+    'audit_it_q4' => 'Are all department SOPs available and updated when changes occur?',
+    'audit_it_q5' => 'Are outdated documents discarded according to retention time regulations?',
+
+    // Sửa máy Audit
+    'Sửa máy' => 'Mechanic / Maintenance',
+    'audit_template_sua_may' => 'Maintenance Department Audit',
+    'audit_sua_may_q1' => 'Are repair procedures fully implemented?',
+    'audit_sua_may_q2' => 'Are machine maintenance procedures correctly implemented?',
+    'audit_sua_may_q3' => 'Are all department SOPs available and updated when changes occur?',
+    'audit_sua_may_q4' => 'Are outdated documents discarded according to retention time regulations?',
+
+    // IE Audit
+    'audit_ie_q1' => 'Is the IE process chart accurate?',
+    'audit_ie_q2' => 'Is the thread consumption calculated accurately?',
+    'audit_ie_q3' => 'If there are process changes, is approval and signature from the production director obtained?',
+    'audit_ie_q4' => 'Are all department SOPs available and updated when changes occur?',
+    'audit_ie_q5' => 'Are outdated documents discarded according to retention time regulations?',
+
+    // Thống kê tổng Audit
+    'audit_tkt_q1' => 'Is the general statistics data entered correctly?',
+    'audit_tkt_q2' => 'Are reports sent on time?',
+    'audit_tkt_q3' => 'Are all department SOPs available and updated when changes occur?',
+    'audit_tkt_q4' => 'Are outdated documents discarded according to retention time regulations?',
+
+    // Nhà giặt Audit
+    'audit_ng_q1' => 'Sample goods: Is sample washing performed according to regulations?',
+    'audit_ng_q2' => 'Mass production: Are washing time and temperature parameters recorded?',
+    'audit_ng_q3' => 'Are washing machines, dryers, and tools checked and cleaned before starting and between washes?',
+    'audit_ng_q4' => 'Are there separate labels for areas dedicated to Muji goods?',
+    'audit_ng_q5' => 'Is the washing process performed correctly?',
+    'audit_ng_q6' => 'Are goods classified and arranged according to regulations?',
+    'audit_ng_q7' => 'Is import-export data fully and accurately recorded?',
+    'audit_ng_q8' => 'Are all department SOPs available and updated when changes occur?',
+    'audit_ng_q9' => 'Are outdated documents discarded according to retention time regulations?',
 ];

@@ -818,4 +818,45 @@ return [
     '7s_status_rejected' => 'Bị từ chối',
     '7s_status_pending_review' => 'Chờ phê duyệt',
     '7s_status_approved' => 'Đã xong',
+
+    // IT Audit
+    'IT' => 'IT',
+    'audit_template_it' => 'Đánh giá bộ phận IT',
+    'audit_it_q1' => 'Có thực hiện đầy đủ quy trình sửa chữa đối với các thiết bị IT/hệ thống không?',
+    'audit_it_q2' => 'Có thực hiện đầy đủ quy trình chuẩn bị máy tính/email cho người mới/thu hồi của người cũ không?',
+    'audit_it_q3' => 'IT quản lý các thiết bị, máy móc có đầy đủ và chính xác không?',
+    'audit_it_q4' => 'Có đầy đủ các SOP của bộ phận và được cập nhật khi có thay đổi không?',
+    'audit_it_q5' => 'Có loại bỏ những tài liệu quá hạn theo quy định về thời gian lưu trữ không?',
+
+    // Sửa máy Audit
+    'Sửa máy' => 'Sửa máy',
+    'audit_template_sua_may' => 'Đánh giá bộ phận Sửa máy',
+    'audit_sua_may_q1' => 'Có thực hiện đầy đủ quy trình sửa chữa không?',
+    'audit_sua_may_q2' => 'Có thực hiện đúng quy trình bảo dưỡng máy không?',
+    'audit_sua_may_q3' => 'Có đầy đủ các SOP của bộ phận và được cập nhật khi có thay đổi không?',
+    'audit_sua_may_q4' => 'Có loại bỏ những tài liệu quá hạn theo quy định về thời gian lưu trữ không?',
+
+    // IE Audit
+    'audit_ie_q1' => 'Bảng công đoạn IE có chính xác không?',
+    'audit_ie_q2' => 'Định mức chỉ có được tính chính xác không?',
+    'audit_ie_q3' => 'Nếu có thay đổi công đoạn, có xin phê duyệt và chữ ký của giám đốc sản xuất không?',
+    'audit_ie_q4' => 'Có đầy đủ các SOP của bộ phận và được cập nhật khi có thay đổi không?',
+    'audit_ie_q5' => 'Có loại bỏ những tài liệu quá hạn theo quy định về thời gian lưu trữ không?',
+
+    // Thống kê tổng Audit
+    'audit_tkt_q1' => 'Thống kê tổng nhập dữ liệu đúng chưa?',
+    'audit_tkt_q2' => 'Các báo cáo có gửi đúng hạn không?',
+    'audit_tkt_q3' => 'Có đầy đủ các SOP của bộ phận và được cập nhật khi có thay đổi không?',
+    'audit_tkt_q4' => 'Có loại bỏ những tài liệu quá hạn theo quy định về thời gian lưu trữ không?',
+
+    // Nhà giặt Audit
+    'audit_ng_q1' => 'Hàng mẫu: Giặt mẫu có theo đúng quy định không?',
+    'audit_ng_q2' => 'Hàng đại trà: Có ghi chép lại các thông số thời gian, nhiệt độ hàng giặt',
+    'audit_ng_q3' => 'Máy giặt, máy sấy và các dụng cụ có được kiểm tra và làm sạch trước khi bắt đầu và giữa các lần giặt không?',
+    'audit_ng_q4' => 'Có nhãn riêng cho các vị trí chỉ dành cho hàng Muji ko?',
+    'audit_ng_q5' => 'Quá trình giặt có thực hiện đúng không?',
+    'audit_ng_q6' => 'Hàng hoá có được phân loại và sắp xếp theo đúng quy định không?',
+    'audit_ng_q7' => 'Số liệu nhập-xuất có đầy đủ chính xác không?',
+    'audit_ng_q8' => 'Có đầy đủ các SOP của bộ phận và được cập nhật khi có thay đổi không?',
+    'audit_ng_q9' => 'Có loại bỏ những tài liệu quá hạn theo quy định về thời gian lưu trữ không?',
 ];

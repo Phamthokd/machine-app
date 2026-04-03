@@ -851,4 +851,45 @@ return [
     'audit_dispute_reason_placeholder' => '描述部门为何不同意...',
     'audit_send_feedback_btn' => '发送反馈',
     'audit_decision_label' => '审计员决定',
+
+    // IT Audit
+    'IT' => 'IT部门',
+    'audit_template_it' => 'IT部门评估',
+    'audit_it_q1' => 'IT设备/系统是否全面执行了维修程序？',
+    'audit_it_q2' => '是否全面执行了为新员工准备电脑/邮箱以及回收离职员工电脑/邮箱的程序？',
+    'audit_it_q3' => 'IT是否全面、准确地管理设备和机器？',
+    'audit_it_q4' => '部门的所有SOP是否齐全并在发生变更时及时更新？',
+    'audit_it_q5' => '是否根据储存时间规定清除过期文件？',
+
+    // Sửa máy Audit
+    'Sửa máy' => '机修',
+    'audit_template_sua_may' => '机修部门评估',
+    'audit_sua_may_q1' => '是否全面执行了维修程序？',
+    'audit_sua_may_q2' => '是否正确执行了机器保养程序？',
+    'audit_sua_may_q3' => '部门的所有SOP是否齐全并在发生变更时及时更新？',
+    'audit_sua_may_q4' => '是否根据储存时间规定清除过期文件？',
+
+    // IE Audit
+    'audit_ie_q1' => 'IE工序表是否准确？',
+    'audit_ie_q2' => '线消耗定额计算是否准确？',
+    'audit_ie_q3' => '如果工序有变更，是否有生产总监的批准和签名？',
+    'audit_ie_q4' => '部门的所有SOP是否齐全并在发生变更时及时更新？',
+    'audit_ie_q5' => '是否根据储存时间规定清除过期文件？',
+
+    // Thống kê tổng Audit
+    'audit_tkt_q1' => '综合统计数据录入是否正确？',
+    'audit_tkt_q2' => '报告是否按时发送？',
+    'audit_tkt_q3' => '部门的所有SOP是否齐全并在发生变更时及时更新？',
+    'audit_tkt_q4' => '是否根据储存时间规定清除过期文件？',
+
+    // Nhà giặt Audit
+    'audit_ng_q1' => '样衣：样衣洗涤是否按规定进行？',
+    'audit_ng_q2' => '大货：是否记录了洗涤时间、温度参数？',
+    'audit_ng_q3' => '洗衣机、烘干机及工具在开始前及洗涤间隔是否进行了检查和清洁？',
+    'audit_ng_q4' => '是否有专门为无印良品（Muji）商品划定区域的独立标签？',
+    'audit_ng_q5' => '洗涤过程是否正确进行？',
+    'audit_ng_q6' => '货物是否按规定进行了分类和摆放？',
+    'audit_ng_q7' => '进出库数据是否完整准确？',
+    'audit_ng_q8' => '部门的所有SOP是否齐全并在发生变更时及时更新？',
+    'audit_ng_q9' => '是否根据储存时间规定清除过期文件？',
 ];

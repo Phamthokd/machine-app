@@ -22,7 +22,7 @@ class AuditNhaGiatSeeder extends Seeder
         );
 
         $criteria = [];
-        for ($i = 1; $i <= 10; $i++) {
+        for ($i = 1; $i <= 9; $i++) {
             $criteria[] = "messages.audit_ng_q$i";
         }
 
