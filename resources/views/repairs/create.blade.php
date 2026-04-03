@@ -243,7 +243,7 @@
 
         <div class="mb-3">
             <label class="form-label">Nội dung khắc phục (Bảo dưỡng) <span class="text-danger">*</span></label>
-            <textarea class="form-control" name="noi_dung_sua_chua" placeholder="VD: Tra dầu, lau chùi, kiểm tra định kỳ..." required>{{ old('noi_dung_sua_chua') }}</textarea>
+            <textarea class="form-control" name="noi_dung_sua_chua" placeholder="VD: Tra dầu, lau chùi, kiểm tra định kỳ..." required>{{ old('noi_dung_sua_chua', 'Bảo dưỡng') }}</textarea>
         </div>
         @else
         <div class="mb-3">
