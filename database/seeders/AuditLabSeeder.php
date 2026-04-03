@@ -22,7 +22,7 @@ class AuditLabSeeder extends Seeder
         );
   
         $criteria = [];
-        for ($i = 1; $i <= 12; $i++) {
+        for ($i = 1; $i <= 10; $i++) {
             $criteria[] = "messages.audit_lab_q$i";
         }
 
