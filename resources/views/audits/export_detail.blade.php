@@ -18,7 +18,6 @@
             vertical-align: middle;
             font-family: Arial, sans-serif;
             font-size: 11pt;
-            mso-number-format: "\@";
         }
 
         .header {

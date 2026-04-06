@@ -299,7 +299,8 @@ class AuditController extends Controller
             foreach ($cells as $cell) {
                 // Escape XML special chars
                 $safe = htmlspecialchars((string)$cell, ENT_XML1, 'UTF-8');
-                $xml .= "     <Cell><Data ss:Type=\"String\">{$safe}</Data></Cell>\n";
+                $type = is_numeric($cell) ? 'Number' : 'String';
+                $xml .= "     <Cell><Data ss:Type=\"{$type}\">{$safe}</Data></Cell>\n";
             }
             $xml .= "    </Row>\n";
             return $xml;
