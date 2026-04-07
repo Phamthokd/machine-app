@@ -9,6 +9,7 @@ use App\Http\Controllers\MachineCsvImportController;
 use App\Http\Controllers\MachineMovementController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\EnvironmentReportController;
 
 /*
 |--------------------------------------------------------------------------
@@ -76,6 +77,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/movement-history/export', [MachineMovementController::class, 'export']);
     });
 
+
+    // ENVIRONMENT REPORT GROUP: Admin, Warehouse
+    Route::middleware(['role:admin|warehouse'])->group(function () {
+        Route::get('/environment-reports', [EnvironmentReportController::class, 'index'])->name('environment-reports.index');
+        Route::get('/environment-reports/create', [EnvironmentReportController::class, 'create'])->name('environment-reports.create');
+        Route::post('/environment-reports', [EnvironmentReportController::class, 'store'])->name('environment-reports.store');
+        Route::get('/environment-reports/{environmentReport}/edit', [EnvironmentReportController::class, 'edit'])->name('environment-reports.edit');
+        Route::put('/environment-reports/{environmentReport}', [EnvironmentReportController::class, 'update'])->name('environment-reports.update');
+        Route::get('/environment-reports/{environmentReport}/print', [EnvironmentReportController::class, 'print'])->name('environment-reports.print');
+        Route::get('/environment-reports/{environmentReport}', [EnvironmentReportController::class, 'show'])->name('environment-reports.show');
+    });
 
     // AUDIT GROUP: Admin, Audit
     Route::middleware(['role:admin|audit'])->group(function () {

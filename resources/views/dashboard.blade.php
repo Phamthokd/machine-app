@@ -168,6 +168,25 @@ $maxWidth = '1200px';
 
             @endhasanyrole
 
+            @hasanyrole('admin|warehouse')
+            <div class="col">
+                <a href="{{ route('environment-reports.index') }}" class="btn btn-white border w-100 py-4 rounded-4 shadow-sm fw-semibold d-flex flex-column align-items-center justify-content-center h-100 tap hover-shadow transition">
+                    <div class="bg-info bg-opacity-10 text-info p-3 rounded-circle mb-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 9v4" />
+                            <path d="M12 17h.01" />
+                            <path d="M7 3h10" />
+                            <path d="M8 21h8" />
+                            <path d="M8 3v2" />
+                            <path d="M16 3v2" />
+                            <path d="M9 14a3 3 0 1 1 6 0c0 1.657-.895 2.5-2 3" />
+                        </svg>
+                    </div>
+                    <span>Báo cáo môi trường</span>
+                </a>
+            </div>
+            @endhasanyrole
+
             @hasanyrole('admin|audit')
             <div class="col">
                 <a href="/audits" class="btn btn-white border w-100 py-4 rounded-4 shadow-sm fw-semibold d-flex flex-column align-items-center justify-content-center h-100 tap hover-shadow transition">
