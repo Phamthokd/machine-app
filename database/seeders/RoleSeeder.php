@@ -23,6 +23,9 @@ class RoleSeeder extends Seeder
             'contractor',
         ];
 
+        // Xoá các role không nằm trong danh sách chuẩn (để dọn dẹp VPS)
+        Role::whereNotIn('name', $roles)->delete();
+
         foreach ($roles as $role) {
             Role::firstOrCreate(['name' => $role]);
         }
