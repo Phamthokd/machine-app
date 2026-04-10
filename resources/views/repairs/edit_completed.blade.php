@@ -166,7 +166,7 @@
                 </div>
                 <select class="form-select" name="qa_supervisor_name">
                     <option value="" selected>{{ __('messages.select_qa') }}</option>
-                    <option value="Terence" @selected(old('qa_supervisor_name', $repair->qa_supervisor_name) == 'Terence')>Terence</option>
+                    <option value="Tuyen" @selected(old('qa_supervisor_name', $repair->qa_supervisor_name) == 'Tuyen')>Tuyen</option>
                 </select>
             </div>
             @endif

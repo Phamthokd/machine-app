@@ -327,7 +327,7 @@
             </div>
             <select class="form-select" name="qa_supervisor_name">
                 <option value="" selected>{{ __('messages.select_qa') }}</option>
-                <option value="Terence">Terence</option>
+                <option value="Tuyen">Tuyen</option>
             </select>
         </div>
 
