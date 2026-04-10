@@ -372,7 +372,7 @@
 
                                     $userDept = auth()->user()->managed_department;
                                     $auditDept = $audit->template->department_name ?? null;
-                                    $isAdmin = auth()->user()->hasRole('admin');
+                                    $isAdmin = auth()->user()->isAdminUser();
 
                                     $userDeptMapped = \App\Models\AuditTemplate::normalizeDepartmentName($userDept);
                                     $auditDeptMapped = \App\Models\AuditTemplate::normalizeDepartmentName($auditDept);
@@ -466,7 +466,7 @@
                                         <circle cx="12" cy="12" r="3" />
                                     </svg>
                                 </a>
-                                @if(auth()->user()->hasRole('admin'))
+                                @if(auth()->user()->isAdminUser())
                                 <form action="{{ route('audits.destroy', $audit->id) }}" method="POST" class="d-inline" data-confirm-msg="{{ __('messages.confirm_delete_audit') }}" onsubmit="return confirm(this.dataset.confirmMsg)">
                                     @csrf
                                     @method('DELETE')

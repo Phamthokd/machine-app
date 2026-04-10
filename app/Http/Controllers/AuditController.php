@@ -128,7 +128,7 @@ class AuditController extends Controller
     {
         $user = auth()->user();
         abort_unless(
-            $user->hasRole('admin') || ($user->hasRole('audit') && empty($user->managed_department)),
+            $user->canManageAuditModule(),
             403,
             'Bạn không có quyền sửa phiếu đánh giá.'
         );
@@ -142,7 +142,7 @@ class AuditController extends Controller
                 return !empty($r->improver_name) && empty($r->reviewer_name);
             })->isEmpty();
 
-        if ($isFullyReviewed && !$user->hasRole('admin')) {
+        if ($isFullyReviewed && !$user->isAdminUser()) {
             abort(403, 'Phiếu này đã được đánh giá lần 2 và bị khóa. Chỉ Admin mới có thể chỉnh sửa.');
         }
 
@@ -153,7 +153,7 @@ class AuditController extends Controller
     {
         $user = auth()->user();
         abort_unless(
-            $user->hasRole('admin') || ($user->hasRole('audit') && empty($user->managed_department)),
+            $user->canManageAuditModule(),
             403,
             'Bạn không có quyền sửa phiếu đánh giá.'
         );
@@ -167,7 +167,7 @@ class AuditController extends Controller
                 return !empty($r->improver_name) && empty($r->reviewer_name);
             })->isEmpty();
 
-        if ($isFullyReviewed && !$user->hasRole('admin')) {
+        if ($isFullyReviewed && !$user->isAdminUser()) {
             abort(403, 'Phiếu này đã được đánh giá lần 2 và bị khóa. Chỉ Admin mới có thể chỉnh sửa.');
         }
 
@@ -380,7 +380,7 @@ class AuditController extends Controller
                 return !empty($r->improver_name) && empty($r->reviewer_name);
             })->isEmpty();
 
-        if ($isFullyReviewed && !auth()->user()->hasRole('admin')) {
+        if ($isFullyReviewed && !auth()->user()->isAdminUser()) {
             abort(403, 'Phiếu này đã được đánh giá lần 2 và bị khóa. Chỉ Admin mới có thể chỉnh sửa.');
         }
 
@@ -395,7 +395,7 @@ class AuditController extends Controller
             $result = $audit->results->where('id', $resultId)->first();
             if ($result) {
                 // If already has an improvement and not an admin, don't allow rewrite
-                if (!empty($result->improver_name) && !auth()->user()->hasRole('admin')) {
+                if (!empty($result->improver_name) && !auth()->user()->isAdminUser()) {
                     continue;
                 }
 
@@ -430,7 +430,7 @@ class AuditController extends Controller
             $userMapped = AuditTemplate::normalizeDepartmentName($user->managed_department);
             $auditMapped = AuditTemplate::normalizeDepartmentName($template->department_name);
 
-            if ($userMapped !== $auditMapped && !$user->hasRole('admin')) {
+            if ($userMapped !== $auditMapped && !$user->isAdminUser()) {
                 abort(403, 'Bạn không có quyền xác nhận hoàn thành cho phiếu thuộc bộ phận khác.');
             }
         }
@@ -477,7 +477,7 @@ class AuditController extends Controller
     public function rejectCompletion(Request $request, $id, $resultId)
     {
         $user = auth()->user();
-        abort_unless($user->hasRole('admin'), 403, 'Chỉ Admin mới có quyền trả lại yêu cầu hoàn thiện.');
+        abort_unless($user->isAdminUser(), 403, 'Chỉ Admin mới có quyền trả lại yêu cầu hoàn thiện.');
 
         $audit = AuditRecord::with('results')->findOrFail($id);
         $result = $audit->results->where('id', $resultId)->firstOrFail();
@@ -509,7 +509,7 @@ class AuditController extends Controller
         // 1. Check permissions (must have 'audit' or 'admin' role, and no managed_department)
         $user = auth()->user();
         abort_unless(
-            ($user->hasRole('audit') || $user->hasRole('admin')) && empty($user->managed_department),
+            $user->canManageAuditModule(),
             403,
             'Bạn không có quyền đánh giá lại cải thiện.'
         );
@@ -523,7 +523,7 @@ class AuditController extends Controller
                 return !empty($r->improver_name) && empty($r->reviewer_name);
             })->isEmpty();
 
-        if ($isFullyReviewed && !$user->hasRole('admin')) {
+        if ($isFullyReviewed && !$user->isAdminUser()) {
             abort(403, 'Phiếu này đã được đánh giá lần 2 và bị khóa. Chỉ Admin mới có thể chỉnh sửa.');
         }
 
@@ -588,7 +588,7 @@ class AuditController extends Controller
         $audit = AuditRecord::findOrFail($id);
 
         // Ensure only admin can delete
-        abort_unless(auth()->user()->hasRole('admin'), 403, 'Chỉ Admin mới có quyền xóa phiếu đánh giá');
+        abort_unless(auth()->user()->isAdminUser(), 403, 'Chỉ Admin mới có quyền xóa phiếu đánh giá');
 
         // Delete the audit record (AuditResults should cascade, or we can delete them explicitly)
         // Let's explicitly delete results to be safe if cascade isn't set up
@@ -608,7 +608,7 @@ class AuditController extends Controller
         $userMapped = AuditTemplate::normalizeDepartmentName($user->managed_department);
         $auditMapped = AuditTemplate::normalizeDepartmentName($audit->template->department_name);
 
-        abort_unless($userMapped === $auditMapped || $user->hasRole('admin'), 403, 'Bạn không thuộc bộ phận này nên không thể phản hồi lỗi.');
+        abort_unless($userMapped === $auditMapped || $user->isAdminUser(), 403, 'Bạn không thuộc bộ phận này nên không thể phản hồi lỗi.');
 
         $request->validate([
             'agreements' => 'required|array',
@@ -647,7 +647,7 @@ class AuditController extends Controller
         // Authorization: Admin or Audit without department
         $user = auth()->user();
         abort_unless(
-            $user->hasRole('admin') || ($user->hasRole('audit') && empty($user->managed_department)),
+            $user->canManageAuditModule(),
             403,
             'Bạn không có quyền duyệt phản đối lỗi.'
         );

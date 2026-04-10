@@ -41,7 +41,19 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        if (! Auth::attempt($this->only('username', 'password'), $this->boolean('remember'))) {
+        $user = \App\Models\User::where('username', $this->string('username'))->first();
+
+        if ($user && !$user->is_active) {
+            throw ValidationException::withMessages([
+                'username' => 'Tài khoản này đã bị vô hiệu hóa. Vui lòng liên hệ quản trị viên.',
+            ]);
+        }
+
+        if (! Auth::attempt([
+            'username' => $this->input('username'),
+            'password' => $this->input('password'),
+            'is_active' => true,
+        ], $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([

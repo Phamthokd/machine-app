@@ -15,7 +15,7 @@
             </div>
         </div>
 
-        @role('admin')
+        @if(auth()->user()->isAdminUser())
         <form action="{{ route('machines.destroy', $machine->id) }}" method="POST" onsubmit="return confirm('CẢNH BÁO: Hành động này sẽ xoá TOÀN BỘ lịch sử sửa chữa và di chuyển của máy này. Bạn có chắc chắn muốn tiếp tục?');">
             @csrf
             @method('DELETE')
@@ -24,7 +24,7 @@
                 Xoá máy
             </button>
         </form>
-        @endrole
+        @endif
     </div>
 
     @if($errors->any())

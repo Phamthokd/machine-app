@@ -54,7 +54,7 @@
                     </td>
                     <td class="px-3 text-end">
                         <div class="d-flex align-items-center justify-content-end gap-2">
-                            @role('team_leader|audit')
+                            @if(auth()->user()->hasAnyRole(['team_leader', 'audit']))
                             @if($r->mechanic_id)
                             @php
                             $parts = explode(' ', $r->mechanic->name ?? __('messages.unknown_user'));
@@ -97,9 +97,9 @@
                                 {{ __('messages.process_btn') }}
                             </button>
                             @endif
-                            @endrole
+                            @endif
 
-                            @role('admin')
+                            @if(auth()->user()->isAdminUser())
                             <form action="/repairs/{{ $r->id }}" method="POST" onsubmit="return confirm('Bạn có chắc chắn muốn xóa phiếu báo sửa này không?');" class="d-inline">
                                 @csrf
                                 @method('DELETE')
@@ -107,7 +107,7 @@
                                     Xóa
                                 </button>
                             </form>
-                            @endrole
+                            @endif
                         </div>
                     </td>
                 </tr>

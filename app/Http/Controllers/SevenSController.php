@@ -23,7 +23,7 @@ class SevenSController extends Controller
     $query = SevenSRecord::with(['inspector', 'results'])->orderByDesc('created_at');
 
     // 1. Base Filter by Role/Managed Department
-    if (!$user->hasRole('admin')) {
+    if (!$user->isAdminUser()) {
       $query->where(function ($q) use ($user) {
         $q->where('inspector_id', $user->id);
         if ($user->managed_department) {
@@ -142,8 +142,8 @@ class SevenSController extends Controller
     $user = auth()->user();
 
     // Only admin or the inspector (7s role, empty managed_department)  
-    $isInspector = $user->hasRole('7s') && empty($user->managed_department) && $record->inspector_id === $user->id;
-    if (!$user->hasRole('admin') && !$isInspector) {
+    $isInspector = $user->canManageSevenSModule() && $record->inspector_id === $user->id;
+    if (!$user->isAdminUser() && !$isInspector) {
       abort(403, 'Bạn không có quyền chỉnh sửa phiếu này.');
     }
 
@@ -171,8 +171,8 @@ class SevenSController extends Controller
     $record = SevenSRecord::with(['results'])->findOrFail($id);
     $user = auth()->user();
 
-    $isInspector = $user->hasRole('7s') && empty($user->managed_department) && $record->inspector_id === $user->id;
-    if (!$user->hasRole('admin') && !$isInspector) {
+    $isInspector = $user->canManageSevenSModule() && $record->inspector_id === $user->id;
+    if (!$user->isAdminUser() && !$isInspector) {
       abort(403);
     }
 
@@ -587,7 +587,7 @@ td, th { border: 1px solid #999; padding: 4px 6px; vertical-align: middle; mso-n
   public function storeImprovement(Request $request, SevenSResult $result)
   {
     $user = auth()->user();
-    if (!$user->hasRole('admin') && !($user->hasRole('7s') && \App\Models\AuditTemplate::normalizeDepartmentName($user->managed_department) === \App\Models\AuditTemplate::normalizeDepartmentName($result->record->department))) {
+    if (!$user->isAdminUser() && !($user->canAccessSevenSModule() && \App\Models\AuditTemplate::normalizeDepartmentName($user->managed_department) === \App\Models\AuditTemplate::normalizeDepartmentName($result->record->department))) {
       abort(403);
     }
     if ($result->grade === 'B') {
@@ -618,7 +618,7 @@ td, th { border: 1px solid #999; padding: 4px 6px; vertical-align: middle; mso-n
   public function storeImprovements(Request $request, SevenSRecord $record)
   {
     $user = auth()->user();
-    if (!$user->hasRole('admin') && !($user->hasRole('7s') && \App\Models\AuditTemplate::normalizeDepartmentName($user->managed_department) === \App\Models\AuditTemplate::normalizeDepartmentName($record->department))) {
+    if (!$user->isAdminUser() && !($user->canAccessSevenSModule() && \App\Models\AuditTemplate::normalizeDepartmentName($user->managed_department) === \App\Models\AuditTemplate::normalizeDepartmentName($record->department))) {
       abort(403);
     }
 
@@ -656,7 +656,7 @@ td, th { border: 1px solid #999; padding: 4px 6px; vertical-align: middle; mso-n
   {
     $user = auth()->user();
     // Only admin or the inspector can review
-    if (!$user->hasRole('admin') && $record->inspector_id !== $user->id) {
+    if (!$user->isAdminUser() && $record->inspector_id !== $user->id) {
       abort(403);
     }
 
@@ -691,7 +691,7 @@ td, th { border: 1px solid #999; padding: 4px 6px; vertical-align: middle; mso-n
     $userDept = \App\Models\AuditTemplate::normalizeDepartmentName($user->managed_department);
     $recordDept = \App\Models\AuditTemplate::normalizeDepartmentName($record->department);
 
-    if (!$user->hasRole('admin') && $userDept !== $recordDept) {
+    if (!$user->isAdminUser() && $userDept !== $recordDept) {
       abort(403, 'Bạn không thuộc bộ phận này nên không thể phản hồi.');
     }
 
@@ -731,7 +731,7 @@ td, th { border: 1px solid #999; padding: 4px 6px; vertical-align: middle; mso-n
   {
     $user = auth()->user();
     // Only admin or the inspector (who performed the check) can review disputes
-    if (!$user->hasRole('admin') && $record->inspector_id !== $user->id) {
+    if (!$user->isAdminUser() && $record->inspector_id !== $user->id) {
       abort(403, 'Bạn không có quyền duyệt phản đối.');
     }
 
@@ -784,7 +784,7 @@ td, th { border: 1px solid #999; padding: 4px 6px; vertical-align: middle; mso-n
   /* Xoá phiếu kiểm tra — chỉ Admin */
   public function destroy($id)
   {
-    if (!auth()->user()->hasRole('admin')) {
+    if (!auth()->user()->isAdminUser()) {
       abort(403);
     }
 

@@ -245,7 +245,7 @@ class EnvironmentReportController extends Controller
         $this->authorizeReportAccess($report);
 
         $user = auth()->user();
-        if ($user->hasRole('admin')) {
+        if ($user->isAdminUser()) {
             return;
         }
 

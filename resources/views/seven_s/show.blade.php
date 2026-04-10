@@ -6,18 +6,18 @@
 $nonBResults = $record->results->where('grade', '!=', 'B');
 $isFullyImproved = $nonBResults->isNotEmpty() && $nonBResults->every(fn($r) => $r->review_status === 'approved');
 
-$isAuditor = auth()->user()->hasRole('admin') || 
-            (auth()->user()->hasRole('7s') && empty(auth()->user()->managed_department) && $record->inspector_id === auth()->id());
+$isAuditor = auth()->user()->isAdminUser() || 
+            (auth()->user()->canManageSevenSModule() && $record->inspector_id === auth()->id());
 
 $userDept = \App\Models\AuditTemplate::normalizeDepartmentName(auth()->user()->managed_department);
 $recordDept = \App\Models\AuditTemplate::normalizeDepartmentName($record->department);
-$isDeptUser = auth()->user()->hasRole('7s') && !empty($userDept) && $userDept === $recordDept;
+$isDeptUser = auth()->user()->canAccessSevenSModule() && !empty($userDept) && $userDept === $recordDept;
 
-$canRespond = (auth()->user()->hasRole('admin') || $isDeptUser) 
+$canRespond = (auth()->user()->isAdminUser() || $isDeptUser) 
             && $nonBResults->contains(fn($r) => $r->review_status === 'pending_feedback' && is_null($r->department_agreement));
 
 $canImprove = (
-    (auth()->user()->hasRole('admin') || $isDeptUser)
+    (auth()->user()->isAdminUser() || $isDeptUser)
     && $nonBResults->isNotEmpty()
     && $nonBResults->contains(fn($r) => in_array($r->review_status, ['pending_improvement', 'pending_review', 'rejected']))
 );
@@ -73,8 +73,8 @@ $needsDisputeReview = $isAuditor && $nonBResults->contains(fn($r) => $r->review_
         @endif
         @php
         $canEdit = !$isFullyImproved && (
-        auth()->user()->hasRole('admin') ||
-        (auth()->user()->hasRole('7s') && empty(auth()->user()->managed_department) && $record->inspector_id === auth()->id())
+        auth()->user()->isAdminUser() ||
+        (auth()->user()->canManageSevenSModule() && $record->inspector_id === auth()->id())
         );
         @endphp
         @if($canEdit)
@@ -95,7 +95,7 @@ $needsDisputeReview = $isAuditor && $nonBResults->contains(fn($r) => $r->review_
             </svg>
             {{ __('messages.7s_export_excel') }}
         </a>
-        @if(auth()->user()->hasRole('admin'))
+        @if(auth()->user()->isAdminUser())
         <form action="{{ route('seven-s.destroy', $record->id) }}" method="POST" onsubmit="return confirm(`{{ __('messages.7s_delete_confirm') }}`)">
             @csrf
             @method('DELETE')
@@ -348,7 +348,7 @@ $color = $pct >= 80 ? 'success' : ($pct >= 60 ? 'warning' : 'danger');
                 </div>
             </div>
             
-            @if(in_array($result->review_status, ['rejected', 'pending_review']) && ($isDeptUser || auth()->user()->hasRole('admin')))
+            @if(in_array($result->review_status, ['rejected', 'pending_review']) && ($isDeptUser || auth()->user()->isAdminUser()))
             <div class="mt-2 text-end">
                 <button type="button" class="btn btn-sm btn-warning d-inline-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#improveModal{{ $result->id }}">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -360,7 +360,7 @@ $color = $pct >= 80 ? 'success' : ($pct >= 60 ? 'warning' : 'danger');
             </div>
             @endif
             @else
-            @if(in_array($result->review_status, ['pending_improvement', 'pending_review', 'rejected']) && ($isDeptUser || auth()->user()->hasRole('admin')))
+            @if(in_array($result->review_status, ['pending_improvement', 'pending_review', 'rejected']) && ($isDeptUser || auth()->user()->isAdminUser()))
             <div class="mt-3 text-end">
                 <button type="button" class="btn btn-sm btn-warning d-inline-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#improveModal{{ $result->id }}">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -374,7 +374,7 @@ $color = $pct >= 80 ? 'success' : ($pct >= 60 ? 'warning' : 'danger');
             @endif
 
             {{-- Improve Modal --}}
-            @if(in_array($result->review_status, ['pending_improvement', 'rejected']) && ($isDeptUser || auth()->user()->hasRole('admin')))
+            @if(in_array($result->review_status, ['pending_improvement', 'rejected']) && ($isDeptUser || auth()->user()->isAdminUser()))
             <div class="modal fade" id="improveModal{{ $result->id }}" tabindex="-1" aria-hidden="true">
                 <div class="modal-dialog modal-lg modal-dialog-centered">
                     <div class="modal-content border-0 shadow-lg rounded-4">

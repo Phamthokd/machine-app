@@ -619,7 +619,8 @@ return [
 
     // 7S Module
     '7s_inspection' => 'Kiểm tra 7S',
-    '7s_manage_subtitle' => 'Quản lý các đợt kiểm tra và đánh giá 7S các bộ phận',
+    '7s_manage_subtitle' => 'Quản lý các đợt kiểm tra 7S và đánh giá bộ phận',
+    'assessment_reports' => 'Kiểm tra và báo cáo',
     '7s_history' => 'Lịch sử kiểm tra 7S',
     '7s_create_form' => 'Phiếu kiểm tra 7S',
     '7s_create_btn' => 'Tạo phiếu kiểm tra',
@@ -852,4 +853,49 @@ return [
     'audit_ng_q7' => 'Số liệu nhập-xuất có đầy đủ chính xác không?',
     'audit_ng_q8' => 'Có đầy đủ các SOP của bộ phận và được cập nhật khi có thay đổi không?',
     'audit_ng_q9' => 'Có loại bỏ những tài liệu quá hạn theo quy định về thời gian lưu trữ không?',
+
+    // User management additional
+    'status' => 'Trạng thái',
+    'active' => 'Đang hoạt động',
+    'disabled' => 'Đã vô hiệu hóa',
+    'account_is_active' => 'Tài khoản đang hoạt động',
+    'authorized_functions' => 'Chức năng được phép dùng',
+    'permission_hint' => 'Role là quyền nền. Tick thêm ở đây nếu user cần dùng thêm một số chức năng riêng lẻ.',
+    'cannot_self_deactivate_warn' => 'Không nên tự vô hiệu hóa tài khoản đang đăng nhập.',
+    'additional_functions' => 'Chức năng thêm',
+    'repair_requests' => 'Sửa chữa',
+    'machine_list' => 'Máy móc',
+    'users' => 'Người dùng',
+    'none' => 'Không có',
+    'deactivate_user_confirm' => 'Vô hiệu hóa tài khoản này?',
+    'activate_user_confirm' => 'Kích hoạt lại tài khoản này?',
+    'deactivate' => 'Vô hiệu hóa',
+    'activate' => 'Kích hoạt',
+
+    // Permission labels (keys used in config)
+    'p_repairs_manage' => 'Tạo và xử lý phiếu sửa chữa',
+    'p_repairs_view' => 'Xem lịch sử sửa chữa',
+    'p_repairs_contractor' => 'Xem lịch sử nhà thầu',
+    'p_machines_move' => 'Điều chuyển máy',
+    'p_movement_history_view' => 'Xem lịch sử điều chuyển',
+    'p_machines_manage' => 'Quản lý danh sách máy',
+    'p_machines_import_csv' => 'Import máy bằng CSV',
+    'p_env_reports_access' => 'Báo cáo môi trường',
+    'p_audits_access' => 'Audit nội bộ',
+    'p_seven_s_access' => 'Kiểm tra 7S',
+    'p_users_view' => 'Xem danh sách người dùng',
+    'p_users_manage' => 'Tạo, sửa, xóa người dùng',
+
+    // Flash messages
+    'user_created_success' => 'Tạo người dùng thành công',
+    'user_updated_success' => 'Cập nhật người dùng thành công',
+    'user_deleted_success' => 'Xóa người dùng thành công',
+    'error_cannot_self_deactivate' => 'Không thể tự vô hiệu hóa tài khoản đang đăng nhập.',
+    'user_activated_success' => 'Đã kích hoạt lại tài khoản người dùng.',
+    'user_deactivated_success' => 'Đã vô hiệu hóa tài khoản người dùng.',
+
+    // Machine detail show page
+    'maintenance' => 'Bảo dưỡng',
+    'edit_admin' => 'Chỉnh sửa (Admin)',
+    'reported_waiting_repair' => 'ĐÃ BÁO - CHỜ THỢ SỬA',
 ];

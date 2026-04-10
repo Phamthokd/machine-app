@@ -86,7 +86,7 @@
                 </svg>
                 {{ __('messages.status_completed') }}
             </div>
-            @role('admin')
+            @if(auth()->user()->isAdminUser())
             <a href="{{ route('repairs.edit_completed', $repair->id) }}" class="btn btn-outline-primary btn-sm rounded-pill fw-medium shadow-sm d-flex align-items-center gap-1 tap">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
@@ -94,7 +94,7 @@
                 </svg>
                 Sửa (Admin)
             </a>
-            @endrole
+            @endif
         </div>
         @endif
     </div>

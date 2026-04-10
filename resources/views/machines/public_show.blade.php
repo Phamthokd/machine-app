@@ -217,16 +217,16 @@
             </div>
         </div>
         <div class="d-flex gap-2" style="position: relative; z-index: 10;">
-            @role('admin|repair_tech|team_leader')
+            @if(auth()->user()->canManageRepairs())
             <a href="/repairs/create?machine={{ $machine->ma_thiet_bi }}&type=maintenance" class="btn btn-success btn-sm fw-bold shadow-sm tap" style="border-radius: 8px;">
-                Bảo dưỡng
+                {{ __('messages.maintenance') }}
             </a>
-            @endrole
-            @role('admin|repair_tech|team_leader|warehouse')
+            @endif
+            @if(auth()->user()->canMoveMachines())
             <a href="/machines/{{ $machine->id }}/move" class="btn btn-light btn-sm fw-bold text-primary shadow-sm tap" style="border-radius: 8px;">
                 {{ __('messages.move_action') }}
             </a>
-            @endrole
+            @endif
         </div>
     </div>
 </div>
@@ -294,14 +294,14 @@
                             <div class="timeline-desc">{{ $r->noi_dung_sua_chua }}</div>
                             
                             @if($isDone)
-                                @role('admin')
+                                @if(auth()->user()->isAdminUser())
                                 <div class="mt-2 text-end">
                                     <object><a href="{{ route('repairs.edit_completed', $r->id) }}" class="btn btn-sm btn-outline-primary" style="font-size: 0.75rem; border-radius: 6px; padding: 2px 8px;">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                                        Chỉnh sửa (Admin)
+                                        {{ __('messages.edit_admin') }}
                                     </a></object>
                                 </div>
-                                @endrole
+                                @endif
                             @endif
                         </div>
                     </a>
@@ -318,7 +318,7 @@
 </div>
 
 <!-- Floating Action Button -->
-@role('admin|repair_tech|team_leader|contractor')
+@if(auth()->user()->canManageRepairs())
 @php
     $hasPending = $machine->repairTickets->contains(function ($t) {
         return empty($t->ended_at);
@@ -329,7 +329,7 @@
 <div class="floating-action">
     <button class="btn-create-ticket shadow-lg" style="background: #fbbf24; color: #78350f; cursor: not-allowed; border: 1px solid #f59e0b;" disabled>
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        ĐÃ BÁO - CHỜ THỢ SỬA
+        {{ __('messages.reported_waiting_repair') }}
     </button>
 </div>
 @else
@@ -340,6 +340,6 @@
     </a>
 </div>
 @endif
-@endrole
+@endif
 
 @endsection

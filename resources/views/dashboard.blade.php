@@ -5,6 +5,9 @@ $maxWidth = '1200px';
 @section('title', __('messages.dashboard'))
 
 @section('content')
+@php
+    $currentUser = auth()->user();
+@endphp
 <div class="row g-4">
     <!-- Left Column: Profile & Primary Action -->
     <div class="col-12 col-lg-4">
@@ -63,7 +66,7 @@ $maxWidth = '1200px';
         <h5 class="fw-bold text-secondary mb-3">{{ __('messages.management_functions') }}</h5>
 
         <div class="row row-cols-2 row-cols-md-3 g-3">
-            @hasanyrole('admin|repair_tech|contractor|team_leader|audit')
+            @feature('repairs.manage')
             <div class="col">
                 <a href="/repair-requests" class="btn btn-white border border-danger border-opacity-25 w-100 py-4 rounded-4 shadow-sm fw-semibold d-flex flex-column align-items-center justify-content-center h-100 tap hover-shadow transition">
                     <div class="bg-danger bg-opacity-10 text-danger p-3 rounded-circle mb-3">
@@ -74,9 +77,9 @@ $maxWidth = '1200px';
                     <span class="text-danger">{{ __('messages.repair_requests') }}</span>
                 </a>
             </div>
-            @endhasanyrole
+            @endfeature
 
-            @hasanyrole('admin|warehouse|repair_tech|audit|7s')
+            @feature('repairs.view')
             <div class="col">
                 <a href="/repairs" class="btn btn-white border w-100 py-4 rounded-4 shadow-sm fw-semibold d-flex flex-column align-items-center justify-content-center h-100 tap hover-shadow transition">
                     <div class="bg-primary bg-opacity-10 text-primary p-3 rounded-circle mb-3">
@@ -91,9 +94,9 @@ $maxWidth = '1200px';
                     <span>{{ __('messages.repair_history') }}</span>
                 </a>
             </div>
-            @endhasanyrole
+            @endfeature
 
-            @hasanyrole('admin|warehouse|contractor|audit|7s')
+            @feature('repairs.contractor')
             <div class="col">
                 <a href="/repairs/contractor" class="btn btn-white border w-100 py-4 rounded-4 shadow-sm fw-semibold d-flex flex-column align-items-center justify-content-center h-100 tap hover-shadow transition">
                     <div class="bg-info bg-opacity-10 text-info p-3 rounded-circle mb-3">
@@ -104,9 +107,9 @@ $maxWidth = '1200px';
                     <span>{{ __('messages.construction_history') }}</span>
                 </a>
             </div>
-            @endhasanyrole
+            @endfeature
 
-            @hasanyrole('admin|warehouse|team_leader|audit|7s')
+            @featureany('movement_history.view', 'machines.move')
             <div class="col">
                 <a href="/movement-history" class="btn btn-white border w-100 py-4 rounded-4 shadow-sm fw-semibold d-flex flex-column align-items-center justify-content-center h-100 tap hover-shadow transition">
                     <div class="bg-warning bg-opacity-10 text-warning p-3 rounded-circle mb-3">
@@ -119,9 +122,9 @@ $maxWidth = '1200px';
                     <span>{{ __('messages.movement_history') }}</span>
                 </a>
             </div>
-            @endhasanyrole
+            @endfeatureany
 
-            @hasanyrole('admin')
+            @feature('admin')
             <div class="col">
                 <a href="/users" class="btn btn-white border w-100 py-4 rounded-4 shadow-sm fw-semibold d-flex flex-column align-items-center justify-content-center h-100 tap hover-shadow transition">
                     <div class="bg-success bg-opacity-10 text-success p-3 rounded-circle mb-3">
@@ -135,9 +138,9 @@ $maxWidth = '1200px';
                     <span>{{ __('messages.users') }}</span>
                 </a>
             </div>
-            @endhasanyrole
+            @endfeature
 
-            @hasanyrole('admin|warehouse|audit|7s')
+            @feature('machines.manage')
             <div class="col">
                 <a href="/machines" class="btn btn-white border w-100 py-4 rounded-4 shadow-sm fw-semibold d-flex flex-column align-items-center justify-content-center h-100 tap hover-shadow transition">
                     <div class="bg-secondary bg-opacity-10 text-secondary p-3 rounded-circle mb-3">
@@ -150,9 +153,9 @@ $maxWidth = '1200px';
                     <span>{{ __('messages.machine_list') }}</span>
                 </a>
             </div>
-            @endhasanyrole
+            @endfeature
 
-            @hasanyrole('admin|warehouse')
+            @feature('machines.import_csv')
             <div class="col">
                 <a href="/machines/import-csv" class="btn btn-white border w-100 py-4 rounded-4 shadow-sm fw-semibold d-flex flex-column align-items-center justify-content-center h-100 tap hover-shadow transition">
                     <div class="bg-dark bg-opacity-10 text-dark p-3 rounded-circle mb-3">
@@ -165,10 +168,9 @@ $maxWidth = '1200px';
                     <span>{{ __('messages.import_csv') }}</span>
                 </a>
             </div>
+            @endfeature
 
-            @endhasanyrole
-
-            @hasanyrole('admin|warehouse')
+            @feature('environment_reports.access')
             <div class="col">
                 <a href="{{ route('environment-reports.index') }}" class="btn btn-white border w-100 py-4 rounded-4 shadow-sm fw-semibold d-flex flex-column align-items-center justify-content-center h-100 tap hover-shadow transition">
                     <div class="bg-info bg-opacity-10 text-info p-3 rounded-circle mb-3">
@@ -185,9 +187,9 @@ $maxWidth = '1200px';
                     <span>Báo cáo môi trường</span>
                 </a>
             </div>
-            @endhasanyrole
+            @endfeature
 
-            @hasanyrole('admin|audit')
+            @feature('audits.access')
             <div class="col">
                 <a href="/audits" class="btn btn-white border w-100 py-4 rounded-4 shadow-sm fw-semibold d-flex flex-column align-items-center justify-content-center h-100 tap hover-shadow transition">
                     <div class="bg-primary bg-opacity-10 text-primary p-3 rounded-circle mb-3">
@@ -202,9 +204,9 @@ $maxWidth = '1200px';
                     <span>{{ __('messages.internal_audit') }}</span>
                 </a>
             </div>
-            @endhasanyrole
+            @endfeature
 
-            @hasanyrole('admin|7s')
+            @feature('seven_s.access')
             <div class="col">
                 <a href="{{ route('seven-s.index') }}" class="btn btn-white border w-100 py-4 rounded-4 shadow-sm fw-semibold d-flex flex-column align-items-center justify-content-center h-100 tap hover-shadow transition">
                     <div class="bg-success bg-opacity-10 text-success p-3 rounded-circle mb-3">
@@ -216,7 +218,7 @@ $maxWidth = '1200px';
                     <span>{{ __('messages.7s_inspection') }}</span>
                 </a>
             </div>
-            @endhasanyrole
+            @endfeature
 
             <div class="col">
                 <form method="POST" action="{{ route('logout') }}" class="h-100">

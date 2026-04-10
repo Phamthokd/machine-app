@@ -44,10 +44,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/scan', [QrScanController::class, 'index']);
     Route::get('/m/{ma_thiet_bi}', [MachinePublicController::class, 'show']);
 
-    // REPAIR GROUP: Admin, Warehouse, Repair Tech, Contractor, Team Leader
-    Route::middleware(['role:admin|warehouse|repair_tech|contractor|team_leader'])->group(function () {
+    Route::middleware(['role_or_permission:admin|warehouse|contractor|repairs.contractor'])->group(function () {
         Route::get('/repairs/contractor/export', [RepairTicketController::class, 'exportContractor']);
         Route::get('/repairs/contractor', [RepairTicketController::class, 'contractorIndex']);
+    });
+
+    // REPAIR GROUP: Admin, Warehouse, Repair Tech, Contractor, Team Leader
+    Route::middleware(['role_or_permission:admin|warehouse|repair_tech|contractor|team_leader|repairs.manage'])->group(function () {
         Route::get('/repair-requests', [RepairTicketController::class, 'requestsIndex']);
         Route::get('/repairs/create', [RepairTicketController::class, 'create']);
         Route::post('/repairs', [RepairTicketController::class, 'store']);
@@ -58,7 +61,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // REPAIR READ-ONLY + EXPORT: also accessible by Audit and 7S
-    Route::middleware(['role:admin|warehouse|repair_tech|contractor|team_leader|audit|7s'])->group(function () {
+    Route::middleware(['role_or_permission:admin|warehouse|repair_tech|contractor|team_leader|audit|7s|repairs.view'])->group(function () {
         Route::get('/repairs/export', [RepairTicketController::class, 'export']);
         Route::get('/repairs', [RepairTicketController::class, 'index']);
         Route::get('/repairs/{repair}', [RepairTicketController::class, 'show'])->whereNumber('repair');
@@ -66,12 +69,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 
     // MOVEMENT GROUP: Admin, Warehouse, Team Leader
-    Route::middleware(['role:admin|warehouse|team_leader'])->group(function () {
+    Route::middleware(['role_or_permission:admin|warehouse|team_leader|machines.move'])->group(function () {
         Route::post('/machines/{id}/move', [MachineMovementController::class, 'update']);
     });
 
     // MOVEMENT READ-ONLY + MOVE FORM + EXPORT: also accessible by Audit and 7S
-    Route::middleware(['role:admin|warehouse|team_leader|audit|7s'])->group(function () {
+    Route::middleware(['role_or_permission:admin|warehouse|team_leader|audit|7s|movement_history.view'])->group(function () {
         Route::get('/machines/{id}/move', [MachineMovementController::class, 'edit']);
         Route::get('/movement-history', [MachineMovementController::class, 'index']);
         Route::get('/movement-history/export', [MachineMovementController::class, 'export']);
@@ -79,7 +82,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 
     // ENVIRONMENT REPORT GROUP: Admin, Warehouse
-    Route::middleware(['role:admin|warehouse'])->group(function () {
+    Route::middleware(['role_or_permission:admin|warehouse|environment_reports.access'])->group(function () {
         Route::get('/environment-reports', [EnvironmentReportController::class, 'index'])->name('environment-reports.index');
         Route::get('/environment-reports/create', [EnvironmentReportController::class, 'create'])->name('environment-reports.create');
         Route::post('/environment-reports', [EnvironmentReportController::class, 'store'])->name('environment-reports.store');
@@ -90,7 +93,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // AUDIT GROUP: Admin, Audit
-    Route::middleware(['role:admin|audit'])->group(function () {
+    Route::middleware(['role_or_permission:admin|audit|audits.access'])->group(function () {
         Route::get('/audits/export', [\App\Http\Controllers\AuditController::class, 'export'])->name('audits.export');
         Route::get('/audits/{audit}/export', [\App\Http\Controllers\AuditController::class, 'exportDetail'])->name('audits.export_detail');
         Route::post('/audits/{audit}/improvements', [\App\Http\Controllers\AuditController::class, 'updateImprovements'])->name('audits.improvements');
@@ -107,7 +110,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/audits/{audit}', [\App\Http\Controllers\AuditController::class, 'show'])->name('audits.show');
     });
 
-    Route::middleware(['role:admin|7s'])->group(function () {
+    Route::middleware(['role_or_permission:admin|7s|seven_s.access'])->group(function () {
         Route::get('/seven-s/export', [\App\Http\Controllers\SevenSController::class, 'export'])->name('seven-s.export');
         Route::get('/seven-s', [\App\Http\Controllers\SevenSController::class, 'index'])->name('seven-s.index');
         Route::get('/seven-s/create', [\App\Http\Controllers\SevenSController::class, 'create'])->name('seven-s.create');
@@ -126,23 +129,27 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 
     // WAREHOUSE EXTRA: Import CSV (Admin + Warehouse)
-    Route::middleware(['role:admin|warehouse'])->group(function () {
+    Route::middleware(['role_or_permission:admin|warehouse|machines.import_csv'])->group(function () {
         Route::get('/machines/import-csv', [MachineCsvImportController::class, 'form']);
         Route::post('/machines/import-csv', [MachineCsvImportController::class, 'import']);
+    });
 
+    Route::middleware(['role_or_permission:admin|warehouse|machines.manage'])->group(function () {
         // Print QR
         Route::get('/machines/department/{department}/print-qr', [App\Http\Controllers\MachineController::class, 'printDepartmentQr'])->name('machines.print_department_qr');
         Route::get('/machines/{machine}/print-qr', [App\Http\Controllers\MachineController::class, 'printQr'])->name('machines.print_qr');
 
         // Machine Management List
         Route::resource('machines', App\Http\Controllers\MachineController::class)->except(['show']);
+    });
 
+    Route::middleware(['role_or_permission:admin|warehouse|users.view'])->group(function () {
         // Warehouse can VIEW users, but not create (restricted in Controller/Policy ideally, but strictly restricted via routes here)
         Route::get('/users', [UserController::class, 'index']);
     });
 
     // USER MANAGEMENT: Admin Only (Create, Edit, Delete)
-    Route::middleware(['role:admin'])->group(function () {
+    Route::middleware(['role_or_permission:admin|users.manage'])->group(function () {
         // Repair Ticket Complete Editing
         Route::get('/repairs/{repair}/edit-completed', [RepairTicketController::class, 'editCompleted'])->name('repairs.edit_completed');
         Route::put('/repairs/{repair}/update-completed', [RepairTicketController::class, 'updateCompleted'])->name('repairs.update_completed');
@@ -151,6 +158,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/users', [UserController::class, 'store']);
         Route::get('/users/{user}/edit', [UserController::class, 'edit']);
         Route::put('/users/{user}', [UserController::class, 'update']);
+        Route::patch('/users/{user}/toggle-active', [UserController::class, 'toggleActive'])->name('users.toggle_active');
         Route::delete('/users/{user}', [UserController::class, 'destroy']);
         Route::delete('/audits/{audit}', [\App\Http\Controllers\AuditController::class, 'destroy'])->name('audits.destroy');
     });

@@ -632,6 +632,7 @@ return [
     // 7S Module
     '7s_inspection' => '7S Inspection',
     '7s_manage_subtitle' => 'Manage 7S inspections and departmental assessments',
+    'assessment_reports' => 'Assessment & Reports',
     '7s_history' => '7S Inspection History',
     '7s_create_form' => '7S Inspection Form',
     '7s_create_btn' => 'Create Inspection',
@@ -884,4 +885,49 @@ return [
     'audit_ng_q7' => 'Is import-export data fully and accurately recorded?',
     'audit_ng_q8' => 'Are all department SOPs available and updated when changes occur?',
     'audit_ng_q9' => 'Are outdated documents discarded according to retention time regulations?',
+
+    // User management additional
+    'status' => 'Status',
+    'active' => 'Active',
+    'disabled' => 'Disabled',
+    'account_is_active' => 'Account is active',
+    'authorized_functions' => 'Authorized functions',
+    'permission_hint' => 'Role is the base permission. Check here if the user needs specific extra functions.',
+    'cannot_self_deactivate_warn' => 'You should not self-deactivate the logged-in account.',
+    'additional_functions' => 'Additional Func.',
+    'repair_requests' => 'Repairs',
+    'machine_list' => 'Machines',
+    'users' => 'Users',
+    'none' => 'None',
+    'deactivate_user_confirm' => 'Deactivate this user account?',
+    'activate_user_confirm' => 'Re-activate this user account?',
+    'deactivate' => 'Deactivate',
+    'activate' => 'Activate',
+
+    // Permission labels (keys used in config)
+    'p_repairs_manage' => 'Create & Process Repair Tickets',
+    'p_repairs_view' => 'View Repair History',
+    'p_repairs_contractor' => 'View Contractor History',
+    'p_machines_move' => 'Move Machines',
+    'p_movement_history_view' => 'View Movement History',
+    'p_machines_manage' => 'Manage Machine List',
+    'p_machines_import_csv' => 'Import Machines via CSV',
+    'p_env_reports_access' => 'Environmental Reports',
+    'p_audits_access' => 'Internal Audit',
+    'p_seven_s_access' => '7S Inspection',
+    'p_users_view' => 'View User List',
+    'p_users_manage' => 'Create, Edit, Delete Users',
+
+    // Flash messages
+    'user_created_success' => 'User created successfully.',
+    'user_updated_success' => 'User updated successfully.',
+    'user_deleted_success' => 'User deleted successfully.',
+    'error_cannot_self_deactivate' => 'Cannot self-deactivate the logged-in account.',
+    'user_activated_success' => 'User account re-activated.',
+    'user_deactivated_success' => 'User account deactivated.',
+
+    // Machine detail show page
+    'maintenance' => 'Maintenance',
+    'edit_admin' => 'Edit (Admin)',
+    'reported_waiting_repair' => 'REPORTED - WAITING FOR REPAIR',
 ];

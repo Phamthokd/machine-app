@@ -616,6 +616,7 @@ return [
     // 7S Module
     '7s_inspection' => '7S 检查',
     '7s_manage_subtitle' => '管理 7S 检查和部门评估',
+    'assessment_reports' => '检查与报告',
     '7s_history' => '7S 检查历史',
     '7s_create_form' => '7S检查表',
     '7s_create_btn' => '创建检查表',
@@ -885,4 +886,49 @@ return [
     'audit_ng_q7' => '进出库数据是否完整准确？',
     'audit_ng_q8' => '部门的所有SOP是否齐全并在发生变更时及时更新？',
     'audit_ng_q9' => '是否根据储存时间规定清除过期文件？',
+
+    // User management additional
+    'status' => '状态',
+    'active' => '活动中',
+    'disabled' => '已禁用',
+    'account_is_active' => '账号处于活动状态',
+    'authorized_functions' => '授权功能',
+    'permission_hint' => '角色是基础权限。如果用户需要特定的额外功能，请在此勾选。',
+    'cannot_self_deactivate_warn' => '不应禁用当前登录的账户。',
+    'additional_functions' => '附加功能',
+    'repair_requests' => '维修',
+    'machine_list' => '设备',
+    'users' => '用户',
+    'none' => '无',
+    'deactivate_user_confirm' => '您确定要禁用此用户账户吗？',
+    'activate_user_confirm' => '您确定要重新启用此用户账户吗？',
+    'deactivate' => '禁用',
+    'activate' => '启用',
+
+    // Permission labels (keys used in config)
+    'p_repairs_manage' => '创建并处理维修单',
+    'p_repairs_view' => '查看维修记录',
+    'p_repairs_contractor' => '查看承包商历史',
+    'p_machines_move' => '设备调拨',
+    'p_movement_history_view' => '查看调拨记录',
+    'p_machines_manage' => '管理设备列表',
+    'p_machines_import_csv' => '通过 CSV 导入设备',
+    'p_env_reports_access' => '环境报告',
+    'p_audits_access' => '内部审计',
+    'p_seven_s_access' => '7S 检查',
+    'p_users_view' => '查看用户列表',
+    'p_users_manage' => '创建、编辑、删除用户',
+
+    // Flash messages
+    'user_created_success' => '用户创建成功。',
+    'user_updated_success' => '用户更新成功。',
+    'user_deleted_success' => '用户删除成功。',
+    'error_cannot_self_deactivate' => '不能禁用当前登录的账户。',
+    'user_activated_success' => '用户账户已重新启用。',
+    'user_deactivated_success' => '用户账户已禁用。',
+
+    // Machine detail show page
+    'maintenance' => '保养',
+    'edit_admin' => '编辑 (管理员)',
+    'reported_waiting_repair' => '已上报 - 等待维修',
 ];

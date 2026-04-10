@@ -10,11 +10,11 @@
     <h4 class="mb-0 fw-bold">{{ __('messages.add_new_user') }}</h4>
 </div>
 
-<div class="card border-0 shadow-sm rounded-4" style="max-width: 600px; margin: 0 auto;">
+<div class="card border-0 shadow-sm rounded-4" style="max-width: 860px; margin: 0 auto;">
     <div class="card-body p-4">
         <form method="POST" action="/users">
             @csrf
-            
+
             <div class="mb-3">
                 <label class="form-label fw-bold">{{ __('messages.full_name') }} <span class="text-danger">*</span></label>
                 <input type="text" class="form-control" name="name" value="{{ old('name') }}" required placeholder="{{ __('messages.enter_fullname') }}">
@@ -35,7 +35,7 @@
                 <select class="form-select" name="role" required>
                     <option value="">{{ __('messages.select_role') }}</option>
                     @foreach($roles as $role)
-                        <option value="{{ $role->name }}">{{ __('messages.role_' . $role->name) }}</option>
+                        <option value="{{ $role->name }}" @selected(old('role') === $role->name)>{{ __('messages.role_' . $role->name) }}</option>
                     @endforeach
                 </select>
             </div>
@@ -48,6 +48,34 @@
                         <option value="{{ $dept }}" @selected(old('managed_department') == $dept)>{{ $dept }}</option>
                     @endforeach
                 </select>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label fw-bold d-block">{{ __('messages.status') }}</label>
+                <label class="form-check d-flex align-items-center gap-2">
+                    <input class="form-check-input" type="checkbox" name="is_active" value="1" @checked(old('is_active', true))>
+                    <span>{{ __('messages.account_is_active') }}</span>
+                </label>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label fw-bold">{{ __('messages.authorized_functions') }}</label>
+                <div class="text-muted small mb-3">{{ __('messages.permission_hint') }}</div>
+                <div class="row g-3">
+                    @foreach($permissionGroups as $group)
+                        <div class="col-12 col-md-6">
+                            <div class="border rounded-4 p-3 h-100 bg-light-subtle">
+                                <div class="fw-bold mb-3">{{ __($group['group']) }}</div>
+                                @foreach($group['items'] as $permission => $label)
+                                    <label class="form-check d-flex align-items-start gap-2 mb-2">
+                                        <input class="form-check-input mt-1" type="checkbox" name="permissions[]" value="{{ $permission }}" @checked(in_array($permission, old('permissions', [])))>
+                                        <span>{{ __($label) }}</span>
+                                    </label>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
             </div>
 
             <button type="submit" class="btn btn-primary w-100 py-3 fw-bold rounded-3 shadow-sm tap">

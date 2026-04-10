@@ -6,7 +6,7 @@ $audit->results->filter(function($r) { return !empty($r->improver_name) && empty
 // Quyền truy cập
 $userDept = auth()->user()->managed_department;
 $auditDept = $audit->template->department_name ?? null;
-$isAdmin = auth()->user()->hasRole('admin');
+$isAdmin = auth()->user()->isAdminUser();
 
 $userDeptMapped = \App\Models\AuditTemplate::normalizeDepartmentName($userDept);
 $auditDeptMapped = \App\Models\AuditTemplate::normalizeDepartmentName($auditDept);
@@ -16,7 +16,7 @@ $isDepartmentUser = \Illuminate\Support\Facades\Auth::check() && (
 );
 
 $isAuditUser = \Illuminate\Support\Facades\Auth::check()
-&& (auth()->user()->hasRole('audit') || auth()->user()->hasRole('admin'))
+&& auth()->user()->canAccessAuditModule()
 && empty(auth()->user()->managed_department);
 
 // Phân loại lỗi
@@ -38,9 +38,9 @@ $canReviewRejections = $isAuditUser && $rejectedResultsPendingAudit->isNotEmpty(
 
 $canImprove = $isDepartmentUser
 && $improveableResults->isNotEmpty()
-&& (!$isFullyReviewed || (auth()->check() && auth()->user()->hasRole('admin')));
+&& (!$isFullyReviewed || (auth()->check() && auth()->user()->isAdminUser()));
 
-$canReview = $isAuditUser && (!$isFullyReviewed || (auth()->check() && auth()->user()->hasRole('admin')));
+$canReview = $isAuditUser && (!$isFullyReviewed || (auth()->check() && auth()->user()->isAdminUser()));
 
 // Lấy danh sách cải thiện cần Audit duyệt KQ (Chỉ hiện khi bộ phận đã báo cáo hoàn thiện)
 $reviewableResults = $audit->results->filter(function($r) {
@@ -189,7 +189,7 @@ $completableResults = $improveableResults->filter(function($r) {
                 {{ __('messages.audit_confirm_completion_btn') }}
             </button>
             @endif
-            @if((auth()->user()->hasRole('admin') || (auth()->user()->hasRole('audit') && empty(auth()->user()->managed_department))) && (!$isFullyReviewed || auth()->user()->hasRole('admin')))
+            @if(auth()->user()->canManageAuditModule() && (!$isFullyReviewed || auth()->user()->isAdminUser()))
             <a href="{{ route('audits.edit', $audit->id) }}" class="btn btn-outline-warning fw-bold px-4 rounded-3">
                 {{ __('messages.edit_audit') }}
             </a>
@@ -621,15 +621,15 @@ $completableResults = $improveableResults->filter(function($r) {
                         <div class="row g-4">
                             <div class="col-12">
                                 <label class="form-label fw-bold small text-secondary text-uppercase" style="letter-spacing: 0.05em">{{ __('messages.root_cause') }} <span class="text-danger">*</span></label>
-                                <textarea class="form-control border-0 bg-light rounded-3 py-2 px-3" name="improvements[{{ $result->id }}][root_cause]" rows="2" required placeholder="{{ __('messages.root_cause_placeholder') }}" {{ !empty($result->improver_name) && !auth()->user()->hasRole('admin') ? 'readonly' : '' }}>{{ old("improvements.{$result->id}.root_cause", $result->root_cause) }}</textarea>
+                                <textarea class="form-control border-0 bg-light rounded-3 py-2 px-3" name="improvements[{{ $result->id }}][root_cause]" rows="2" required placeholder="{{ __('messages.root_cause_placeholder') }}" {{ !empty($result->improver_name) && !auth()->user()->isAdminUser() ? 'readonly' : '' }}>{{ old("improvements.{$result->id}.root_cause", $result->root_cause) }}</textarea>
                             </div>
                             <div class="col-12">
                                 <label class="form-label fw-bold small text-secondary text-uppercase" style="letter-spacing: 0.05em">{{ __('messages.corrective_action') }} <span class="text-danger">*</span></label>
-                                <textarea class="form-control border-0 bg-light rounded-3 py-2 px-3" name="improvements[{{ $result->id }}][corrective_action]" rows="2" required placeholder="{{ __('messages.corrective_action_placeholder') }}" {{ !empty($result->improver_name) && !auth()->user()->hasRole('admin') ? 'readonly' : '' }}>{{ old("improvements.{$result->id}.corrective_action", $result->corrective_action) }}</textarea>
+                                <textarea class="form-control border-0 bg-light rounded-3 py-2 px-3" name="improvements[{{ $result->id }}][corrective_action]" rows="2" required placeholder="{{ __('messages.corrective_action_placeholder') }}" {{ !empty($result->improver_name) && !auth()->user()->isAdminUser() ? 'readonly' : '' }}>{{ old("improvements.{$result->id}.corrective_action", $result->corrective_action) }}</textarea>
                             </div>
                             <div class="col-12">
                                 <label class="form-label fw-bold small text-secondary text-uppercase" style="letter-spacing: 0.05em">{{ __('messages.improvement_deadline') }} <span class="text-danger">*</span></label>
-                                <input type="date" class="form-control border-0 bg-light rounded-3 py-2 px-3 fw-medium" name="improvements[{{ $result->id }}][improvement_deadline]" value="{{ old("improvements.{$result->id}.improvement_deadline", $result->improvement_deadline ? \Carbon\Carbon::parse($result->improvement_deadline)->format('Y-m-d') : '') }}" required {{ !empty($result->improver_name) && !auth()->user()->hasRole('admin') ? 'readonly' : '' }} onkeydown="return false">
+                                <input type="date" class="form-control border-0 bg-light rounded-3 py-2 px-3 fw-medium" name="improvements[{{ $result->id }}][improvement_deadline]" value="{{ old("improvements.{$result->id}.improvement_deadline", $result->improvement_deadline ? \Carbon\Carbon::parse($result->improvement_deadline)->format('Y-m-d') : '') }}" required {{ !empty($result->improver_name) && !auth()->user()->isAdminUser() ? 'readonly' : '' }} onkeydown="return false">
                             </div>
                         </div>
                     </div>

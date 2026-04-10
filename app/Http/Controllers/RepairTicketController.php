@@ -37,8 +37,8 @@ class RepairTicketController extends Controller
 
     public function store(Request $request)
     {
-        $isTeamLeader = auth()->user()->hasRole('team_leader');
-        $isContractor = auth()->user()->hasRole('contractor');
+        $isTeamLeader = auth()->user()->isTeamLeaderUser();
+        $isContractor = auth()->user()->isContractorUser();
 
         $rules = [
             'machine_id' => ['required', 'exists:machines,id'],
@@ -408,7 +408,7 @@ class RepairTicketController extends Controller
 
     public function editCompleted(RepairTicket $repair)
     {
-        abort_unless(auth()->user()->hasRole('admin'), 403);
+        abort_unless(auth()->user()->isAdminUser(), 403);
         $repair->load('machine');
         $machine = $repair->machine;
         $mechanics = \App\Models\User::role(['repair_tech', 'admin'])->get();
@@ -418,7 +418,7 @@ class RepairTicketController extends Controller
 
     public function updateCompleted(Request $request, RepairTicket $repair)
     {
-        abort_unless(auth()->user()->hasRole('admin'), 403);
+        abort_unless(auth()->user()->isAdminUser(), 403);
 
         $rules = [
             'ma_hang' => ['nullable', 'string', 'max:255'],
@@ -452,7 +452,7 @@ class RepairTicketController extends Controller
 
     public function accept(RepairTicket $repair)
     {
-        abort_unless(auth()->user()->hasRole('admin|warehouse|repair_tech|contractor|team_leader'), 403);
+        abort_unless(auth()->user()->canManageRepairs(), 403);
 
         // Allow taking unassigned tickets.
         if (empty($repair->mechanic_id)) {
@@ -472,9 +472,9 @@ class RepairTicketController extends Controller
             ->where('status', 'pending');
 
         // Filter based on role
-        if (auth()->user()->hasRole('contractor')) {
+        if (auth()->user()->isContractorUser()) {
             $query->where('type', 'contractor');
-        } elseif (auth()->user()->hasRole('admin')) {
+        } elseif (auth()->user()->isAdminUser()) {
             // Admin sees ALL requests (both mechanic and contractor)
         } else {
             // Default to mechanic requests (Repair Tech, Warehouse, Team Leader, etc.)
@@ -488,7 +488,7 @@ class RepairTicketController extends Controller
 
     public function destroy(RepairTicket $repair)
     {
-        abort_unless(auth()->user()->hasRole('admin'), 403, 'Bạn không có quyền xoá phiếu này.');
+        abort_unless(auth()->user()->isAdminUser(), 403, 'Bạn không có quyền xoá phiếu này.');
         $repair->delete();
         return back()->with('success', 'Đã xoá thành công phiếu báo hỏng.');
     }
