@@ -82,7 +82,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 
     // ENVIRONMENT REPORT GROUP: Admin, Warehouse
-    Route::middleware(['role_or_permission:admin|warehouse|environment_reports.access'])->group(function () {
+    Route::middleware(['role_or_permission:admin|environment|environment_reports.access'])->group(function () {
         Route::get('/environment-reports', [EnvironmentReportController::class, 'index'])->name('environment-reports.index');
         Route::get('/environment-reports/create', [EnvironmentReportController::class, 'create'])->name('environment-reports.create');
         Route::post('/environment-reports', [EnvironmentReportController::class, 'store'])->name('environment-reports.store');

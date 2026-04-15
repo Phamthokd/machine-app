@@ -70,7 +70,7 @@
     </div>
 
     <div class="meta">
-        <div><strong>Bộ phận:</strong> {{ $report->department_name }}</div>
+        <div><strong>Vị trí:</strong> {{ $report->department_name }}</div>
         <div><strong>Tháng:</strong> {{ $report->period_label }}</div>
         <div><strong>Người tạo:</strong> {{ $report->creator->name ?? 'N/A' }}</div>
     </div>

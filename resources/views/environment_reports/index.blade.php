@@ -34,16 +34,7 @@
 
     <div class="list-card p-4">
         <form method="GET" action="{{ route('environment-reports.index') }}" class="row g-3 align-items-end mb-4">
-            <div class="col-md-4">
-                <label class="form-label fw-bold">Bộ phận</label>
-                <select name="department_name" class="form-select">
-                    <option value="all">Tất cả</option>
-                    @foreach($departments as $department)
-                        <option value="{{ $department }}" @selected(request('department_name') === $department)>{{ $department }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="col-md-3">
+            <div class="col-md-5">
                 <label class="form-label fw-bold">Năm</label>
                 <select name="report_year" class="form-select">
                     <option value="">Tất cả</option>
@@ -52,7 +43,7 @@
                     @endforeach
                 </select>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-5">
                 <label class="form-label fw-bold">Tháng</label>
                 <select name="report_month" class="form-select">
                     <option value="">Tất cả</option>
@@ -70,11 +61,11 @@
             <table class="table table-hover align-middle report-table mb-0">
                 <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>Bộ phận</th>
+                        <th class="d-none d-sm-table-cell">ID</th>
+                        <th>Vị trí</th>
                         <th>Kỳ báo cáo</th>
-                        <th>Người tạo</th>
-                        <th>Ngày tạo</th>
+                        <th class="d-none d-md-table-cell">Người tạo</th>
+                        <th class="d-none d-lg-table-cell">Ngày tạo</th>
                         <th>Trạng thái</th>
                         <th class="text-end">Thao tác</th>
                     </tr>
@@ -82,18 +73,31 @@
                 <tbody>
                     @forelse($reports as $report)
                         <tr>
-                            <td>#{{ $report->id }}</td>
+                            <td class="d-none d-sm-table-cell text-muted">#{{ $report->id }}</td>
                             <td class="fw-semibold">{{ $report->department_name }}</td>
-                            <td>{{ $report->period_label }}</td>
-                            <td>{{ $report->creator->name ?? 'N/A' }}</td>
-                            <td>{{ $report->created_at->format('d/m/Y H:i') }}</td>
+                            <td>
+                                <div class="fw-medium">{{ $report->period_label }}</div>
+                                <div class="d-md-none small text-muted">{{ $report->created_at->format('d/m/Y') }}</div>
+                            </td>
+                            <td class="d-none d-md-table-cell text-muted">{{ $report->creator->name ?? 'N/A' }}</td>
+                            <td class="d-none d-lg-table-cell text-muted">{{ $report->created_at->format('d/m/Y H:i') }}</td>
                             <td>
                                 <span class="badge {{ $report->status === 'submitted' ? 'bg-success-subtle text-success' : 'bg-warning-subtle text-warning' }}">
                                     {{ $report->status === 'submitted' ? 'Đã chốt' : 'Nháp' }}
                                 </span>
                             </td>
                             <td class="text-end">
-                                <div class="d-inline-flex gap-2">
+                                <div class="dropdown d-sm-none">
+                                    <button class="btn btn-sm btn-light border dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                        Chọn
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                        <li><a class="dropdown-item" href="{{ route('environment-reports.show', $report) }}">Xem chi tiết</a></li>
+                                        <li><a class="dropdown-item" href="{{ route('environment-reports.edit', $report) }}">Chỉnh sửa</a></li>
+                                        <li><a class="dropdown-item" href="{{ route('environment-reports.print', $report) }}" target="_blank">In ấn</a></li>
+                                    </ul>
+                                </div>
+                                <div class="d-none d-sm-inline-flex gap-2">
                                     <a href="{{ route('environment-reports.show', $report) }}" class="btn btn-sm btn-light border">Xem</a>
                                     <a href="{{ route('environment-reports.edit', $report) }}" class="btn btn-sm btn-outline-primary">Sửa</a>
                                     <a href="{{ route('environment-reports.print', $report) }}" class="btn btn-sm btn-outline-secondary" target="_blank">In</a>

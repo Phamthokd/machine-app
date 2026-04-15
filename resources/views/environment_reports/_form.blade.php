@@ -58,7 +58,7 @@
     <div class="report-card p-4">
         <div class="row g-3">
             <div class="col-md-4">
-                <label class="form-label fw-bold">Bộ phận</label>
+                <label class="form-label fw-bold">Vị trí</label>
                 <select name="department_name" class="form-select" @disabled($isManagedDepartmentUser)>
                     @foreach($departments as $department)
                         <option value="{{ $department }}" @selected(old('department_name', $selectedDepartment) === $department)>{{ $department }}</option>

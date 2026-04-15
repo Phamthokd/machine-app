@@ -25,10 +25,6 @@ class EnvironmentReportController extends Controller
             $query->whereRaw('LOWER(TRIM(department_name)) = ?', [$mappedDepartment]);
         }
 
-        if ($request->filled('department_name') && $request->department_name !== 'all') {
-            $query->where('department_name', $request->department_name);
-        }
-
         if ($request->filled('report_year')) {
             $query->where('report_year', (int) $request->report_year);
         }
@@ -44,11 +40,10 @@ class EnvironmentReportController extends Controller
             ->paginate(15)
             ->withQueryString();
 
-        $departments = $this->availableDepartments();
         $currentYear = (int) now()->format('Y');
         $years = range($currentYear + 1, $currentYear - 3);
 
-        return view('environment_reports.index', compact('reports', 'departments', 'years'));
+        return view('environment_reports.index', compact('reports', 'years'));
     }
 
     public function create(Request $request)
@@ -192,7 +187,7 @@ class EnvironmentReportController extends Controller
             ->where('department_name', $validated['department_name'])
             ->where('report_year', $validated['report_year'])
             ->where('report_month', $validated['report_month'])
-            ->when($reportId, fn ($query) => $query->where('id', '!=', $reportId))
+            ->when($reportId, fn($query) => $query->where('id', '!=', $reportId))
             ->exists();
 
         if ($exists) {
@@ -268,35 +263,14 @@ class EnvironmentReportController extends Controller
     private function availableDepartments(): array
     {
         return [
-            'QA',
-            'Thu mua',
+            'Gần nhà ăn công nhân',
             'Kho cơ khí',
-            'Công trình + cơ điện',
-            'Phòng thí nghiệm',
-            'Nhân quyền',
-            'Nhân sự',
-            'Hành chính',
-            'XNK',
             'Xưởng 6 Tầng 1',
             'Xưởng 6 Tầng 2',
+            'Xưởng 1',
+            'Xưởng 2',
+            'Xưởng 3',
             'Xưởng 5',
-            'Bán thành phẩm',
-            'Phòng mẫu',
-            'Kiểm vải',
-            'Thêu',
-            'May lập trình',
-            'Kế toán',
-            'Sale',
-            'Đơn hàng',
-            'Kho vải + PL',
-            'Nhà cắt',
-            'Nhà giặt',
-            'Thống kê tổng',
-            'IE',
-            'KHSX',
-            'IT',
-            'Sửa máy',
-            'Khác',
         ];
     }
 

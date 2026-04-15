@@ -37,6 +37,7 @@ return [
     'role_contractor' => 'Thầu phụ',
     'role_audit' => 'Bộ phận Audit',
     'role_7s' => 'Bộ phận 7S',
+    'role_environment' => 'Bộ phận Môi trường',
 
     // Machine List
     'machine_code' => 'MÃ THIẾT BỊ',

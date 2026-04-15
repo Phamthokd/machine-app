@@ -21,6 +21,7 @@ class RoleSeeder extends Seeder
             'audit',
             '7s',
             'contractor',
+            'environment',
         ];
 
         // Xoá các role không nằm trong danh sách chuẩn (để dọn dẹp VPS)

@@ -21,7 +21,7 @@ class FeatureAccess
             'audits.manage' => self::allows($user, 'audits.access') && empty($user->managed_department),
             'seven_s.access' => $user->hasRole('admin') || $user->hasRole('7s') || $user->can('seven_s.access'),
             'seven_s.manage' => self::allows($user, 'seven_s.access') && empty($user->managed_department),
-            'environment_reports.access' => $user->hasRole('admin') || $user->hasRole('warehouse') || $user->can('environment_reports.access'),
+            'environment_reports.access' => $user->hasAnyRole(['admin', 'environment']) || $user->can('environment_reports.access'),
             'repairs.manage' => $user->hasAnyRole(['admin', 'warehouse', 'repair_tech', 'contractor', 'team_leader']) || $user->can('repairs.manage'),
             'repairs.view' => $user->hasAnyRole(['admin', 'warehouse', 'repair_tech', 'contractor', 'team_leader', 'audit', '7s']) || $user->can('repairs.view'),
             'repairs.contractor' => $user->hasAnyRole(['admin', 'warehouse', 'contractor', 'audit', '7s']) || $user->can('repairs.contractor'),

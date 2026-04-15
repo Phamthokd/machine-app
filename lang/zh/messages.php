@@ -37,6 +37,7 @@ return [
     'role_contractor' => '分包商',
     'role_audit' => '审计',
     'role_7s' => '7S部门',
+    'role_environment' => '环境部',
 
     // Machine List
     'machine_code' => '设备编号',
