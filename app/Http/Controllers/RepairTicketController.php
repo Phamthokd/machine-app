@@ -201,6 +201,8 @@ class RepairTicketController extends Controller
             'Thời gian báo',
             'Bắt đầu',
             'Kết thúc',
+            'Thời gian chờ (phút)',
+            'Thời gian sửa (phút)',
             'Người tạo phiếu',
             'Thợ sửa',
             'Inline QC',
@@ -219,6 +221,16 @@ class RepairTicketController extends Controller
                 $reportedTime = $r->started_at;
             }
 
+            $waitTime = '';
+            if ($r->started_at) {
+                $waitTime = \Carbon\Carbon::parse($reportedTime)->diffInMinutes(\Carbon\Carbon::parse($r->started_at));
+            }
+
+            $repairTime = '';
+            if ($r->started_at && $r->ended_at) {
+                $repairTime = \Carbon\Carbon::parse($r->started_at)->diffInMinutes(\Carbon\Carbon::parse($r->ended_at));
+            }
+
             $cells = [
                 $r->machine->ma_thiet_bi ?? '',
                 $r->machine->ten_thiet_bi ?? '',
@@ -230,6 +242,8 @@ class RepairTicketController extends Controller
                 $reportedTime,
                 $r->started_at,
                 $r->ended_at,
+                $waitTime,
+                $repairTime,
                 $creator,
                 $mechanic,
                 $r->inline_qc_name ?? '',
@@ -340,12 +354,25 @@ class RepairTicketController extends Controller
             'Thời gian báo',
             'Bắt đầu',
             'Kết thúc',
+            'Thời gian chờ (phút)',
+            'Thời gian sửa (phút)',
             'Người tạo phiếu',
             'Người sửa (Nhà thầu)'
         ];
 
         // 2. Helper to render a Row
         $renderRow = function ($r) {
+            $reportedTime = $r->created_at;
+            $waitTime = '';
+            if ($r->started_at) {
+                $waitTime = \Carbon\Carbon::parse($reportedTime)->diffInMinutes(\Carbon\Carbon::parse($r->started_at));
+            }
+
+            $repairTime = '';
+            if ($r->started_at && $r->ended_at) {
+                $repairTime = \Carbon\Carbon::parse($r->started_at)->diffInMinutes(\Carbon\Carbon::parse($r->ended_at));
+            }
+
             $cells = [
                 $r->code,
                 $r->machine->ma_thiet_bi ?? '',
@@ -354,9 +381,11 @@ class RepairTicketController extends Controller
                 $r->nguyen_nhan,
                 $r->noi_dung_sua_chua,
                 $r->nguoi_ho_tro,
-                $r->created_at,
+                $reportedTime,
                 $r->started_at,
                 $r->ended_at,
+                $waitTime,
+                $repairTime,
                 $r->createdBy->name ?? '',
                 $r->mechanic->name ?? '',
             ];

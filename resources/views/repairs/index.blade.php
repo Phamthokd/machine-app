@@ -9,18 +9,22 @@
         --bg-surface: #ffffff;
         --bg-app: #f8fafc;
     }
+
     body {
         background-color: var(--bg-app) !important;
         font-family: 'Inter', system-ui, -apple-system, sans-serif;
     }
+
     .page-header {
         margin-bottom: 1.5rem;
     }
+
     .page-title {
         font-weight: 700;
         color: #1e293b;
         letter-spacing: -0.5px;
     }
+
     .card-modern {
         background: var(--bg-surface);
         border: none;
@@ -28,15 +32,18 @@
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         overflow: hidden;
     }
+
     .table-responsive {
         max-height: 80vh;
         overflow-y: auto;
     }
+
     .modern-table {
         width: 100%;
         border-collapse: separate;
         border-spacing: 0;
     }
+
     .modern-table thead th {
         background: #f1f5f9;
         color: #475569;
@@ -51,6 +58,7 @@
         z-index: 10;
         white-space: nowrap;
     }
+
     .modern-table tbody td {
         padding: 14px 16px;
         vertical-align: middle;
@@ -58,12 +66,15 @@
         font-size: 0.925rem;
         color: #334155;
     }
+
     .modern-table tbody tr:last-child td {
         border-bottom: none;
     }
+
     .modern-table tbody tr:hover td {
         background-color: #f8fafc;
     }
+
     .badge-dept {
         background: #e0e7ff;
         color: #4338ca;
@@ -72,16 +83,25 @@
         border-radius: 6px;
         font-size: 0.8rem;
     }
+
     .text-link {
         color: var(--primary-color);
         font-weight: 500;
         text-decoration: none;
     }
+
     .text-link:hover {
         text-decoration: underline;
     }
-    .col-min-150 { min-width: 150px; }
-    .col-min-200 { min-width: 200px; }
+
+    .col-min-150 {
+        min-width: 150px;
+    }
+
+    .col-min-200 {
+        min-width: 200px;
+    }
+
     .btn-export {
         background-color: #10b981;
         color: white;
@@ -94,13 +114,14 @@
         gap: 8px;
         transition: all 0.2s;
     }
+
     .btn-export:hover {
         background-color: #059669;
         color: white;
         transform: translateY(-1px);
         box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
     }
-    
+
     /* Mobile Card Styles */
     .repair-card {
         background: white;
@@ -108,19 +129,22 @@
         padding: 16px;
         margin-bottom: 12px;
         border: 1px solid #f1f5f9;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     }
+
     .repair-card .card-header-line {
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
         margin-bottom: 8px;
     }
+
     .repair-card .machine-name {
         font-weight: 700;
         color: #1e293b;
         font-size: 1.1rem;
     }
+
     .repair-card .dept-tag {
         font-size: 0.75rem;
         background: #f1f5f9;
@@ -129,25 +153,30 @@
         border-radius: 4px;
         font-weight: 600;
     }
+
     .repair-card .info-row {
         display: flex;
         margin-bottom: 6px;
         font-size: 0.9rem;
     }
+
     .repair-card .info-label {
         color: #64748b;
         width: 80px;
         flex-shrink: 0;
     }
+
     .repair-card .info-value {
         color: #334155;
         font-weight: 500;
     }
+
     .repair-card .divider {
         height: 1px;
         background: #f1f5f9;
         margin: 12px 0;
     }
+
     .repair-card .footer-info {
         display: flex;
         gap: 12px;
@@ -163,7 +192,11 @@
         <div class="text-muted">{{ __('messages.repair_history_subtitle') }}</div>
     </div>
     <a href="/repairs/export?{{ http_build_query(request()->query()) }}" class="btn-export text-decoration-none">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
+        </svg>
         <span>{{ __('messages.export_excel') }}</span>
     </a>
 </div>
@@ -175,7 +208,7 @@
             <select name="department_id" class="form-select border-0 bg-light-subtle" style="background-color: #f8fafc; border-radius: 8px;">
                 <option value="">-- {{ __('messages.all_depts') }} --</option>
                 @foreach($departments as $dept)
-                    <option value="{{ $dept->id }}" @selected(request('department_id') == $dept->id)>{{ $dept->name }}</option>
+                <option value="{{ $dept->id }}" @selected(request('department_id')==$dept->id)>{{ $dept->name }}</option>
                 @endforeach
             </select>
         </div>
@@ -189,13 +222,19 @@
         </div>
         <div class="col-md-3 d-flex gap-2">
             <button type="submit" class="btn btn-primary flex-grow-1 fw-bold py-2 shadow-sm" style="border-radius: 8px;">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="me-1"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="me-1">
+                    <circle cx="11" cy="11" r="8" />
+                    <path d="m21 21-4.3-4.3" />
+                </svg>
                 {{ __('messages.filter_button') }}
             </button>
             @if(request()->anyFilled(['department_id', 'start_date', 'end_date']))
-                <a href="/repairs" class="btn btn-outline-secondary d-flex align-items-center justify-content-center" style="width: 42px; border-radius: 8px;" title="{{ __('messages.clear_filter') }}">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-                </a>
+            <a href="/repairs" class="btn btn-outline-secondary d-flex align-items-center justify-content-center" style="width: 42px; border-radius: 8px;" title="{{ __('messages.clear_filter') }}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 6 6 18" />
+                    <path d="m6 6 12 12" />
+                </svg>
+            </a>
             @endif
         </div>
     </form>
@@ -248,30 +287,39 @@
                     <td>
                         <div class="d-flex flex-column small" style="white-space: nowrap;">
                             @php
-                                $creatorName = $r->createdBy->name ?? '';
-                                $mechanicName = $r->mechanic->name ?? '';
-                                $reportedTime = $r->created_at;
-                                if ($creatorName !== '' && $creatorName === $mechanicName && $r->started_at) {
-                                    $reportedTime = \Carbon\Carbon::parse($r->started_at);
-                                }
+                            $creatorName = $r->createdBy->name ?? '';
+                            $mechanicName = $r->mechanic->name ?? '';
+                            $reportedTime = $r->created_at;
+                            if ($creatorName !== '' && $creatorName === $mechanicName && $r->started_at) {
+                            $reportedTime = \Carbon\Carbon::parse($r->started_at);
+                            }
                             @endphp
                             <span class="text-secondary" title="{{ __('messages.report_time_tooltip') }}">{{ __('messages.report_time') }} {{ $reportedTime->format('H:i d/m') }}</span>
-                            
+
                             @if($r->started_at)
-                                <span class="text-success" title="{{ __('messages.accept_time_tooltip') }}">{{ __('messages.start_time') }} &nbsp;&nbsp;{{ \Carbon\Carbon::parse($r->started_at)->format('H:i d/m') }}</span>
-                                
-                                @php
-                                    $waitTime = $reportedTime->diffInMinutes(\Carbon\Carbon::parse($r->started_at));
-                                @endphp
-                                @if($waitTime > 0)
-                                    <span class="badge bg-light text-dark border mt-1" title="{{ __('messages.wait_time_tooltip') }}">{{ __('messages.wait_time') }} {{ $waitTime }} {{ __('messages.minutes_unit') }}</span>
-                                @endif
+                            <span class="text-success" title="{{ __('messages.accept_time_tooltip') }}">{{ __('messages.start_time') }} &nbsp;&nbsp;{{ \Carbon\Carbon::parse($r->started_at)->format('H:i d/m') }}</span>
+
+                            @php
+                            $waitTime = $reportedTime->diffInMinutes(\Carbon\Carbon::parse($r->started_at));
+                            @endphp
+                            @if($waitTime > 0)
+                            <span class="badge bg-light text-dark border mt-1" title="{{ __('messages.wait_time_tooltip') }}">{{ __('messages.wait_time') }} {{ $waitTime }} {{ __('messages.minutes_unit') }}</span>
                             @endif
 
                             @if($r->ended_at)
-                                <span class="text-secondary mt-1" title="{{ __('messages.complete_time_tooltip') }}">{{ __('messages.end_time') }} &nbsp;&nbsp;&nbsp;&nbsp;{{ \Carbon\Carbon::parse($r->ended_at)->format('H:i d/m') }}</span>
+                            @php
+                            $repairTime = \Carbon\Carbon::parse($r->started_at)->diffInMinutes(\Carbon\Carbon::parse($r->ended_at));
+                            @endphp
+                            <span class="badge bg-light text-primary border mt-1" title="{{ __('messages.repair_time_tooltip') }}">
+                                🛠️ {{ __('messages.repair_time') }} {{ $repairTime }} {{ __('messages.minutes_unit') }}
+                            </span>
+                            @endif
+                            @endif
+
+                            @if($r->ended_at)
+                            <span class="text-secondary mt-1" title="{{ __('messages.complete_time_tooltip') }}">{{ __('messages.end_time') }} &nbsp;&nbsp;&nbsp;&nbsp;{{ \Carbon\Carbon::parse($r->ended_at)->format('H:i d/m') }}</span>
                             @else
-                                <span class="badge bg-warning text-dark mt-1">{{ __('messages.status_repairing') }}</span>
+                            <span class="badge bg-warning text-dark mt-1">{{ __('messages.status_repairing') }}</span>
                             @endif
                         </div>
                     </td>
@@ -281,9 +329,9 @@
                             @if($r->mechanic)
                             <div title="{{ __('messages.repairer') }}" class="text-primary fw-medium">🔧 <span class="text-muted">{{ __('messages.repaired_by') }}:</span> {{ $r->mechanic->name }}</div>
                             @endif
-                            <div class="text-muted" title="{{ __('messages.inline_qc') }}">👀 {{ $r->inlineQc->name ?? '—' }} (QC)</div>
-                            <div class="text-muted" title="{{ __('messages.endline_qc') }}">check {{ $r->endlineQc->name ?? '—' }} (Endline)</div>
-                            <div class="text-muted" title="{{ __('messages.qa_supervisor') }}">recheck {{ $r->qaSupervisor->name ?? '—' }} (QA)</div>
+                            <div class="text-muted" title="{{ __('messages.endline_qc') }}">(Endline) {{ $r->endline_qc_name ?? '—' }}</div>
+                            <div class="text-muted" title="{{ __('messages.inline_qc') }}">(QC) {{ $r->inline_qc_name ?? '—' }}</div>
+                            <div class="text-muted" title="{{ __('messages.qa_supervisor') }}">(QA) {{ $r->qa_supervisor_name ?? '—' }} </div>
                         </div>
                     </td>
                 </tr>
@@ -327,12 +375,12 @@
         <div class="d-flex justify-content-between align-items-end">
             <div class="footer-info">
                 @php
-                    $mCreator = $r->createdBy->name ?? '';
-                    $mMechanic = $r->mechanic->name ?? '';
-                    $mReportedTime = $r->created_at;
-                    if ($mCreator !== '' && $mCreator === $mMechanic && $r->started_at) {
-                        $mReportedTime = \Carbon\Carbon::parse($r->started_at);
-                    }
+                $mCreator = $r->createdBy->name ?? '';
+                $mMechanic = $r->mechanic->name ?? '';
+                $mReportedTime = $r->created_at;
+                if ($mCreator !== '' && $mCreator === $mMechanic && $r->started_at) {
+                $mReportedTime = \Carbon\Carbon::parse($r->started_at);
+                }
                 @endphp
                 <div>🕒 {{ $mReportedTime->format('H:i d/m') }}</div>
                 <div>📝 {{ $r->createdBy->name ?? '...' }}</div>
@@ -340,11 +388,21 @@
                 <div class="text-primary">🔧 {{ $r->mechanic->name }}</div>
                 @endif
             </div>
-            
+
             @if(!$r->ended_at)
-                <span class="badge bg-warning text-dark">{{ __('messages.status_repairing') }}</span>
+            <span class="badge bg-warning text-dark">{{ __('messages.status_repairing') }}</span>
             @else
+            <div class="d-flex flex-column align-items-end">
                 <span class="text-muted small">{{ __('messages.status_done') }} {{ \Carbon\Carbon::parse($r->ended_at)->format('H:i d/m') }}</span>
+                @if($r->started_at && $r->ended_at)
+                @php
+                $mRepairTime = \Carbon\Carbon::parse($r->started_at)->diffInMinutes(\Carbon\Carbon::parse($r->ended_at));
+                @endphp
+                <span class="badge bg-light text-primary border mt-1" style="font-size: 0.7rem;">
+                    🛠️ {{ $mRepairTime }} {{ __('messages.minutes_unit') }}
+                </span>
+                @endif
+            </div>
             @endif
         </div>
     </div>

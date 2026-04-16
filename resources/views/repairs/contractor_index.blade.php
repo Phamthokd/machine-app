@@ -63,14 +63,30 @@
                     </td>
                     <td class="px-3">
                         <div class="d-flex flex-column text-xs">
-                             <div class="d-flex justify-content-between text-secondary">
-                                <span>Begin:</span>
-                                <span class="fw-bold text-success">{{ $r->started_at ? \Carbon\Carbon::parse($r->started_at)->format('H:i d/m') : '-' }}</span>
-                             </div>
-                             <div class="d-flex justify-content-between text-secondary">
-                                <span>End:</span>
-                                <span class="fw-bold text-secondary">{{ $r->ended_at ? \Carbon\Carbon::parse($r->ended_at)->format('H:i d/m') : '-' }}</span>
-                             </div>
+                              <div class="d-flex justify-content-between text-secondary">
+                                 <span>Begin:</span>
+                                 <span class="fw-bold text-success">{{ $r->started_at ? \Carbon\Carbon::parse($r->started_at)->format('H:i d/m') : '-' }}</span>
+                              </div>
+                              @if($r->started_at)
+                                  @php
+                                      $cWaitTime = \Carbon\Carbon::parse($r->created_at)->diffInMinutes(\Carbon\Carbon::parse($r->started_at));
+                                  @endphp
+                                  <div class="text-end">
+                                      <span class="badge bg-light text-dark border" style="font-size: 0.65rem;">{{ __('messages.wait_time') }} {{ $cWaitTime }} {{ __('messages.minutes_unit') }}</span>
+                                  </div>
+                              @endif
+                              <div class="d-flex justify-content-between text-secondary mt-1">
+                                 <span>End:</span>
+                                 <span class="fw-bold text-secondary">{{ $r->ended_at ? \Carbon\Carbon::parse($r->ended_at)->format('H:i d/m') : '-' }}</span>
+                              </div>
+                              @if($r->started_at && $r->ended_at)
+                                  @php
+                                      $cRepairTime = \Carbon\Carbon::parse($r->started_at)->diffInMinutes(\Carbon\Carbon::parse($r->ended_at));
+                                  @endphp
+                                  <div class="text-end">
+                                      <span class="badge bg-light text-primary border" style="font-size: 0.65rem;">🛠️ {{ $cRepairTime }} {{ __('messages.minutes_unit') }}</span>
+                                  </div>
+                              @endif
                         </div>
                     </td>
                     <td class="px-3">
