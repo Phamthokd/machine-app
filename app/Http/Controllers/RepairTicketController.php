@@ -184,9 +184,9 @@ class RepairTicketController extends Controller
         $repairs = $query->orderByDesc('id')
             ->get();
 
-        // 1. Group by Department Name
+        // 1. Group by Department Name (from Ticket primarily)
         $grouped = $repairs->groupBy(function ($item) {
-            return $item->machine->department->name ?? 'Khác';
+            return $item->department->name ?? ($item->machine->department->name ?? 'Khác');
         });
 
         // 2. Define Headers
@@ -222,7 +222,7 @@ class RepairTicketController extends Controller
             $cells = [
                 $r->machine->ma_thiet_bi ?? '',
                 $r->machine->ten_thiet_bi ?? '',
-                $r->machine->department->name ?? '',
+                $r->department->name ?? ($r->machine->department->name ?? ''),
                 $r->ma_hang,
                 $r->cong_doan,
                 $r->nguyen_nhan,
@@ -307,11 +307,25 @@ class RepairTicketController extends Controller
         ]);
     }
 
-    public function exportContractor()
+    public function exportContractor(Request $request)
     {
-        $repairs = RepairTicket::with(['machine.department', 'createdBy', 'mechanic'])
-            ->where('type', 'contractor')
-            ->orderByDesc('id')
+        $query = RepairTicket::with(['machine.department', 'department', 'createdBy', 'mechanic'])
+            ->where('type', 'contractor');
+
+        // Apply filters
+        if ($request->filled('department_id')) {
+            $query->where('department_id', $request->department_id);
+        }
+
+        if ($request->filled('start_date')) {
+            $query->whereDate('created_at', '>=', $request->start_date);
+        }
+
+        if ($request->filled('end_date')) {
+            $query->whereDate('created_at', '<=', $request->end_date);
+        }
+
+        $repairs = $query->orderByDesc('id')
             ->get();
 
         // 1. Define Headers
@@ -336,7 +350,7 @@ class RepairTicketController extends Controller
                 $r->code,
                 $r->machine->ma_thiet_bi ?? '',
                 $r->machine->ten_thiet_bi ?? '',
-                $r->machine->department->name ?? '',
+                $r->department->name ?? ($r->machine->department->name ?? ''),
                 $r->nguyen_nhan,
                 $r->noi_dung_sua_chua,
                 $r->nguoi_ho_tro,
