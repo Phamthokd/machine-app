@@ -168,6 +168,39 @@
     </a>
 </div>
 
+<div class="card-modern p-4 mb-4">
+    <form method="GET" action="/repairs" class="row g-3 align-items-end">
+        <div class="col-md-3">
+            <label class="form-label fw-bold small text-muted text-uppercase mb-1" style="font-size: 0.75rem; letter-spacing: 0.05em;">{{ __('messages.filter_team') }}</label>
+            <select name="department_id" class="form-select border-0 bg-light-subtle" style="background-color: #f8fafc; border-radius: 8px;">
+                <option value="">-- {{ __('messages.all_depts') }} --</option>
+                @foreach($departments as $dept)
+                    <option value="{{ $dept->id }}" @selected(request('department_id') == $dept->id)>{{ $dept->name }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label fw-bold small text-muted text-uppercase mb-1" style="font-size: 0.75rem; letter-spacing: 0.05em;">{{ __('messages.from_date') }}</label>
+            <input type="date" name="start_date" class="form-control border-0" style="background-color: #f8fafc; border-radius: 8px;" value="{{ request('start_date') }}">
+        </div>
+        <div class="col-md-3">
+            <label class="form-label fw-bold small text-muted text-uppercase mb-1" style="font-size: 0.75rem; letter-spacing: 0.05em;">{{ __('messages.to_date') }}</label>
+            <input type="date" name="end_date" class="form-control border-0" style="background-color: #f8fafc; border-radius: 8px;" value="{{ request('end_date') }}">
+        </div>
+        <div class="col-md-3 d-flex gap-2">
+            <button type="submit" class="btn btn-primary flex-grow-1 fw-bold py-2 shadow-sm" style="border-radius: 8px;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="me-1"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                {{ __('messages.filter_button') }}
+            </button>
+            @if(request()->anyFilled(['department_id', 'start_date', 'end_date']))
+                <a href="/repairs" class="btn btn-outline-secondary d-flex align-items-center justify-content-center" style="width: 42px; border-radius: 8px;" title="{{ __('messages.clear_filter') }}">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                </a>
+            @endif
+        </div>
+    </form>
+</div>
+
 <div class="card-modern d-none d-md-block">
     <div class="table-responsive">
         <table class="modern-table mb-0">

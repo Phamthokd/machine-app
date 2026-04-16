@@ -120,14 +120,31 @@ class RepairTicketController extends Controller
         return redirect("/m/{$machine->ma_thiet_bi}")
             ->with('success', "Đã tạo phiếu sửa: {$ticket->code}");
     }
-    public function index()
+    public function index(Request $request)
     {
-        $repairs = RepairTicket::with(['machine.department', 'createdBy', 'mechanic'])
-            ->where('type', 'mechanic')
-            ->orderByDesc('id')
-            ->simplePaginate(20);
+        $query = RepairTicket::with(['machine.department', 'createdBy', 'mechanic'])
+            ->where('type', 'mechanic');
 
-        return view('repairs.index', compact('repairs'));
+        // Apply filters
+        if ($request->filled('department_id')) {
+            $query->where('department_id', $request->department_id);
+        }
+
+        if ($request->filled('start_date')) {
+            $query->whereDate('created_at', '>=', $request->start_date);
+        }
+
+        if ($request->filled('end_date')) {
+            $query->whereDate('created_at', '<=', $request->end_date);
+        }
+
+        $repairs = $query->orderByDesc('id')
+            ->paginate(20)
+            ->withQueryString();
+
+        $departments = \App\Models\Department::whereHas('machines')->orderBy('name')->get();
+
+        return view('repairs.index', compact('repairs', 'departments'));
     }
 
     public function contractorIndex()
