@@ -253,9 +253,17 @@ class RepairTicketController extends Controller
 
             $xml = "    <Row>\n";
             foreach ($cells as $cell) {
-                // Escape XML special chars
+                // Determine Data Type (Number or String)
+                // If it's numeric but starts with 0 (and isn't just 0), keep as string (to preserve leading zeros in codes)
+                $type = 'String';
+                if (is_numeric($cell)) {
+                    if ((string)$cell === '0' || !str_starts_with((string)$cell, '0') || str_contains((string)$cell, '.')) {
+                        $type = 'Number';
+                    }
+                }
+
                 $safe = htmlspecialchars((string)$cell, ENT_XML1, 'UTF-8');
-                $xml .= "     <Cell><Data ss:Type=\"String\">{$safe}</Data></Cell>\n";
+                $xml .= "     <Cell><Data ss:Type=\"{$type}\">{$safe}</Data></Cell>\n";
             }
             $xml .= "    </Row>\n";
             return $xml;
@@ -392,8 +400,14 @@ class RepairTicketController extends Controller
 
             $xml = "    <Row>\n";
             foreach ($cells as $cell) {
+                $type = 'String';
+                if (is_numeric($cell)) {
+                    if ((string)$cell === '0' || !str_starts_with((string)$cell, '0') || str_contains((string)$cell, '.')) {
+                        $type = 'Number';
+                    }
+                }
                 $safe = htmlspecialchars((string)$cell, ENT_XML1, 'UTF-8');
-                $xml .= "     <Cell><Data ss:Type=\"String\">{$safe}</Data></Cell>\n";
+                $xml .= "     <Cell><Data ss:Type=\"{$type}\">{$safe}</Data></Cell>\n";
             }
             $xml .= "    </Row>\n";
             return $xml;
