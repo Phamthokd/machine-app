@@ -162,12 +162,26 @@ class RepairTicketController extends Controller
         $repair->load(['machine.department', 'createdBy']);
         return view('repairs.show', compact('repair'));
     }
-    public function export()
+    public function export(Request $request)
     {
-        $repairs = RepairTicket::with(['machine.department', 'createdBy', 'mechanic'])
+        $query = RepairTicket::with(['machine.department', 'department', 'createdBy', 'mechanic'])
             ->where('type', 'mechanic')
-            ->where('status', '!=', 'pending')
-            ->orderByDesc('id')
+            ->where('status', '!=', 'pending');
+
+        // Apply filters
+        if ($request->filled('department_id')) {
+            $query->where('department_id', $request->department_id);
+        }
+
+        if ($request->filled('start_date')) {
+            $query->whereDate('created_at', '>=', $request->start_date);
+        }
+
+        if ($request->filled('end_date')) {
+            $query->whereDate('created_at', '<=', $request->end_date);
+        }
+
+        $repairs = $query->orderByDesc('id')
             ->get();
 
         // 1. Group by Department Name
