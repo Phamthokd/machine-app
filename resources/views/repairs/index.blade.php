@@ -231,7 +231,7 @@
                         </div>
                     </td>
                     <td>
-                        <span class="badge-dept">{{ $r->machine->department->name ?? 'N/A' }}</span>
+                        <span class="badge-dept">{{ $r->department->name ?? 'N/A' }}</span>
                     </td>
                     <td>
                         <div class="small">
@@ -304,7 +304,7 @@
                 </a>
                 <div class="small text-muted">{{ $r->machine->ten_thiet_bi }}</div>
             </div>
-            <span class="badge-dept">{{ $r->machine->department->name ?? 'N/A' }}</span>
+            <span class="badge-dept">{{ $r->department->name ?? 'N/A' }}</span>
         </div>
 
         <div class="info-row">

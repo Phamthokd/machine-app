@@ -122,7 +122,7 @@ class RepairTicketController extends Controller
     }
     public function index(Request $request)
     {
-        $query = RepairTicket::with(['machine.department', 'createdBy', 'mechanic'])
+        $query = RepairTicket::with(['machine.department', 'department', 'createdBy', 'mechanic'])
             ->where('type', 'mechanic');
 
         // Apply filters
