@@ -27,5 +27,25 @@
     "Có vật dụng nguy hiểm trong khu vực làm việc không": "Are there dangerous items in the work area?",
     "In tài liệu nhưng không lấy, tạo lệnh in trên máy in rất nhiều nhưng không in ra để sử dụng dẫn đến quá tải": "Printing documents but not taking them, creating too many print jobs on the printer without actually using them leading to overload",
     "Tái chế giấy 1  mặt": "One-sided paper recycling.",
-    "Tái chế giấy 1 mặt": "One-sided paper recycling."
+    "Tái chế giấy 1 mặt": "One-sided paper recycling.",
+
+    "S1 & S2 & S3 : Sắp xếp & sàng lọc, sạch sẽ": "S1 & S2 & S3: Sort, Set in Order & Shine",
+    "S4 & S5: Săn sóc & sẵn sàng": "S4 & S5: Standardize & Sustain",
+    "Toàn bộ công nhân viên có tuân thủ theo quy định chưa ( Mặc đồng phục, đeo thẻ NV đúng quy định....": "Do all employees comply with regulations? (Wearing uniforms, employee IDs correctly…)",
+    "S6 & S7: An toàn & Tiết kiệm": "S6 & S7: Safety & Saving",
+    "Máy móc, điện, quạt...có được tắt khi không sử dụng không": "Are machines, electricity, fans, etc. turned off when not in use?",
+
+    "Số liệu trên báo cáo chính xác, loại bỏ các báo cáo tài liệu cũ, không liên quan hay chưa": "Accuracy of report data, removal of old/irrelevant reports/documents",
+    "Các báo cáo, tài liệu cũ rách, hỏng hóc có được thay thế chưa": "Are old/torn/damaged reports/documents replaced?",
+
+    "Số liệu trên báo cáo chính xác chưa (báo cáo thu phát áo mẫu,...), loại bỏ mẫu vải, phụ liệu cũ hoặc đã hủy đơn chưa": "Is the report data accurate (sample garment issue/return reports, etc.)? Have fabric samples and accessories from old or cancelled orders been removed?",
+    "Bàn làm việc có được sắp xếp gọn gàng và trong trạng thái sạch sẽ không": "Is the workstation tidy and clean?",
+    "Lối đi, khu vực làm việc có sạch sẽ không, không để giấy tờ, vật dụng cá nhân lên xến trên bàn": "Are walkways and work areas clean, with no papers or personal items left on the desk?",
+    "Mẫu vải/phụ liệu có tem nhãn, phân loại theo mã đơn hàng hoặc khách hàng": "Are fabric/accessory samples labeled and sorted by order number or customer?",
+    "Các báo cáo, tài liệu quan trọng có được quản lí cẩn thận không": "Are important reports and documents carefully managed?",
+    "Toàn bộ công nhân viên có tuân thủ theo quy định chưa ( Đeo thẻ nhân viên, mặc đồng phục, đi làm đúng giờ ...)": "Do all employees comply with regulations? (Wearing employee ID, uniform, arriving on time...)",
+    "Có duy trì thói quen dọn dẹp, sắp xếp mỗi ngày cuối giờ": "Is the habit of tidying up and organizing maintained at the end of every workday?",
+    "Có cập nhật hệ thống tiến độ mẫu theo đúng quy định không": "Is the sample progress system updated according to regulations?",
+    "Có cập nhật bảng tiến độ đơn hàng đúng thời hạn và đúng biểu mẫu chung": "Is the order progress table updated on time and using the standard company template?",
+    "Hàng hóa có để chắn lối đi, thiết bị phòng cháy không": "Are goods blocking walkways or fire-fighting equipment?"
 }

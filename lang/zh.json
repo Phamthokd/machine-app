@@ -27,5 +27,21 @@
     "Có vật dụng nguy hiểm trong khu vực làm việc không": "工作区内是否有员工放置危险工具？",
     "In tài liệu nhưng không lấy, tạo lệnh in trên máy in rất nhiều nhưng không in ra để sử dụng dẫn đến quá tải": "打印了资料却不取走，在打印机上创建了大量打印指令却不实际打印使用，导致打印机超负荷",
     "Tái chế giấy 1  mặt": "单面纸回收。",
-    "Tái chế giấy 1 mặt": "单面纸回收。"
+    "Tái chế giấy 1 mặt": "单面纸回收。",
+    "S1 & S2 & S3 : Sắp xếp & sàng lọc, sạch sẽ": "整理 & 整顿, 清扫",
+    "S4 & S5: Săn sóc & sẵn sàng": "清洁 & 素养",
+    "Toàn bộ công nhân viên có tuân thủ theo quy định chưa ( Mặc đồng phục, đeo thẻ NV đúng quy định....": "全体员工是否遵守公司规定？（请按规定穿着制服并佩戴员工证……）",
+    "S6 & S7: An toàn & Tiết kiệm": "安全 & 节约",
+    "Máy móc, điện, quạt...có được tắt khi không sử dụng không": "机器、电源、风扇等设备在未使用时是否已关闭？",
+
+    "Số liệu trên báo cáo chính xác chưa (báo cáo thu phát áo mẫu,...), loại bỏ mẫu vải, phụ liệu cũ hoặc đã hủy đơn chưa": "报表上的数据是否正确（如样衣收领报表等）？答的或已取消订单的布样、辅料是否已清除？",
+    "Bàn làm việc có được sắp xếp gọn gàng và trong trạng thái sạch sẽ không": "机器、原辅料、货物是否摆放整整并保持清洁状态？",
+    "Lối đi, khu vực làm việc có sạch sẽ không, không để giấy tờ, vật dụng cá nhân lên xến trên bàn": "通道是否乾净？",
+    "Mẫu vải/phụ liệu có tem nhãn, phân loại theo mã đơn hàng hoặc khách hàng": "布样/辅料是否贴有标签，并依订单编号或客户分类？",
+    "Các báo cáo, tài liệu quan trọng có được quản lí cẩn thận không": "重要报告和文件是否得到妥善管理？",
+    "Toàn bộ công nhân viên có tuân thủ theo quy định chưa ( Đeo thẻ nhân viên, mặc đồng phục, đi làm đúng giờ ...)": "全体员工是否遵守公司规定（配戴员工证、穿着制服、准时上班等）？",
+    "Có duy trì thói quen dọn dẹp, sắp xếp mỗi ngày cuối giờ": "是否保持每天下班前整理、清洁的习惯？",
+    "Có cập nhật hệ thống tiến độ mẫu theo đúng quy định không": "是否按规定更新样板进度系统？",
+    "Có cập nhật bảng tiến độ đơn hàng đúng thời hạn và đúng biểu mẫu chung": "是否依照公司统一表格、按时更新订单进度表？",
+    "Hàng hóa có để chắn lối đi, thiết bị phòng cháy không": "通道及消防设备是否被遮堵？"
 }

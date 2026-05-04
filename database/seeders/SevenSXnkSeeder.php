@@ -9,60 +9,49 @@ class SevenSXnkSeeder extends Seeder
 {
     public function run(): void
     {
+        // Xóa toàn bộ dữ liệu cũ của XNK (kể cả dữ liệu có nội dung VI/CN lẫn lộn)
+        SevenSChecklist::where('department', 'XNK')->delete();
+
         $items = [
-            // S1&S2&S3 — Sàng lọc, Sắp xếp, Sạch sẽ
+            // S1 & S2 & S3
             [
-                'section' => 'S1&S2&S3 — Sàng lọc, Sắp xếp, Sạch sẽ',
+                'section'    => 'S1 & S2 & S3 : Sắp xếp & sàng lọc, sạch sẽ',
                 'sort_order' => 1,
-                'content' => 'Số liệu trên báo cáo chính xác, loại bỏ các báo cáo tài liệu cũ, không liên quan hay chưa'
+                'content'    => 'Số liệu trên báo cáo chính xác, loại bỏ các báo cáo tài liệu cũ, không liên quan hay chưa',
             ],
             [
-                'section' => 'S1&S2&S3 — Sàng lọc, Sắp xếp, Sạch sẽ',
+                'section'    => 'S1 & S2 & S3 : Sắp xếp & sàng lọc, sạch sẽ',
                 'sort_order' => 2,
-                'content' => 'Lưu trình khai báo hải quan, làm thủ tục khai báo gia công lại, Nhập khẩu, Xuất khẩu, Xin CO, Báo cáo cân bằng hải quan, Tính định mức XK, 
-Kiểm soát mã liệu nhập khẩu, Thêm mã phụ liệu mới có thực hiện đúng lưu trình chưa'
+                'content'    => 'Lưu trình khai báo hải quan, làm thủ tục khai báo gia công lại, Nhập khẩu, Xuất khẩu, Xin CO, Báo cáo cân bằng hải quan, Tính định mức XK, Kiểm soát mã liệu nhập khẩu, Thêm mã phụ liệu mới có thực hiện đúng lưu trình chưa',
             ],
 
-            // S4&S5 — Săn sóc, Sẵn sàng
+            // S4 & S5
             [
-                'section' => 'S4&S5 — Săn sóc, Sẵn sàng',
+                'section'    => 'S4 & S5: Săn sóc & sẵn sàng',
                 'sort_order' => 3,
-                'content' => 'Các báo cáo, tài liệu cũ rách, hỏng hóc có được thay thế chưa'
+                'content'    => 'Các báo cáo, tài liệu cũ rách, hỏng hóc có được thay thế chưa',
             ],
             [
-                'section' => 'S4&S5 — Săn sóc, Sẵn sàng',
+                'section'    => 'S4 & S5: Săn sóc & sẵn sàng',
                 'sort_order' => 4,
-                'content' => 'Toàn bộ công nhân viên có tuân thủ theo quy định chưa ( Mặc đồng phục, đeo thẻo NV đúng quy định…'
-            ],
-            [
-                'section' => 'S4&S5 — Săn sóc, Sẵn sàng',
-                'sort_order' => 5,
-                'content' => 'Báo cáo cân bằng hải quan có chính xác không'
+                'content'    => 'Toàn bộ công nhân viên có tuân thủ theo quy định chưa ( Mặc đồng phục, đeo thẻ NV đúng quy định....',
             ],
 
-            // S6&S7 — An toàn, Tích cực
+            // S6 & S7
             [
-                'section' => 'S6&S7 — An toàn, Tích cực',
-                'sort_order' => 6,
-                'content' => 'Có vật dụng nguy hiểm trong khu vực làm việc không'
-            ],
-            [
-                'section' => 'S6&S7 — An toàn, Tích cực',
-                'sort_order' => 7,
-                'content' => 'In tài liệu nhưng không lấy, tạo lệnh in trên máy in rất nhiều nhưng không in ra để sử dụng dẫn đến quá tải'
-            ],
-            [
-                'section' => 'S6&S7 — An toàn, Tích cực',
-                'sort_order' => 8,
-                'content' => 'Tái chế giấy 1  mặt'
+                'section'    => 'S6 & S7: An toàn & Tiết kiệm',
+                'sort_order' => 5,
+                'content'    => 'Máy móc, điện, quạt...có được tắt khi không sử dụng không',
             ],
         ];
 
         foreach ($items as $item) {
-            SevenSChecklist::firstOrCreate(
-                ['department' => 'XNK', 'section' => $item['section'], 'sort_order' => $item['sort_order']],
-                ['content' => $item['content']]
-            );
+            SevenSChecklist::create([
+                'department' => 'XNK',
+                'section'    => $item['section'],
+                'sort_order' => $item['sort_order'],
+                'content'    => $item['content'],
+            ]);
         }
     }
 }
