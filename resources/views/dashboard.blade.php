@@ -105,6 +105,7 @@ $maxWidth = '1200px';
                         ->whereNotNull('ended_at')
                         ->whereNull('evaluated_at')
                         ->where('type', 'mechanic')
+                        ->whereDate('created_at', '>=', '2026-05-04')
                         ->count();
                 }
             @endphp
