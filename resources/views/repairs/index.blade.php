@@ -254,6 +254,7 @@
                     <th class="col-min-200">{{ __('messages.fix') }}</th>
                     <th>{{ __('messages.time') }}</th>
                     <th>{{ __('messages.related_personnel') }}</th>
+                    <th width="120">{{ __('messages.eval_btn') }}</th>
                 </tr>
                 </tr>
             </thead>
@@ -334,6 +335,25 @@
                             <div class="text-muted" title="{{ __('messages.qa_supervisor') }}">(QA) {{ $r->qa_supervisor_name ?? '—' }} </div>
                         </div>
                     </td>
+                    <td class="text-center">
+                        @if($r->ended_at)
+                            @if($r->evaluated_at)
+                                <span class="badge bg-success-subtle text-success border border-success-subtle" style="font-size: 0.72rem;">
+                                    ✅ {{ __('messages.eval_status_done') }}
+                                </span>
+                            @elseif($r->created_by === auth()->id() && $r->created_at->format('Y-m-d') >= '2026-05-04')
+                                <a href="/repairs/{{ $r->id }}/evaluate"
+                                   class="btn btn-warning btn-sm fw-bold rounded-3 d-flex align-items-center gap-1"
+                                   style="font-size: 0.78rem; white-space: nowrap;">
+                                    ⭐ {{ __('messages.eval_btn') }}
+                                </a>
+                            @else
+                                <span class="text-muted small">—</span>
+                            @endif
+                        @else
+                            <span class="text-muted small">—</span>
+                        @endif
+                    </td>
                 </tr>
                 @endforeach
             </tbody>
@@ -392,7 +412,7 @@
             @if(!$r->ended_at)
             <span class="badge bg-warning text-dark">{{ __('messages.status_repairing') }}</span>
             @else
-            <div class="d-flex flex-column align-items-end">
+            <div class="d-flex flex-column align-items-end gap-1">
                 <span class="text-muted small">{{ __('messages.status_done') }} {{ \Carbon\Carbon::parse($r->ended_at)->format('H:i d/m') }}</span>
                 @if($r->started_at && $r->ended_at)
                 @php
@@ -405,6 +425,22 @@
             </div>
             @endif
         </div>
+
+        {{-- Evaluation button on mobile --}}
+        @if($r->ended_at && $r->type === 'mechanic')
+        <div class="mt-2 pt-2 border-top">
+            @if($r->evaluated_at)
+                <span class="badge bg-success-subtle text-success border border-success-subtle w-100 text-center py-2" style="font-size: 0.8rem;">
+                    ✅ {{ __('messages.eval_status_done') }}
+                </span>
+            @elseif($r->created_by === auth()->id() && $r->created_at->format('Y-m-d') >= '2026-05-04')
+                <a href="/repairs/{{ $r->id }}/evaluate"
+                   class="btn btn-warning btn-sm fw-bold w-100 d-flex align-items-center justify-content-center gap-1 py-2">
+                    ⭐ {{ __('messages.eval_btn') }}
+                </a>
+            @endif
+        </div>
+        @endif
     </div>
     @endforeach
 </div>

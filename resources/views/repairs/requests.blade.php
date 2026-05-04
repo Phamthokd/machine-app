@@ -55,56 +55,56 @@
                     <td class="px-3 text-end">
                         <div class="d-flex align-items-center justify-content-end gap-2">
                             @if(auth()->user()->hasAnyRole(['team_leader', 'audit']))
-                            @if($r->mechanic_id)
-                            @php
-                            $parts = explode(' ', $r->mechanic->name ?? __('messages.unknown_user'));
-                            $shortName = end($parts);
-                            @endphp
-                            <span class="badge bg-warning text-dark border px-3 py-2" title="{{ $r->mechanic->name ?? '' }}">
-                                🔒 {{ __('messages.being_repaired_by') }} {{ $shortName }}
-                            </span>
+                                @if($r->mechanic_id)
+                                    @php
+                                    $parts = explode(' ', $r->mechanic->name ?? __('messages.unknown_user'));
+                                    $shortName = end($parts);
+                                    @endphp
+                                    <span class="badge bg-warning text-dark border px-3 py-2" title="{{ $r->mechanic->name ?? '' }}">
+                                        🔒 {{ __('messages.being_repaired_by') }} {{ $shortName }}
+                                    </span>
+                                @else
+                                    <span class="badge bg-light text-secondary border px-3 py-2">{{ __('messages.only_view') }}</span>
+                                @endif
                             @else
-                            <span class="badge bg-light text-secondary border px-3 py-2">Chỉ xem</span>
-                            @endif
-                            @else
-                            @if($r->mechanic_id)
-                            @if($r->mechanic_id === auth()->id())
-                            <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 accept-btn"
-                                data-bs-toggle="modal"
-                                data-bs-target="#scanAcceptModal"
-                                data-machine-code="{{ $r->machine->ma_thiet_bi }}"
-                                data-redirect-url="/repairs/{{ $r->id }}/edit">
-                                {{ __('messages.process_resume_btn') }}
-                            </button>
-                            @else
-                            @php
-                            $parts = explode(' ', $r->mechanic->name ?? __('messages.unknown_user'));
-                            $shortName = end($parts);
-                            @endphp
-                            <span class="badge bg-warning text-dark border px-3 py-2" title="{{ $r->mechanic->name ?? '' }}">
-                                🔒 {{ __('messages.being_repaired_by') }} {{ $shortName }}
-                            </span>
-                            @endif
-                            @else
-                            <form action="{{ route('repairs.accept', $r->id) }}" id="accept-form-{{ $r->id }}" method="POST" class="d-inline">
-                                @csrf
-                            </form>
-                            <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 accept-btn"
-                                data-bs-toggle="modal"
-                                data-bs-target="#scanAcceptModal"
-                                data-machine-code="{{ $r->machine->ma_thiet_bi }}"
-                                data-form-id="accept-form-{{ $r->id }}">
-                                {{ __('messages.process_btn') }}
-                            </button>
-                            @endif
+                                @if($r->mechanic_id)
+                                    @if($r->mechanic_id === auth()->id())
+                                        <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 accept-btn"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#scanAcceptModal"
+                                            data-machine-code="{{ $r->machine->ma_thiet_bi }}"
+                                            data-redirect-url="/repairs/{{ $r->id }}/edit">
+                                            {{ __('messages.process_resume_btn') }}
+                                        </button>
+                                    @else
+                                        @php
+                                        $parts = explode(' ', $r->mechanic->name ?? __('messages.unknown_user'));
+                                        $shortName = end($parts);
+                                        @endphp
+                                        <span class="badge bg-warning text-dark border px-3 py-2" title="{{ $r->mechanic->name ?? '' }}">
+                                            🔒 {{ __('messages.being_repaired_by') }} {{ $shortName }}
+                                        </span>
+                                    @endif
+                                @else
+                                    <form action="{{ route('repairs.accept', $r->id) }}" id="accept-form-{{ $r->id }}" method="POST" class="d-inline">
+                                        @csrf
+                                    </form>
+                                    <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 accept-btn"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#scanAcceptModal"
+                                        data-machine-code="{{ $r->machine->ma_thiet_bi }}"
+                                        data-form-id="accept-form-{{ $r->id }}">
+                                        {{ __('messages.process_btn') }}
+                                    </button>
+                                @endif
                             @endif
 
                             @if(auth()->user()->isAdminUser())
-                            <form action="/repairs/{{ $r->id }}" method="POST" onsubmit="return confirm('Bạn có chắc chắn muốn xóa phiếu báo sửa này không?');" class="d-inline">
+                            <form action="/repairs/{{ $r->id }}" method="POST" onsubmit="return confirm('{{ __('messages.delete_confirm') }}');" class="d-inline">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="btn btn-sm btn-danger rounded-pill px-3">
-                                    Xóa
+                                    {{ __('messages.delete_btn') }}
                                 </button>
                             </form>
                             @endif

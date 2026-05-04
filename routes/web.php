@@ -67,6 +67,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/repairs/{repair}', [RepairTicketController::class, 'show'])->whereNumber('repair');
     });
 
+    // EVALUATION: Only the creator (team_leader) + admin/repair_tech for statistics
+    Route::middleware(['role_or_permission:admin|repair_tech|team_leader'])->group(function () {
+        Route::get('/repairs/evaluations', [RepairTicketController::class, 'evaluationsIndex'])->name('repairs.evaluations');
+        Route::get('/repairs/{repair}/evaluate', [RepairTicketController::class, 'evaluateShow'])->whereNumber('repair')->name('repairs.evaluate');
+        Route::post('/repairs/{repair}/evaluate', [RepairTicketController::class, 'evaluateStore'])->whereNumber('repair')->name('repairs.evaluate.store');
+    });
+
 
     // MOVEMENT GROUP: Admin, Warehouse, Team Leader
     Route::middleware(['role_or_permission:admin|warehouse|team_leader|machines.move'])->group(function () {

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Machine;
 use App\Models\RepairTicket;
 use App\Models\User;
+use App\Notifications\RepairCompletedNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -32,7 +33,18 @@ class RepairTicketController extends Controller
         // Fetch contractors for the support dropdown
         $contractors = User::role('contractor')->get();
 
-        return view('repairs.create', compact('machine', 'contractors'));
+        // Kiểm tra tổ trưởng có phiếu chưa đánh giá không
+        $unevaluatedCount = 0;
+        if (auth()->check() && auth()->user()->hasRole('team_leader')) {
+            $unevaluatedCount = RepairTicket::where('created_by', auth()->id())
+                ->whereNotNull('ended_at')
+                ->whereNull('evaluated_at')
+                ->where('type', 'mechanic')
+                ->whereDate('created_at', '>=', '2026-05-04')
+                ->count();
+        }
+
+        return view('repairs.create', compact('machine', 'contractors', 'unevaluatedCount'));
     }
 
     public function store(Request $request)
@@ -99,6 +111,22 @@ class RepairTicketController extends Controller
             return back()->withInput()->with('error', 'Máy này đã được báo trước đó. Vui lòng hoàn tất phiếu báo cũ trước khi tạo lỗi mới!');
         }
 
+        // Block team leader if they have >= 3 unevaluated completed tickets
+        if ($isTeamLeader) {
+            $unevaluatedCount = RepairTicket::where('created_by', auth()->id())
+                ->whereNotNull('ended_at')
+                ->whereNull('evaluated_at')
+                ->where('type', 'mechanic')
+                ->whereDate('created_at', '>=', '2026-05-04')
+                ->count();
+
+            if ($unevaluatedCount >= 3) {
+                return back()->withInput()->with('error',
+                    "Bạn còn {$unevaluatedCount} phiếu sửa chưa được đánh giá. Vui lòng đánh giá trước khi tạo báo hỏng mới!"
+                );
+            }
+        }
+
         if ($isTeamLeader) {
             $validated['status'] = 'pending';
             $validated['ended_at'] = null; // Open ticket
@@ -122,8 +150,14 @@ class RepairTicketController extends Controller
     }
     public function index(Request $request)
     {
+        $user  = auth()->user();
         $query = RepairTicket::with(['machine.department', 'department', 'createdBy', 'mechanic'])
             ->where('type', 'mechanic');
+
+        // Tổ trưởng chỉ thấy phiếu do chính họ tạo
+        if ($user->hasRole('team_leader')) {
+            $query->where('created_by', $user->id);
+        }
 
         // Apply filters
         if ($request->filled('department_id')) {
@@ -491,6 +525,13 @@ class RepairTicketController extends Controller
 
         $repair->update($validated);
 
+        // Notify team leader (ticket creator) if they have the team_leader role
+        $creator = User::find($repair->created_by);
+        if ($creator && $creator->hasRole('team_leader')) {
+            $repair->load('machine');
+            $creator->notify(new RepairCompletedNotification($repair));
+        }
+
         return redirect('/repair-requests')->with('success', "Đã hoàn thành phiếu sửa: {$repair->code}");
     }
 
@@ -579,5 +620,79 @@ class RepairTicketController extends Controller
         abort_unless(auth()->user()->isAdminUser(), 403, 'Bạn không có quyền xoá phiếu này.');
         $repair->delete();
         return back()->with('success', 'Đã xoá thành công phiếu báo hỏng.');
+    }
+
+    // ─── EVALUATION ──────────────────────────────────────────────────────────
+
+    public function evaluateShow(RepairTicket $repair)
+    {
+        // Only the original creator (team leader) can evaluate
+        abort_unless(
+            $repair->created_by === auth()->id(),
+            403,
+            'Bạn không có quyền đánh giá phiếu này.'
+        );
+
+        // Must be completed
+        abort_unless($repair->ended_at, 400, 'Phiếu chưa được sửa xong.');
+
+        $repair->load(['machine.department', 'mechanic']);
+
+        return view('repairs.evaluate', compact('repair'));
+    }
+
+    public function evaluateStore(Request $request, RepairTicket $repair)
+    {
+        abort_unless(
+            $repair->created_by === auth()->id(),
+            403,
+            'Bạn không có quyền đánh giá phiếu này.'
+        );
+
+        abort_unless($repair->ended_at, 400, 'Phiếu chưa được sửa xong.');
+
+        $validated = $request->validate([
+            'eval_response_time' => ['required', 'in:fast,ok,slow'],
+            'eval_repair_speed'  => ['required', 'in:fast,ok,slow_affect'],
+            'eval_error_rate'    => ['required', 'in:none,few,frequent'],
+        ]);
+
+        $validated['evaluated_at'] = now();
+
+        $repair->update($validated);
+
+        return redirect('/repairs')->with('success', 'Đã ghi nhận đánh giá. Cảm ơn bạn!');
+    }
+
+    public function evaluationsIndex(Request $request)
+    {
+        $user = auth()->user();
+
+        $query = RepairTicket::with(['machine.department', 'department', 'createdBy', 'mechanic'])
+            ->whereNotNull('evaluated_at')
+            ->where('type', 'mechanic');
+
+        // Role-based scoping
+        if ($user->hasRole('team_leader')) {
+            // Team leader only sees tickets they created
+            $query->where('created_by', $user->id);
+        }
+        // admin and repair_tech see all
+
+        // Filters
+        if ($request->filled('department_id')) {
+            $query->where('department_id', $request->department_id);
+        }
+        if ($request->filled('start_date')) {
+            $query->whereDate('evaluated_at', '>=', $request->start_date);
+        }
+        if ($request->filled('end_date')) {
+            $query->whereDate('evaluated_at', '<=', $request->end_date);
+        }
+
+        $evaluations = $query->orderByDesc('evaluated_at')->paginate(25)->withQueryString();
+        $departments  = \App\Models\Department::whereHas('machines')->orderBy('name')->get();
+
+        return view('repairs.evaluations', compact('evaluations', 'departments'));
     }
 }

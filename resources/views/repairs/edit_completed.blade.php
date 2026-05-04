@@ -113,9 +113,9 @@
             </div>
 
             <div class="mb-3">
-                <label class="form-label">Thợ sửa chữa <span class="text-danger">*</span></label>
+                <label class="form-label">{{ __('messages.mechanic_label') }} <span class="text-danger">*</span></label>
                 <select class="form-select" name="mechanic_id" required>
-                    <option value="">Chọn thợ sửa</option>
+                    <option value="">{{ __('messages.select_mechanic') }}</option>
                     @foreach($mechanics as $mec)
                     <option value="{{ $mec->id }}" @selected(old('mechanic_id', $repair->mechanic_id) == $mec->id)>{{ $mec->name }}</option>
                     @endforeach
@@ -128,7 +128,7 @@
                     <input type="datetime-local" class="form-control" name="started_at" value="{{ old('started_at', $repair->started_at ? \Carbon\Carbon::parse($repair->started_at)->format('Y-m-d\TH:i') : '') }}" required>
                 </div>
                 <div class="col-md-6 mt-3 mt-md-0">
-                    <label class="form-label">Thời gian hoàn thành <span class="text-danger">*</span></label>
+                    <label class="form-label">{{ __('messages.completion_time_label') }} <span class="text-danger">*</span></label>
                     <input type="datetime-local" class="form-control" name="ended_at" value="{{ old('ended_at', $repair->ended_at ? \Carbon\Carbon::parse($repair->ended_at)->format('Y-m-d\TH:i') : '') }}" required>
                 </div>
             </div>
@@ -183,7 +183,7 @@
                     <polyline points="17 21 17 13 7 13 7 21" />
                     <polyline points="7 3 7 8 15 8" />
                 </svg>
-                LƯU THAY ĐỔI
+                {{ mb_strtoupper(__('messages.save_changes_btn')) }}
             </button>
         </div>
     </form>

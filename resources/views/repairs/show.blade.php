@@ -1,5 +1,5 @@
 @extends('layouts.app-simple')
-@section('title', 'Chi tiết phiếu sửa ' . $repair->code)
+@section('title', __('messages.ticket') . ' ' . $repair->code)
 
 @section('content')
 <style>
@@ -110,22 +110,22 @@
                         <line x1="8" y1="21" x2="16" y2="21" />
                         <line x1="12" y1="17" x2="12" y2="21" />
                     </svg>
-                    Thông tin thiết bị
+                    {{ __('messages.device_info') }}
                 </div>
                 <div class="p-4">
                     <div class="row g-4">
                         <div class="col-md-6">
-                            <div class="info-label">Mã thiết bị</div>
+                            <div class="info-label">{{ __('messages.machine_code') }}</div>
                             <div class="info-value text-primary fw-bold">
                                 <a href="/m/{{ $repair->machine->ma_thiet_bi }}" class="text-decoration-none">{{ $repair->machine->ma_thiet_bi }}</a>
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <div class="info-label">Tổ / Chuyền</div>
+                            <div class="info-label">{{ __('messages.dept_line') }}</div>
                             <div class="info-value">{{ $repair->machine->department->name ?? '---' }}</div>
                         </div>
                         <div class="col-12">
-                            <div class="info-label">Tên thiết bị</div>
+                            <div class="info-label">{{ __('messages.machine_name') }}</div>
                             <div class="info-value">{{ $repair->machine->ten_thiet_bi }}</div>
                         </div>
                     </div>
@@ -138,26 +138,26 @@
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
                     </svg>
-                    Nội dung sửa chữa
+                    {{ __('messages.repair_content') }}
                 </div>
                 <div class="p-4">
                     <div class="row g-4">
                         <div class="col-md-6">
-                            <div class="info-label">Mã hàng</div>
+                            <div class="info-label">{{ __('messages.code_label') }}</div>
                             <div class="info-value">{{ $repair->ma_hang }}</div>
                         </div>
                         <div class="col-md-6">
-                            <div class="info-label">Công đoạn</div>
+                            <div class="info-label">{{ __('messages.step_label') }}</div>
                             <div class="info-value">{{ $repair->cong_doan }}</div>
                         </div>
                         <div class="col-12">
-                            <div class="info-label text-danger">Nguyên nhân hư hỏng</div>
+                            <div class="info-label text-danger">{{ __('messages.damage_reason') }}</div>
                             <div class="p-3 bg-light rounded-3 mt-1">
                                 {{ $repair->nguyen_nhan }}
                             </div>
                         </div>
                         <div class="col-12">
-                            <div class="info-label text-success">Biện pháp khắc phục</div>
+                            <div class="info-label text-success">{{ __('messages.repair_measure') }}</div>
                             <div class="p-3 bg-light rounded-3 mt-1">
                                 {{ $repair->noi_dung_sua_chua }}
                             </div>
@@ -175,27 +175,27 @@
                         <circle cx="12" cy="12" r="10" />
                         <polyline points="12 6 12 12 16 14" />
                     </svg>
-                    Thời gian & Nhân sự
+                    {{ __('messages.time_personnel') }}
                 </div>
                 <div class="p-4">
                     <div class="mb-4">
-                        <div class="info-label">Người tạo phiếu</div>
+                        <div class="info-label">{{ __('messages.ticket_creator') }}</div>
                         <div class="d-flex align-items-center gap-2 mt-1">
                             <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold" style="width: 32px; height: 32px; font-size: 14px;">
                                 {{ substr($repair->createdBy->name ?? '?', 0, 1) }}
                             </div>
-                            <div class="fw-medium">{{ $repair->createdBy->name ?? 'Không xác định' }}</div>
+                            <div class="fw-medium">{{ $repair->createdBy->name ?? __('messages.unknown_user') }}</div>
                         </div>
                     </div>
 
                     <div class="row g-3 mb-4">
                         <div class="col-12">
-                            <div class="info-label">Bắt đầu sửa</div>
+                            <div class="info-label">{{ __('messages.start_repair') }}</div>
                             <div class="info-value">{{ \Carbon\Carbon::parse($repair->started_at)->format('H:i d/m/Y') }}</div>
                         </div>
                         @if($repair->ended_at)
                         <div class="col-12">
-                            <div class="info-label">Hoàn thành</div>
+                            <div class="info-label">{{ __('messages.status_done') }}</div>
                             <div class="info-value">{{ \Carbon\Carbon::parse($repair->ended_at)->format('H:i d/m/Y') }}</div>
                         </div>
                         @endif
@@ -203,7 +203,7 @@
 
                     <hr class="opacity-10 my-4">
 
-                    <h6 class="fw-bold text-secondary text-uppercase text-xs mb-3">Xác nhận QC / QA</h6>
+                    <h6 class="fw-bold text-secondary text-uppercase text-xs mb-3">{{ __('messages.qc_qa_confirm') }}</h6>
 
                     <div class="d-flex flex-column gap-3">
                         <div class="d-flex justify-content-between align-items-center">
@@ -218,7 +218,7 @@
                         @endif
                         @if($repair->qa_supervisor_name)
                         <div class="d-flex justify-content-between align-items-center">
-                            <span class="text-secondary small">Chủ quản QA</span>
+                            <span class="text-secondary small">{{ __('messages.qa_supervisor') }}</span>
                             <span class="fw-bold">{{ $repair->qa_supervisor_name }}</span>
                         </div>
                         @endif

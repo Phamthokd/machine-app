@@ -24,6 +24,14 @@ class RepairTicket extends Model
         'nguoi_ho_tro',
         'type', // mechanic, contractor
         'mechanic_id',
+        'eval_response_time',
+        'eval_repair_speed',
+        'eval_error_rate',
+        'evaluated_at',
+    ];
+
+    protected $casts = [
+        'evaluated_at' => 'datetime',
     ];
 
     public function machine()

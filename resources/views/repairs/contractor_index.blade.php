@@ -1,5 +1,5 @@
 @extends('layouts.app-simple', ['maxWidth' => '100%'])
-@section('title', 'Lịch sử công trình')
+@section('title', __('messages.construction_history'))
 
 @section('content')
 <div class="d-flex align-items-center justify-content-between mb-4">
@@ -8,15 +8,15 @@
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
         </a>
         <div>
-            <h4 class="mb-0 fw-bold">Danh sách phiếu công trình</h4>
-            <div class="text-secondary small">Quản lý và theo dõi lịch sử sửa chữa bộ phận công trình</div>
+            <h4 class="mb-0 fw-bold">{{ __('messages.construction_history_list') }}</h4>
+            <div class="text-secondary small">{{ __('messages.construction_history_subtitle') }}</div>
         </div>
     </div>
     
     <div class="d-flex gap-2">
         <a href="/repairs/contractor/export" class="btn btn-success text-white shadow-sm fw-bold d-flex align-items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            Xuất Excel
+            {{ __('messages.export_excel') }}
         </a>
     </div>
 </div>
@@ -27,12 +27,12 @@
             <thead class="bg-light text-secondary">
                 <tr class="text-uppercase text-xs fw-bold">
                     <th class="py-3 px-3" style="width: 50px;">#</th>
-                    <th class="py-3 px-3" style="width: 200px;">Thiết bị</th>
-                    <th class="py-3 px-3">Sự cố</th>
-                    <th class="py-3 px-3">Khắc phục</th>
-                    <th class="py-3 px-3">Người hỗ trợ</th>
-                    <th class="py-3 px-3" style="width: 180px;">Thời gian</th>
-                    <th class="py-3 px-3" style="width: 150px;">Người tạo</th>
+                    <th class="py-3 px-3" style="width: 200px;">{{ __('messages.machine_label') }}</th>
+                    <th class="py-3 px-3">{{ __('messages.issue_label') }}</th>
+                    <th class="py-3 px-3">{{ __('messages.fix_label') }}</th>
+                    <th class="py-3 px-3">{{ __('messages.helper_label') }}</th>
+                    <th class="py-3 px-3" style="width: 180px;">{{ __('messages.time') }}</th>
+                    <th class="py-3 px-3" style="width: 150px;">{{ __('messages.reporter_label') }}</th>
                 </tr>
             </thead>
             <tbody class="border-top-0">
@@ -92,9 +92,9 @@
                     <td class="px-3">
                         <div class="d-flex align-items-center gap-2">
                              <div class="avatar-sm rounded-circle bg-light text-secondary d-flex align-items-center justify-content-center fw-bold" style="width: 30px; height: 30px; font-size: 0.75rem;">
-                                {{ substr($r->createdBy->name ?? 'U', 0, 1) }}
+                                 {{ substr($r->createdBy->name ?? 'U', 0, 1) }}
                             </div>
-                            <span class="fw-medium">{{ $r->createdBy->name ?? 'Unknown' }}</span>
+                            <span class="fw-medium">{{ $r->createdBy->name ?? __('messages.unknown_user') }}</span>
                         </div>
                     </td>
                 </tr>
@@ -104,8 +104,11 @@
                         <div class="mb-3 opacity-50">
                             <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
                         </div>
-                        Chưa có dữ liệu phiếu sửa công trình
+                        {{ __('messages.no_construction_data') }}
                     </td>
+                </tr>
+                @endforelse
+            </tbody>            </td>
                 </tr>
                 @endforelse
             </tbody>

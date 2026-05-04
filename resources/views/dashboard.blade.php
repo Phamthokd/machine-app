@@ -96,6 +96,38 @@ $maxWidth = '1200px';
             </div>
             @endfeature
 
+            {{-- Evaluations tile (admin, repair_tech, team_leader) --}}
+            @if(auth()->user()->hasRole('admin') || auth()->user()->hasRole('repair_tech') || auth()->user()->hasRole('team_leader'))
+            @php
+                $pendingEvalCount = 0;
+                if (auth()->user()->hasRole('team_leader')) {
+                    $pendingEvalCount = \App\Models\RepairTicket::where('created_by', auth()->id())
+                        ->whereNotNull('ended_at')
+                        ->whereNull('evaluated_at')
+                        ->where('type', 'mechanic')
+                        ->count();
+                }
+            @endphp
+            <div class="col">
+                <a href="/repairs/evaluations" class="btn btn-white border w-100 py-4 rounded-4 shadow-sm fw-semibold d-flex flex-column align-items-center justify-content-center h-100 tap hover-shadow transition position-relative {{ $pendingEvalCount > 0 ? 'border-warning border-2' : '' }}">
+                    @if($pendingEvalCount > 0)
+                        <span class="position-absolute top-0 end-0 translate-middle badge rounded-pill bg-warning text-dark" style="font-size: 0.75rem;">
+                            {{ $pendingEvalCount }}
+                        </span>
+                    @endif
+                    <div class="bg-warning bg-opacity-10 text-warning p-3 rounded-circle mb-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                        </svg>
+                    </div>
+                    <span>{{ __('messages.repair_evaluation') }}</span>
+                    @if($pendingEvalCount > 0)
+                        <small class="text-warning fw-bold mt-1">{{ $pendingEvalCount }} {{ __('messages.pending_evaluations') }}</small>
+                    @endif
+                </a>
+            </div>
+            @endif
+
             @feature('repairs.contractor')
             <div class="col">
                 <a href="/repairs/contractor" class="btn btn-white border w-100 py-4 rounded-4 shadow-sm fw-semibold d-flex flex-column align-items-center justify-content-center h-100 tap hover-shadow transition">
@@ -184,7 +216,7 @@ $maxWidth = '1200px';
                             <path d="M9 14a3 3 0 1 1 6 0c0 1.657-.895 2.5-2 3" />
                         </svg>
                     </div>
-                    <span>Báo cáo môi trường</span>
+                    <span>{{ __('messages.environment_report') }}</span>
                 </a>
             </div>
             @endfeature
