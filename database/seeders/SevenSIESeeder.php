@@ -17,7 +17,7 @@ class SevenSIESeeder extends Seeder
             [
                 'section'    => 'S1 & S2 & S3 : Sắp xếp & sàng lọc, sạch sẽ',
                 'sort_order' => 1,
-                'content'    => 'Số liệu trên báo cáo chính xác, loại bỏ các báo cáo tài liệu cũ, không liên quan hay chưa (thu phát nguyên phụ liệu & hóa chất, thu phát dụng cụ sắc nhọn, sổ ghi chép an toàn xưởng, ...)',
+                'content'    => 'Số liệu trên báo cáo chính xác, loại bỏ các báo cáo tài liệu cũ, không liên quan hay chưa ( thu phát nguyên phụ liệu & hóa chất, thu phát dụng cụ sắc nhọn, sổ ghi chép an toàn xưởng, ...)',
             ],
             [
                 'section'    => 'S1 & S2 & S3 : Sắp xếp & sàng lọc, sạch sẽ',
