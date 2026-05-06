@@ -824,20 +824,24 @@ td, th { border: 1px solid #999; padding: 4px 6px; vertical-align: middle; mso-n
     }
   }
 
-  private function notifySevenSParticipants(SevenSRecord $record, string $eventKey, string $title, string $message, array $params = []): void
-  {
-    $users = User::query()
-      ->where('id', $record->inspector_id)
-      ->orWhereHas('roles', function ($q) {
-        $q->whereIn('name', ['admin', '7s']);
-      })
-      ->get()
-      ->where('id', '!=', auth()->id())
-      ->unique('id');
-
+  private function notifySevenSParticipants(
+    SevenSRecord $record,
+    string $eventKey,
+    string $title,
+    string $message,
+    array $params = []
+  ): void {
     $notification = new SevenSStatusChangedNotification($record->id, $eventKey, $title, $message, $params);
-    foreach ($users as $user) {
-      $user->notify($notification);
+
+    // Notify Inspector
+    if ($record->inspector && $record->inspector_id !== auth()->id()) {
+      $record->inspector->notify($notification);
+    }
+
+    // Notify Admins
+    $admins = User::role('admin')->where('id', '!=', auth()->id())->get();
+    foreach ($admins as $admin) {
+      $admin->notify($notification);
     }
   }
 }

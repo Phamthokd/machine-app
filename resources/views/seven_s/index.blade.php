@@ -211,7 +211,7 @@
             <select id="deptSelector" class="form-select form-select-sm border-0 shadow-sm rounded-3" style="background-color: #f1f5f9; font-weight: 600;">
                 <option value="all">-- {{ __('messages.all') }} --</option>
                 @foreach($templates as $deptName)
-                <option value="{{ $deptName }}">{{ __('messages.' . $deptName) }}</option>
+                <option value="{{ $deptName }}" {{ $deptName === 'Đơn hàng' ? 'selected' : '' }}>{{ __('messages.' . $deptName) }}</option>
                 @endforeach
             </select>
         </div>
@@ -265,6 +265,8 @@
             deptSelector.addEventListener('change', function() {
                 filterCards(this.value);
             });
+            // Default filter on load
+            filterCards(deptSelector.value);
         }
     });
 </script>
@@ -284,7 +286,7 @@
                 <div class="col-md-3">
                     <label class="small fw-bold text-muted mb-2 d-block">{{ __('messages.filter_department') }}</label>
                     <select name="history_dept" class="form-select form-select-sm border-0 shadow-sm rounded-3 py-2" style="background-color: #f1f5f9; font-weight: 600;">
-                        <option value="all">-- {{ __('messages.all') }} --</option>
+                        <option value="all" {{ request('history_dept') == 'all' || !request('history_dept') ? 'selected' : '' }}>-- {{ __('messages.all') }} --</option>
                         @foreach($templates as $deptName)
                         <option value="{{ $deptName }}" {{ request('history_dept') == $deptName ? 'selected' : '' }}>{{ __('messages.' . $deptName) }}</option>
                         @endforeach
