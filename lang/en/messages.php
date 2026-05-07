@@ -320,7 +320,7 @@ return [
     'audit_xnk_q5' => 'Are INV, PKL, related documents, and customs declarations on the receiving system accurate?',
     'audit_xnk_q6' => 'Are the consumption norms accurate?',
     'audit_xnk_q7' => 'Is the reconciliation report performed according to regulations?',
-    'audit_xnk_q8' => 'Are defective RAW/BTP/TP stock handled according to regulations?',
+    'audit_xnk_q8' => 'Are errors in NPL/BTP/TP inventory being handled properly, and are fabric scraps being processed in accordance with regulations?',
     'audit_xnk_q9' => 'Are there full SOPs for the department and are they updated when there are changes?',
     'audit_xnk_q10' => 'Are expired documents removed according to storage time regulations?',
 

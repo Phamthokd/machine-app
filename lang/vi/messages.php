@@ -320,7 +320,7 @@ return [
     'audit_xnk_q5' => 'INV, PKL, Các giấy tờ liên quan, Khai báo hải quan trên hệ thống nhập hàng có chính xác không?',
     'audit_xnk_q6' => 'Định mức có chính xác không?',
     'audit_xnk_q7' => 'Báo cáo cân bằng có được thực hiện theo đúng quy định không?',
-    'audit_xnk_q8' => 'NPL/BTP/TP tồn lỗi có được xử lý theo đúng quy định',
+    'audit_xnk_q8' => 'NPL/BTP/TP tồn lỗi, vải vụn có được xử lý theo đúng quy định không?',
     'audit_xnk_q9' => 'Có đầy đủ các SOP của bộ phận và được cập nhật khi có thay đổi không?',
     'audit_xnk_q10' => 'Có loại bỏ những tài liệu quá hạn theo quy định về thời gian lưu trữ không?',
 
