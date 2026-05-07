@@ -346,6 +346,7 @@ return [
     'audit_hc_q4' => 'SOP 的发布/更新是否按规定执行？',
     'audit_hc_q5' => '部门的所有 SOP 是否齐全并在有变动时更新？',
     'audit_hc_q6' => '是否按文件保存期限的规定清理过期文件？',
+    'audit_hc_q7' => '接待与送别客户的流程是否按规定执行？',
 
     'manage_audits_subtitle' => '管理各部门的质量检查和评估',
     'start_new_audit' => '开始新审核',

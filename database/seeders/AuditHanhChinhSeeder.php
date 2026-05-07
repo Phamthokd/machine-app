@@ -22,7 +22,7 @@ class AuditHanhChinhSeeder extends Seeder
         );
   
         $criteria = [];
-        for ($i = 1; $i <= 6; $i++) {
+        for ($i = 1; $i <= 7; $i++) {
             $criteria[] = "messages.audit_hc_q$i";
         }
 

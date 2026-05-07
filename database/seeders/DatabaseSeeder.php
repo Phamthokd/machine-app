@@ -33,6 +33,7 @@ class DatabaseSeeder extends Seeder
             AuditNhaGiatSeeder::class,
             AuditThongKeTongSeeder::class,
             AuditIESeeder::class,
+            AuditHanhChinhSeeder::class,
             AuditKHSXSeeder::class,
             AuditPhongMauSeeder::class,
             AuditQASeeder::class,

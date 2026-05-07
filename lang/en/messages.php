@@ -352,6 +352,7 @@ return [
     'audit_hc_q4' => 'Is the issuance/update of SOPs performed according to regulations?',
     'audit_hc_q5' => 'Are there full SOPs for the department and are they updated when there are changes?',
     'audit_hc_q6' => 'Are expired documents removed according to storage time regulations?',
+    'audit_hc_q7' => 'Is the customer reception and send-off process performed correctly?',
 
     'manage_audits_subtitle' => 'Manage quality inspections and evaluations of departments',
     'start_new_audit' => 'Start New Audit',

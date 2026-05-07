@@ -352,6 +352,7 @@ return [
     'audit_hc_q4' => 'Việc phát hành/cập nhật SOP có được thực hiện theo đúng quy định không?',
     'audit_hc_q5' => 'Có đầy đủ các SOP của bộ phận và được cập nhật khi có thay đổi không?',
     'audit_hc_q6' => 'Có loại bỏ những tài liệu quá hạn theo quy định về thời gian lưu trữ không?',
+    'audit_hc_q7' => 'Quy trình đón tiễn khách có được thực hiện đúng không?',
 
     'manage_audits_subtitle' => 'Quản lý các đợt kiểm tra và đánh giá chất lượng các bộ phận',
     'start_new_audit' => 'Thực hiện đánh giá mới',
