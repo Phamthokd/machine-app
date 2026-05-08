@@ -20,6 +20,11 @@ class DatabaseSeeder extends Seeder
             SevenSKeToanSeeder::class,
             SevenSQASeeder::class,
             SevenSTheuSeeder::class,
+            SevenSSuaMaySeeder::class,
+            SevenSNhaGiatSeeder::class,
+            SevenSNhaCatSeeder::class,
+            SevenSKhoCoKhiSeeder::class,
+            SevenSKhoVaiSeeder::class,
             AuditBtpSeeder::class,
             AuditXuong6Tang1Seeder::class,
             AuditXuong6Tang2Seeder::class,
@@ -28,7 +33,8 @@ class DatabaseSeeder extends Seeder
             AuditKeToanSeeder::class,
             AuditSaleSeeder::class,
             AuditDonHangSeeder::class,
-            AuditKhoVaiPLSeeder::class,
+            AuditKhoVaiSeeder::class,
+            AuditKhoPhuLieuSeeder::class,
             AuditNhaCatSeeder::class,
             AuditNhaGiatSeeder::class,
             AuditThongKeTongSeeder::class,
@@ -41,3 +47,4 @@ class DatabaseSeeder extends Seeder
         ]);
     }
 }
+

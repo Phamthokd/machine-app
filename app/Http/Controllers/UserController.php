@@ -37,12 +37,14 @@ class UserController extends Controller
 
     public function store(Request $request)
     {
+        $allowedDepartments = $this->departments();
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'username' => ['required', 'string', 'max:255', 'unique:users'],
             'password' => ['required', 'string', 'min:6'],
             'role' => ['required', 'string', 'exists:roles,name'],
-            'managed_department' => ['nullable', 'string', Rule::in($this->departments())],
+            'managed_department' => ['nullable', 'string', Rule::in($allowedDepartments)],
             'is_active' => ['nullable', 'boolean'],
             'permissions' => ['nullable', 'array'],
             'permissions.*' => ['string', 'exists:permissions,name'],
@@ -65,7 +67,7 @@ class UserController extends Controller
     public function edit(User $user)
     {
         $roles = Role::all();
-        $departments = $this->departments();
+        $departments = $this->departmentsForEdit($user->managed_department);
         $permissionGroups = config('feature_permissions', []);
         $user->load('permissions');
 
@@ -74,12 +76,14 @@ class UserController extends Controller
 
     public function update(Request $request, User $user)
     {
+        $allowedDepartments = $this->departmentsForEdit($user->managed_department);
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'username' => ['required', 'string', 'max:255', 'unique:users,username,' . $user->id],
             'role' => ['required', 'string', 'exists:roles,name'],
             'password' => ['nullable', 'string', 'min:6'],
-            'managed_department' => ['nullable', 'string', Rule::in($this->departments())],
+            'managed_department' => ['nullable', 'string', Rule::in($allowedDepartments)],
             'is_active' => ['nullable', 'boolean'],
             'permissions' => ['nullable', 'array'],
             'permissions.*' => ['string', 'exists:permissions,name'],
@@ -147,7 +151,8 @@ class UserController extends Controller
             'Kế toán',
             'Sale',
             'Đơn hàng',
-            'Kho vải + PL',
+            'Kho vải',
+            'Kho phụ liệu',
             'Nhà cắt',
             'Nhà giặt',
             'Thống kê tổng',
@@ -158,6 +163,16 @@ class UserController extends Controller
             'Khác',
         ];
     }
+    private function departmentsForEdit(?string $currentDepartment): array
+    {
+        $departments = $this->departments();
+
+        if (!empty($currentDepartment) && !in_array($currentDepartment, $departments, true)) {
+            $departments[] = $currentDepartment;
+        }
+
+        return $departments;
+    }
 
     private function permissionLabels(): array
     {
@@ -166,3 +181,4 @@ class UserController extends Controller
             ->all();
     }
 }
+
