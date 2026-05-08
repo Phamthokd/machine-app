@@ -57,8 +57,13 @@
                     </td>
                     <td>{{ $user->username }}</td>
                     <td>
-                        @if($user->managed_department)
-                            <span class="badge bg-secondary bg-opacity-10 text-secondary">{{ $user->managed_department }}</span>
+                        @php($departments = $user->managedDepartments())
+                        @if(!empty($departments))
+                            <div class="d-flex flex-wrap gap-1">
+                                @foreach($departments as $dept)
+                                    <span class="badge bg-secondary bg-opacity-10 text-secondary">{{ $dept }}</span>
+                                @endforeach
+                            </div>
                         @else
                             <span class="text-muted small">N/A</span>
                         @endif

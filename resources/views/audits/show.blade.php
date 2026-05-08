@@ -4,20 +4,14 @@ $isFullyReviewed = $audit->results->contains(function($r) { return !empty($r->im
 $audit->results->filter(function($r) { return !empty($r->improver_name) && empty($r->reviewer_name); })->isEmpty();
 
 // Quyền truy cập
-$userDept = auth()->user()->managed_department;
 $auditDept = $audit->template->department_name ?? null;
 $isAdmin = auth()->user()->isAdminUser();
 
-$userDeptMapped = \App\Models\AuditTemplate::normalizeDepartmentName($userDept);
-$auditDeptMapped = \App\Models\AuditTemplate::normalizeDepartmentName($auditDept);
-
-$isDepartmentUser = \Illuminate\Support\Facades\Auth::check() && (
-    !empty($userDeptMapped) && !empty($auditDeptMapped) && $userDeptMapped === $auditDeptMapped
-);
+$isDepartmentUser = \Illuminate\Support\Facades\Auth::check() && auth()->user()->managesDepartment($auditDept);
 
 $isAuditUser = \Illuminate\Support\Facades\Auth::check()
 && auth()->user()->canAccessAuditModule()
-&& empty(auth()->user()->managed_department);
+&& !auth()->user()->hasManagedDepartments();
 
 // Phân loại lỗi
 $unrespondedResults = $failedResults->filter(function($r) {

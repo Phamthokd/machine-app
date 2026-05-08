@@ -18,9 +18,9 @@ class FeatureAccess
             'team_leader' => $user->hasRole('team_leader'),
             'contractor' => $user->hasRole('contractor'),
             'audits.access' => $user->hasRole('admin') || $user->hasRole('audit') || $user->can('audits.access'),
-            'audits.manage' => self::allows($user, 'audits.access') && empty($user->managed_department),
+            'audits.manage' => self::allows($user, 'audits.access') && !$user->hasManagedDepartments(),
             'seven_s.access' => $user->hasRole('admin') || $user->hasRole('7s') || $user->can('seven_s.access'),
-            'seven_s.manage' => self::allows($user, 'seven_s.access') && empty($user->managed_department),
+            'seven_s.manage' => self::allows($user, 'seven_s.access') && !$user->hasManagedDepartments(),
             'environment_reports.access' => $user->hasAnyRole(['admin', 'environment']) || $user->can('environment_reports.access'),
             'repairs.manage' => $user->hasAnyRole(['admin', 'warehouse', 'repair_tech', 'contractor', 'team_leader']) || $user->can('repairs.manage'),
             'repairs.view' => $user->hasAnyRole(['admin', 'warehouse', 'repair_tech', 'contractor', 'team_leader', 'audit', '7s']) || $user->can('repairs.view'),
@@ -52,9 +52,6 @@ class FeatureAccess
             return false;
         }
 
-        $userDepartment = AuditTemplate::normalizeDepartmentName($user->managed_department);
-        $targetDepartment = AuditTemplate::normalizeDepartmentName($departmentName);
-
-        return !empty($userDepartment) && !empty($targetDepartment) && $userDepartment === $targetDepartment;
+        return $user->managesDepartment($departmentName);
     }
 }

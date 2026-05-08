@@ -180,19 +180,13 @@
     </button>
 </div>
 
-@if(session('success'))
-<div class="alert alert-success border-0 shadow-sm rounded-4 mb-4 pulse">
-    {{ session('success') }}
-</div>
-@endif
-
 @if(session('error'))
 <div class="alert alert-danger border-0 shadow-sm rounded-4 mb-4">
     {{ session('error') }}
 </div>
 @endif
 
-@if(auth()->check() && empty(auth()->user()->managed_department))
+@if(auth()->check() && !auth()->user()->hasManagedDepartments())
 <div class="mb-5">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
         <div class="d-flex align-items-baseline gap-2">
@@ -370,16 +364,9 @@
                                     $unrespondedResults = $failedResults->filter(fn($r) => is_null($r->department_agreement));
                                     $rejectedResultsPendingAudit = $failedResults->filter(fn($r) => $r->department_agreement === false && is_null($r->audit_rejection_decision));
 
-                                    $userDept = auth()->user()->managed_department;
                                     $auditDept = $audit->template->department_name ?? null;
                                     $isAdmin = auth()->user()->isAdminUser();
-
-                                    $userDeptMapped = \App\Models\AuditTemplate::normalizeDepartmentName($userDept);
-                                    $auditDeptMapped = \App\Models\AuditTemplate::normalizeDepartmentName($auditDept);
-
-                                    $isDepartmentUser = \Illuminate\Support\Facades\Auth::check() && (
-                                        !empty($userDeptMapped) && !empty($auditDeptMapped) && $userDeptMapped === $auditDeptMapped
-                                    );
+                                    $isDepartmentUser = \Illuminate\Support\Facades\Auth::check() && auth()->user()->managesDepartment($auditDept);
                                     $canRespond = $isDepartmentUser && $unrespondedResults->isNotEmpty();
 
                                     $improveableResults = $failedResults->filter(function($r) {

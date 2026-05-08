@@ -1,5 +1,8 @@
 @php
-    $isManagedDepartmentUser = auth()->check() && !empty(auth()->user()->managed_department);
+    $managedDepartments = auth()->check() ? auth()->user()->managedDepartments() : [];
+    $isManagedDepartmentUser = auth()->check() && !empty($managedDepartments);
+    $isSingleManagedDepartmentUser = $isManagedDepartmentUser && count($managedDepartments) === 1;
+    $departmentOptions = $isManagedDepartmentUser ? $managedDepartments : $departments;
     $currentReport = $report ?? null;
 @endphp
 
@@ -58,45 +61,45 @@
     <div class="report-card p-4">
         <div class="row g-3">
             <div class="col-md-4">
-                <label class="form-label fw-bold">Vị trí</label>
-                <select name="department_name" class="form-select" @disabled($isManagedDepartmentUser)>
-                    @foreach($departments as $department)
+                <label class="form-label fw-bold">Vá»‹ trÃ­</label>
+                <select name="department_name" class="form-select" @disabled($isSingleManagedDepartmentUser)>
+                    @foreach($departmentOptions as $department)
                         <option value="{{ $department }}" @selected(old('department_name', $selectedDepartment) === $department)>{{ $department }}</option>
                     @endforeach
                 </select>
-                @if($isManagedDepartmentUser)
+                @if($isSingleManagedDepartmentUser)
                     <input type="hidden" name="department_name" value="{{ old('department_name', $selectedDepartment) }}">
                 @endif
             </div>
             <div class="col-md-2">
-                <label class="form-label fw-bold">Tháng</label>
+                <label class="form-label fw-bold">ThÃ¡ng</label>
                 <input type="number" min="1" max="12" name="report_month" class="form-control" value="{{ old('report_month', $reportMonth) }}" required>
             </div>
             <div class="col-md-2">
-                <label class="form-label fw-bold">Năm</label>
+                <label class="form-label fw-bold">NÄƒm</label>
                 <input type="number" min="2020" max="2100" name="report_year" class="form-control" value="{{ old('report_year', $reportYear) }}" required>
             </div>
             <div class="col-md-2">
-                <label class="form-label fw-bold">Trạng thái</label>
+                <label class="form-label fw-bold">Tráº¡ng thÃ¡i</label>
                 <select name="status" class="form-select">
-                    <option value="draft" @selected(old('status', $currentReport?->status ?? 'draft') === 'draft')>Nháp</option>
-                    <option value="submitted" @selected(old('status', $currentReport?->status ?? 'draft') === 'submitted')>Đã chốt</option>
+                    <option value="draft" @selected(old('status', $currentReport?->status ?? 'draft') === 'draft')>NhÃ¡p</option>
+                    <option value="submitted" @selected(old('status', $currentReport?->status ?? 'draft') === 'submitted')>ÄÃ£ chá»‘t</option>
                 </select>
             </div>
             <div class="col-md-2">
-                <label class="form-label fw-bold">Mốc giờ</label>
+                <label class="form-label fw-bold">Má»‘c giá»</label>
                 <div class="form-control bg-light d-flex align-items-center">7:30 / 10:30 / 14:00 / 16:30</div>
             </div>
             <div class="col-12">
-                <label class="form-label fw-bold">Ghi chú chung</label>
-                <textarea name="note" rows="2" class="form-control" placeholder="Ghi chú chung cho báo cáo tháng">{{ old('note', $currentReport?->note ?? '') }}</textarea>
+                <label class="form-label fw-bold">Ghi chÃº chung</label>
+                <textarea name="note" rows="2" class="form-control" placeholder="Ghi chÃº chung cho bÃ¡o cÃ¡o thÃ¡ng">{{ old('note', $currentReport?->note ?? '') }}</textarea>
             </div>
         </div>
     </div>
 
     @if($errors->any())
         <div class="alert alert-danger border-0 shadow-sm rounded-4 mb-0">
-            <div class="fw-bold mb-2">Dữ liệu chưa hợp lệ</div>
+            <div class="fw-bold mb-2">Dá»¯ liá»‡u chÆ°a há»£p lá»‡</div>
             <ul class="mb-0 ps-3">
                 @foreach($errors->all() as $error)
                     <li>{{ $error }}</li>
@@ -109,10 +112,10 @@
         <div class="p-4 border-bottom">
             <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
                 <div>
-                    <h3 class="h5 fw-bold mb-1">Bảng ghi nhiệt độ và độ ẩm</h3>
-                    <div class="text-muted small">Nhập theo từng ngày. Hệ thống giữ đúng cấu trúc 4 mốc giờ của phiếu giấy.</div>
+                    <h3 class="h5 fw-bold mb-1">Báº£ng ghi nhiá»‡t Ä‘á»™ vÃ  Ä‘á»™ áº©m</h3>
+                    <div class="text-muted small">Nháº­p theo tá»«ng ngÃ y. Há»‡ thá»‘ng giá»¯ Ä‘Ãºng cáº¥u trÃºc 4 má»‘c giá» cá»§a phiáº¿u giáº¥y.</div>
                 </div>
-                <div class="small text-muted">Khuyến nghị: nhiệt độ 18-37°C, độ ẩm 40-65%</div>
+                <div class="small text-muted">Khuyáº¿n nghá»‹: nhiá»‡t Ä‘á»™ 18-37Â°C, Ä‘á»™ áº©m 40-65%</div>
             </div>
         </div>
 
@@ -120,12 +123,12 @@
             <table class="table table-bordered report-grid-table mb-0">
                 <thead>
                     <tr>
-                        <th rowspan="2" class="sticky-col">Ngày</th>
-                        <th colspan="4">Độ ẩm (%)</th>
-                        <th colspan="4">Nhiệt độ (°C)</th>
-                        <th rowspan="2">Thời tiết</th>
-                        <th colspan="4">Hình thức cải thiện</th>
-                        <th rowspan="2">Người kiểm tra</th>
+                        <th rowspan="2" class="sticky-col">NgÃ y</th>
+                        <th colspan="4">Äá»™ áº©m (%)</th>
+                        <th colspan="4">Nhiá»‡t Ä‘á»™ (Â°C)</th>
+                        <th rowspan="2">Thá»i tiáº¿t</th>
+                        <th colspan="4">HÃ¬nh thá»©c cáº£i thiá»‡n</th>
+                        <th rowspan="2">NgÆ°á»i kiá»ƒm tra</th>
                     </tr>
                     <tr>
                         @foreach($timeSlots as $slot)
@@ -201,13 +204,13 @@
         </div>
 
         <div class="p-4 border-top bg-light rounded-bottom-4 d-flex flex-wrap justify-content-between gap-3 small text-muted">
-            <div>A/B/C: dùng cho hành động khắc phục theo quy trình thực tế của nhà máy.</div>
-            <div>Giá trị vượt ngưỡng sẽ được tô nền để người nhập dễ nhận biết.</div>
+            <div>A/B/C: dÃ¹ng cho hÃ nh Ä‘á»™ng kháº¯c phá»¥c theo quy trÃ¬nh thá»±c táº¿ cá»§a nhÃ  mÃ¡y.</div>
+            <div>GiÃ¡ trá»‹ vÆ°á»£t ngÆ°á»¡ng sáº½ Ä‘Æ°á»£c tÃ´ ná»n Ä‘á»ƒ ngÆ°á»i nháº­p dá»… nháº­n biáº¿t.</div>
         </div>
     </div>
 
     <div class="sticky-actions d-flex flex-wrap justify-content-end gap-2">
-        <a href="{{ route('environment-reports.index') }}" class="btn btn-light px-4">Quay lại</a>
-        <button type="submit" class="btn btn-primary px-4">Lưu báo cáo</button>
+        <a href="{{ route('environment-reports.index') }}" class="btn btn-light px-4">Quay láº¡i</a>
+        <button type="submit" class="btn btn-primary px-4">LÆ°u bÃ¡o cÃ¡o</button>
     </div>
 </div>

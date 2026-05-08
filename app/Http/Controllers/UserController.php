@@ -31,8 +31,12 @@ class UserController extends Controller
         $roles = Role::all();
         $departments = $this->departments();
         $permissionGroups = config('feature_permissions', []);
+        $selectedDepartments = old('managed_departments', []);
+        if (!is_array($selectedDepartments)) {
+            $selectedDepartments = [];
+        }
 
-        return view('users.create', compact('roles', 'departments', 'permissionGroups'));
+        return view('users.create', compact('roles', 'departments', 'permissionGroups', 'selectedDepartments'));
     }
 
     public function store(Request $request)
@@ -44,17 +48,21 @@ class UserController extends Controller
             'username' => ['required', 'string', 'max:255', 'unique:users'],
             'password' => ['required', 'string', 'min:6'],
             'role' => ['required', 'string', 'exists:roles,name'],
-            'managed_department' => ['nullable', 'string', Rule::in($allowedDepartments)],
+            'managed_departments' => ['nullable', 'array'],
+            'managed_departments.*' => ['string', Rule::in($allowedDepartments)],
             'is_active' => ['nullable', 'boolean'],
             'permissions' => ['nullable', 'array'],
             'permissions.*' => ['string', 'exists:permissions,name'],
         ]);
 
+        $managedDepartments = array_values(array_filter($validated['managed_departments'] ?? []));
+
         $user = User::create([
             'name' => $validated['name'],
             'username' => $validated['username'],
             'password' => Hash::make($validated['password']),
-            'managed_department' => $validated['managed_department'] ?? null,
+            'managed_department' => $managedDepartments[0] ?? null,
+            'managed_departments' => $managedDepartments ?: null,
             'is_active' => $request->boolean('is_active', true),
         ]);
 
@@ -67,32 +75,40 @@ class UserController extends Controller
     public function edit(User $user)
     {
         $roles = Role::all();
-        $departments = $this->departmentsForEdit($user->managed_department);
+        $departments = $this->departmentsForEdit($user->managedDepartments());
         $permissionGroups = config('feature_permissions', []);
+        $selectedDepartments = old('managed_departments', $user->managedDepartments());
+        if (!is_array($selectedDepartments)) {
+            $selectedDepartments = [];
+        }
         $user->load('permissions');
 
-        return view('users.edit', compact('user', 'roles', 'departments', 'permissionGroups'));
+        return view('users.edit', compact('user', 'roles', 'departments', 'permissionGroups', 'selectedDepartments'));
     }
 
     public function update(Request $request, User $user)
     {
-        $allowedDepartments = $this->departmentsForEdit($user->managed_department);
+        $allowedDepartments = $this->departmentsForEdit($user->managedDepartments());
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'username' => ['required', 'string', 'max:255', 'unique:users,username,' . $user->id],
             'role' => ['required', 'string', 'exists:roles,name'],
             'password' => ['nullable', 'string', 'min:6'],
-            'managed_department' => ['nullable', 'string', Rule::in($allowedDepartments)],
+            'managed_departments' => ['nullable', 'array'],
+            'managed_departments.*' => ['string', Rule::in($allowedDepartments)],
             'is_active' => ['nullable', 'boolean'],
             'permissions' => ['nullable', 'array'],
             'permissions.*' => ['string', 'exists:permissions,name'],
         ]);
 
+        $managedDepartments = array_values(array_filter($validated['managed_departments'] ?? []));
+
         $updateData = [
             'name' => $validated['name'],
             'username' => $validated['username'],
-            'managed_department' => $validated['managed_department'] ?? null,
+            'managed_department' => $managedDepartments[0] ?? null,
+            'managed_departments' => $managedDepartments ?: null,
             'is_active' => $request->boolean('is_active'),
         ];
 
@@ -163,12 +179,14 @@ class UserController extends Controller
             'Khác',
         ];
     }
-    private function departmentsForEdit(?string $currentDepartment): array
+    private function departmentsForEdit(array $currentDepartments): array
     {
         $departments = $this->departments();
 
-        if (!empty($currentDepartment) && !in_array($currentDepartment, $departments, true)) {
-            $departments[] = $currentDepartment;
+        foreach ($currentDepartments as $currentDepartment) {
+            if (!empty($currentDepartment) && !in_array($currentDepartment, $departments, true)) {
+                $departments[] = $currentDepartment;
+            }
         }
 
         return $departments;

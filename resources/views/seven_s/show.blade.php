@@ -9,9 +9,7 @@ $isFullyImproved = $nonBResults->isNotEmpty() && $nonBResults->every(fn($r) => $
 $isAuditor = auth()->user()->isAdminUser() || 
             (auth()->user()->canManageSevenSModule() && $record->inspector_id === auth()->id());
 
-$userDept = \App\Models\AuditTemplate::normalizeDepartmentName(auth()->user()->managed_department);
-$recordDept = \App\Models\AuditTemplate::normalizeDepartmentName($record->department);
-$isDeptUser = auth()->user()->canAccessSevenSModule() && !empty($userDept) && $userDept === $recordDept;
+$isDeptUser = auth()->user()->canAccessSevenSModule() && auth()->user()->managesDepartment($record->department);
 
 $canRespond = (auth()->user()->isAdminUser() || $isDeptUser) 
             && $nonBResults->contains(fn($r) => $r->review_status === 'pending_feedback' && is_null($r->department_agreement));

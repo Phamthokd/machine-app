@@ -41,13 +41,15 @@
             </div>
 
             <div class="mb-4">
-                <label class="form-label fw-bold">{{ __('messages.managed_department') }} <span class="text-secondary fw-normal small">({{ mb_strtolower(__('messages.optional')) }})</span></label>
-                <select class="form-select" name="managed_department">
-                    <option value="">{{ __('messages.select_department') }}</option>
+                <label class="form-label fw-bold">{{ __('messages.managed_department') }} <span class="text-secondary fw-normal small">({{ mb_strtolower(__('messages.optional')) }}, có thể chọn nhiều)</span></label>
+                <div class="border rounded-4 p-3 bg-light" style="max-height: 320px; overflow: auto;">
                     @foreach($departments as $dept)
-                        <option value="{{ $dept }}" @selected(old('managed_department') == $dept)>{{ $dept }}</option>
+                        <label class="form-check d-flex align-items-center gap-2 mb-2">
+                            <input class="form-check-input" type="checkbox" name="managed_departments[]" value="{{ $dept }}" @checked(in_array($dept, old('managed_departments', $selectedDepartments ?? [])))>
+                            <span>{{ $dept }}</span>
+                        </label>
                     @endforeach
-                </select>
+                </div>
             </div>
 
             <div class="mb-4">

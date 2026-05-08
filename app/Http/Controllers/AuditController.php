@@ -12,6 +12,14 @@ use Illuminate\Http\Request;
 
 class AuditController extends Controller
 {
+    private function userManagedDepartments(User $user): array
+    {
+        return array_values(array_filter(array_map(
+            fn ($department) => AuditTemplate::normalizeDepartmentName($department),
+            $user->managedDepartments()
+        )));
+    }
+
     public function index(Request $request)
     {
         // Get list of active templates for creating new audits
@@ -20,11 +28,11 @@ class AuditController extends Controller
 
         $query = AuditRecord::with('template', 'auditor', 'results');
 
-        // 1. Authorization/Base Filter: Filter by managed department if the user has one
-        if (!empty($user->managed_department)) {
-            $mappedDept = AuditTemplate::normalizeDepartmentName($user->managed_department);
-            $query->whereHas('template', function ($q) use ($mappedDept) {
-                $q->where('department_name', $mappedDept);
+        // 1. Authorization/Base Filter: Filter by all managed departments if the user has any
+        $managedDepartments = $this->userManagedDepartments($user);
+        if (!empty($managedDepartments)) {
+            $query->whereHas('template', function ($q) use ($managedDepartments) {
+                $q->whereIn('department_name', $managedDepartments);
             });
         }
 
@@ -50,7 +58,7 @@ class AuditController extends Controller
 
     public function create(Request $request)
     {
-        abort_unless(empty(auth()->user()->managed_department), 403, 'Bạn không có quyền thực hiện chức năng này vì đã được phân công bộ phận.');
+        abort_unless(empty(auth()->user()->managedDepartments()), 403, 'Bạn không có quyền thực hiện chức năng này vì đã được phân công bộ phận.');
 
         $templateId = $request->query('template_id');
         abort_unless($templateId, 400, 'Thiếu ID bộ đánh giá');
@@ -62,7 +70,7 @@ class AuditController extends Controller
 
     public function store(Request $request)
     {
-        abort_unless(empty(auth()->user()->managed_department), 403, 'Bạn không có quyền thực hiện chức năng này vì đã được phân công bộ phận.');
+        abort_unless(empty(auth()->user()->managedDepartments()), 403, 'Bạn không có quyền thực hiện chức năng này vì đã được phân công bộ phận.');
 
         $templateId = $request->input('audit_template_id');
         $template = AuditTemplate::findOrFail($templateId);
@@ -252,9 +260,10 @@ class AuditController extends Controller
 
         $query = AuditRecord::with(['template', 'auditor', 'results']);
 
-        if (!empty($user->managed_department)) {
-            $query->whereHas('template', function ($q) use ($user) {
-                $q->where('department_name', $user->managed_department);
+                $managedDepartments = $this->userManagedDepartments($user);
+        if (!empty($managedDepartments)) {
+            $query->whereHas('template', function ($q) use ($managedDepartments) {
+                $q->whereIn('department_name', $managedDepartments);
             });
         }
 
@@ -426,13 +435,8 @@ class AuditController extends Controller
 
         // Check if user is from the department being audited
         $template = $audit->template;
-        if (!empty($user->managed_department)) {
-            $userMapped = AuditTemplate::normalizeDepartmentName($user->managed_department);
-            $auditMapped = AuditTemplate::normalizeDepartmentName($template->department_name);
-
-            if ($userMapped !== $auditMapped && !$user->isAdminUser()) {
-                abort(403, 'Bạn không có quyền xác nhận hoàn thành cho phiếu thuộc bộ phận khác.');
-            }
+        if (!$user->isAdminUser() && !$user->managesDepartment($template->department_name)) {
+            abort(403, 'Bạn không có quyền xác nhận hoàn thành cho phiếu thuộc bộ phận khác.');
         }
 
         $request->validate([
@@ -605,10 +609,7 @@ class AuditController extends Controller
 
         // Authorization: Current user must belong to the department being audited
         $user = auth()->user();
-        $userMapped = AuditTemplate::normalizeDepartmentName($user->managed_department);
-        $auditMapped = AuditTemplate::normalizeDepartmentName($audit->template->department_name);
-
-        abort_unless($userMapped === $auditMapped || $user->isAdminUser(), 403, 'Bạn không thuộc bộ phận này nên không thể phản hồi lỗi.');
+        abort_unless($user->isAdminUser() || $user->managesDepartment($audit->template->department_name), 403, 'Bạn không thuộc bộ phận này nên không thể phản hồi lỗi.');
 
         $request->validate([
             'agreements' => 'required|array',
@@ -714,12 +715,17 @@ class AuditController extends Controller
             return;
         }
 
-        $users = User::query()
-            ->whereNotNull('managed_department')
+                $users = User::query()
             ->whereNotIn('id', $excludeUserIds)
             ->get()
             ->filter(function (User $user) use ($normalizedDepartment) {
-                return AuditTemplate::normalizeDepartmentName($user->managed_department) === $normalizedDepartment;
+                foreach ($user->managedDepartments() as $department) {
+                    if (AuditTemplate::normalizeDepartmentName($department) === $normalizedDepartment) {
+                        return true;
+                    }
+                }
+
+                return false;
             });
 
         $notification = new AuditStatusChangedNotification($auditId, $eventKey, $title, $message, $params);
@@ -746,4 +752,3 @@ class AuditController extends Controller
     }
 
 }
-

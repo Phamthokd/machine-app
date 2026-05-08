@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Models\AuditTemplate;
 use App\Support\FeatureAccess;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -27,6 +28,7 @@ class User extends Authenticatable
         'username',
         'password',
         'managed_department',
+        'managed_departments',
         'is_active',
     ];
 
@@ -51,6 +53,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
+            'managed_departments' => 'array',
         ];
     }
 
@@ -142,5 +145,57 @@ class User extends Authenticatable
     public function belongsToDepartment(?string $departmentName): bool
     {
         return FeatureAccess::belongsToDepartment($this, $departmentName);
+    }
+
+    public function managedDepartments(): array
+    {
+        $departments = $this->managed_departments;
+
+        if (is_string($departments)) {
+            $decoded = json_decode($departments, true);
+            $departments = is_array($decoded) ? $decoded : [$departments];
+        }
+
+        if (!is_array($departments)) {
+            $departments = [];
+        }
+
+        if (!empty($this->managed_department)) {
+            $departments[] = $this->managed_department;
+        }
+
+        $departments = array_values(array_unique(array_filter(array_map(
+            fn ($department) => trim((string) $department),
+            $departments
+        ))));
+
+        return $departments;
+    }
+
+    public function hasManagedDepartments(): bool
+    {
+        return !empty($this->managedDepartments());
+    }
+
+    public function primaryManagedDepartment(): ?string
+    {
+        return $this->managedDepartments()[0] ?? null;
+    }
+
+    public function managesDepartment(?string $departmentName): bool
+    {
+        $targetDepartment = AuditTemplate::normalizeDepartmentName($departmentName);
+
+        if (empty($targetDepartment)) {
+            return false;
+        }
+
+        foreach ($this->managedDepartments() as $department) {
+            if (AuditTemplate::normalizeDepartmentName($department) === $targetDepartment) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

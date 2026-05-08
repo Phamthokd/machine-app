@@ -192,7 +192,7 @@
 </div>
 @endif
 
-@if(auth()->check() && empty(auth()->user()->managed_department))
+@if(auth()->check() && !auth()->user()->hasManagedDepartments())
 <div class="mb-5">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
         <div class="d-flex align-items-baseline gap-2">
@@ -344,16 +344,10 @@
                     $isRejectedImprovement = $failedResults->contains(fn($r) => $r->review_status === 'rejected');
                     $isPendingAuditReview = $failedResults->contains(fn($r) => $r->review_status === 'pending_review');
 
-                    $userDept = auth()->user()->managed_department;
                     $auditDept = $record->department;
                     $isAdmin = auth()->user()->isAdminUser();
 
-                    $userDeptMapped = \App\Models\AuditTemplate::normalizeDepartmentName($userDept);
-                    $auditDeptMapped = \App\Models\AuditTemplate::normalizeDepartmentName($auditDept);
-
-                    $isDepartmentUser = \Illuminate\Support\Facades\Auth::check() && (
-                        !empty($userDeptMapped) && !empty($auditDeptMapped) && $userDeptMapped === $auditDeptMapped
-                    );
+                    $isDepartmentUser = \Illuminate\Support\Facades\Auth::check() && auth()->user()->managesDepartment($auditDept);
                     $canRespond = $isDepartmentUser && $isPendingFeedback;
 
                     $improveableResults = $failedResults->filter(function($r) {
