@@ -26,6 +26,7 @@ class DatabaseSeeder extends Seeder
             SevenSKhoCoKhiSeeder::class,
             SevenSKhoVaiSeeder::class,
             SevenSKhoPhuLieuSeeder::class,
+            SevenSKhoTonLoiSeeder::class,
             AuditBtpSeeder::class,
             AuditXuong6Tang1Seeder::class,
             AuditXuong6Tang2Seeder::class,

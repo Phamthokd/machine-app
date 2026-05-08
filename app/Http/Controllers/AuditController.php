@@ -15,7 +15,7 @@ class AuditController extends Controller
     private function userManagedDepartments(User $user): array
     {
         return array_values(array_filter(array_map(
-            fn ($department) => AuditTemplate::normalizeDepartmentName($department),
+            fn($department) => AuditTemplate::normalizeDepartmentName($department),
             $user->managedDepartments()
         )));
     }
@@ -260,7 +260,7 @@ class AuditController extends Controller
 
         $query = AuditRecord::with(['template', 'auditor', 'results']);
 
-                $managedDepartments = $this->userManagedDepartments($user);
+        $managedDepartments = $this->userManagedDepartments($user);
         if (!empty($managedDepartments)) {
             $query->whereHas('template', function ($q) use ($managedDepartments) {
                 $q->whereIn('department_name', $managedDepartments);
@@ -285,13 +285,54 @@ class AuditController extends Controller
             'Điểm số (%)',
             'Tổng mục',
             'Đạt',
-            'Lỗi'
+            'Lỗi',
+            'Trạng thái'
         ];
 
         $renderRow = function ($a) {
             $total = $a->results->count();
             $passed = $a->results->where('is_passed', true)->count();
             $failed = $total - $passed;
+
+            $failedResults = $a->results->where('is_passed', 0);
+            $unrespondedResults = $failedResults->filter(fn($r) => is_null($r->department_agreement));
+            $rejectedResultsPendingAudit = $failedResults->filter(fn($r) => $r->department_agreement === false && is_null($r->audit_rejection_decision));
+            $improveableResults = $failedResults->filter(function ($r) {
+                return $r->department_agreement === true
+                    || ($r->department_agreement === false && $r->audit_rejection_decision === false);
+            });
+            $pendingImprovements = $improveableResults->filter(fn($r) => empty($r->root_cause));
+            $hasImprovements = $a->results->contains(fn($r) => !empty($r->improver_name));
+            $unreviewed = $a->results->filter(fn($r) => !empty($r->improver_name) && empty($r->reviewer_name));
+
+            if ($unrespondedResults->isNotEmpty()) {
+                $status = __('messages.audit_pending_department_feedback_badge');
+            } elseif ($rejectedResultsPendingAudit->isNotEmpty()) {
+                $status = __('messages.audit_pending_rejection_review_badge');
+            } elseif ($pendingImprovements->isNotEmpty()) {
+                $status = __('messages.audit_waiting_improvement_plan_badge');
+            } elseif ($hasImprovements && $unreviewed->isEmpty()) {
+                $status = __('messages.audit_reviewed_badge');
+            } elseif ($unreviewed->isNotEmpty()) {
+                $anyOverdue = $unreviewed->contains(function ($r) {
+                    if ($r->is_completed || empty($r->improvement_deadline)) {
+                        return false;
+                    }
+
+                    return now()->startOfDay()->gte(\Carbon\Carbon::parse($r->improvement_deadline)->startOfDay());
+                });
+                $allCompleted = $unreviewed->every('is_completed', true);
+
+                if ($anyOverdue) {
+                    $status = __('messages.audit_overdue_badge');
+                } elseif ($allCompleted) {
+                    $status = __('messages.audit_improved_badge');
+                } else {
+                    $status = __('messages.audit_planned_badge');
+                }
+            } else {
+                $status = __('messages.audit_status_completed');
+            }
 
             $cells = [
                 $a->id,
@@ -302,11 +343,11 @@ class AuditController extends Controller
                 $total,
                 $passed,
                 $failed,
+                $status,
             ];
 
             $xml = "    <Row>\n";
             foreach ($cells as $cell) {
-                // Escape XML special chars
                 $safe = htmlspecialchars((string)$cell, ENT_XML1, 'UTF-8');
                 $type = is_numeric($cell) ? 'Number' : 'String';
                 $xml .= "     <Cell><Data ss:Type=\"{$type}\">{$safe}</Data></Cell>\n";
@@ -715,7 +756,7 @@ class AuditController extends Controller
             return;
         }
 
-                $users = User::query()
+        $users = User::query()
             ->whereNotIn('id', $excludeUserIds)
             ->get()
             ->filter(function (User $user) use ($normalizedDepartment) {
@@ -750,5 +791,4 @@ class AuditController extends Controller
             $user->notify($notification);
         }
     }
-
 }

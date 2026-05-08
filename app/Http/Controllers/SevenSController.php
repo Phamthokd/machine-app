@@ -12,6 +12,13 @@ use Illuminate\Http\Request;
 
 class SevenSController extends Controller
 {
+  private function userManagedDepartments(User $user): array
+  {
+    return array_values(array_filter(array_map(
+      fn ($department) => AuditTemplate::normalizeDepartmentName($department),
+      $user->managedDepartments()
+    )));
+  }
   /* Danh sách phiếu kiểm tra */
   public function index(Request $request)
   {
@@ -24,10 +31,11 @@ class SevenSController extends Controller
 
     // 1. Base Filter by Role/Managed Department
     if (!$user->isAdminUser()) {
-      $query->where(function ($q) use ($user) {
+      $managedDepartments = $this->userManagedDepartments($user);
+      $query->where(function ($q) use ($user, $managedDepartments) {
         $q->where('inspector_id', $user->id);
-        if ($user->managed_department) {
-          $q->orWhere('department', $user->managed_department);
+        if (!empty($managedDepartments)) {
+          $q->orWhereIn('department', $managedDepartments);
         }
       });
     }
@@ -285,9 +293,9 @@ class SevenSController extends Controller
 
     $query = SevenSRecord::with(['inspector', 'results']);
 
-    if (!empty($user->managed_department)) {
-      $mappedDept = \App\Models\AuditTemplate::normalizeDepartmentName($user->managed_department);
-      $query->where('department', $mappedDept);
+    $managedDepartments = $this->userManagedDepartments($user);
+    if (!empty($managedDepartments)) {
+      $query->whereIn('department', $managedDepartments);
     }
 
     $records = $query
@@ -587,7 +595,7 @@ td, th { border: 1px solid #999; padding: 4px 6px; vertical-align: middle; mso-n
   public function storeImprovement(Request $request, SevenSResult $result)
   {
     $user = auth()->user();
-    if (!$user->isAdminUser() && !($user->canAccessSevenSModule() && \App\Models\AuditTemplate::normalizeDepartmentName($user->managed_department) === \App\Models\AuditTemplate::normalizeDepartmentName($result->record->department))) {
+    if (!$user->isAdminUser() && !($user->canAccessSevenSModule() && $user->managesDepartment($result->record->department))) {
       abort(403);
     }
     if ($result->grade === 'B') {
@@ -618,7 +626,7 @@ td, th { border: 1px solid #999; padding: 4px 6px; vertical-align: middle; mso-n
   public function storeImprovements(Request $request, SevenSRecord $record)
   {
     $user = auth()->user();
-    if (!$user->isAdminUser() && !($user->canAccessSevenSModule() && \App\Models\AuditTemplate::normalizeDepartmentName($user->managed_department) === \App\Models\AuditTemplate::normalizeDepartmentName($record->department))) {
+    if (!$user->isAdminUser() && !($user->canAccessSevenSModule() && $user->managesDepartment($record->department))) {
       abort(403);
     }
 
@@ -688,10 +696,7 @@ td, th { border: 1px solid #999; padding: 4px 6px; vertical-align: middle; mso-n
   public function submitAgreements(Request $request, SevenSRecord $record)
   {
     $user = auth()->user();
-    $userDept = \App\Models\AuditTemplate::normalizeDepartmentName($user->managed_department);
-    $recordDept = \App\Models\AuditTemplate::normalizeDepartmentName($record->department);
-
-    if (!$user->isAdminUser() && $userDept !== $recordDept) {
+    if (!$user->isAdminUser() && !$user->managesDepartment($record->department)) {
       abort(403, 'Bạn không thuộc bộ phận này nên không thể phản hồi.');
     }
 
@@ -811,11 +816,16 @@ td, th { border: 1px solid #999; padding: 4px 6px; vertical-align: middle; mso-n
     }
 
     $users = User::query()
-      ->whereNotNull('managed_department')
       ->whereNotIn('id', $excludeUserIds)
       ->get()
       ->filter(function (User $user) use ($normalizedDepartment) {
-        return AuditTemplate::normalizeDepartmentName($user->managed_department) === $normalizedDepartment;
+        foreach ($user->managedDepartments() as $department) {
+          if (AuditTemplate::normalizeDepartmentName($department) === $normalizedDepartment) {
+            return true;
+          }
+        }
+
+        return false;
       });
 
     $notification = new SevenSStatusChangedNotification($recordId, $eventKey, $title, $message, $params);
