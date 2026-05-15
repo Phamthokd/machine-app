@@ -53,7 +53,7 @@
                     @foreach($departments as $dept)
                         <label class="form-check d-flex align-items-center gap-2 mb-2">
                             <input class="form-check-input" type="checkbox" name="managed_departments[]" value="{{ $dept }}" @checked(in_array($dept, old('managed_departments', $selectedDepartments ?? [])))>
-                            <span>{{ $dept }}</span>
+                            <span>{{ __($dept) }}</span>
                         </label>
                     @endforeach
                 </div>

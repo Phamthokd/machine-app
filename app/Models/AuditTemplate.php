@@ -57,6 +57,13 @@ class AuditTemplate extends Model
             'thá»‘ng kÃª tá»•ng' => 'Thá»‘ng kÃª tá»•ng',
             'ie' => 'IE',
             'khsx' => 'KHSX',
+            'audit' => 'Audit',
+            'bảo vệ' => 'Bảo vệ',
+            'kho vải' => 'Kho vải',
+            'kho phụ liệu' => 'Kho phụ liệu',
+            'kho tồn lỗi' => 'Kho tồn lỗi',
+            'nhà cắt' => 'Nhà cắt',
+            'nhà giặt' => 'Nhà giặt',
         ];
 
         return $map[$name] ?? $name;
