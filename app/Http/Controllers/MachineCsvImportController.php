@@ -13,6 +13,62 @@ class MachineCsvImportController extends Controller
     {
         return view('machines.import_csv');
     }
+
+    public function downloadTemplate()
+    {
+        $headers = [
+            'ma_thiet_bi',
+            'ten_thiet_bi',
+            'to_hien_tai',
+            'brand',
+            'model',
+            'serial',
+            'year',
+            'department'
+        ];
+
+        $samples = [
+            [
+                'MA-001',
+                'Máy may JUKI DDL-8700',
+                'Tổ 1',
+                'JUKI',
+                'DDL-8700',
+                '123456',
+                '2022',
+                'Khu A - Máy 01'
+            ],
+            [
+                'MA-002',
+                'Máy vắt sổ Pegasus',
+                'Tổ 2',
+                'Pegasus',
+                'EXT5214',
+                '789012',
+                '2023',
+                'Khu B - Máy 02'
+            ]
+        ];
+
+        $fileName = 'machine_import_template.csv';
+
+        return response()->streamDownload(function () use ($headers, $samples) {
+            $output = fopen('php://output', 'w');
+            
+            // Write UTF-8 BOM to display Vietnamese characters correctly in Excel
+            fwrite($output, "\xEF\xBB\xBF");
+
+            fputcsv($output, $headers);
+
+            foreach ($samples as $row) {
+                fputcsv($output, $row);
+            }
+
+            fclose($output);
+        }, $fileName, [
+            'Content-Type' => 'text/csv; charset=utf-8',
+        ]);
+    }
     private function cleanCode($v): string
 {
     $v = (string)$v;

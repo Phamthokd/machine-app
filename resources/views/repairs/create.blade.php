@@ -291,13 +291,13 @@
             <label class="form-label">{{ __('messages.request_type') }} <span class="text-danger">*</span></label>
             <div class="d-flex gap-4">
                 <div class="form-check">
-                    <input class="form-check-input" type="radio" name="type" id="type_mechanic" value="mechanic" checked>
+                    <input class="form-check-input" type="radio" name="type" id="type_mechanic" value="mechanic" @checked(request('type', 'mechanic') === 'mechanic')>
                     <label class="form-check-label" for="type_mechanic">
                         🔧 {{ __('messages.type_repair') }}
                     </label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input" type="radio" name="type" id="type_contractor" value="contractor">
+                    <input class="form-check-input" type="radio" name="type" id="type_contractor" value="contractor" @checked(request('type') === 'contractor')>
                     <label class="form-check-label" for="type_contractor">
                         🏗 {{ __('messages.type_construction') }}
                     </label>
@@ -318,6 +318,7 @@
         <input type="hidden" name="endline_qc_name" value="N/A">
         @else
         <!-- Standard Form for Repair Tech / Admin -->
+        <input type="hidden" name="type" value="{{ request('type', 'mechanic') }}">
         @if(request('type') == 'maintenance')
         <input type="hidden" name="ma_hang" value="{{ __('messages.maintenance_label') }}">
         <input type="hidden" name="cong_doan" value="{{ __('messages.maintenance_label') }}">

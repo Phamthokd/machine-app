@@ -1,5 +1,5 @@
 @extends('layouts.app-simple', ['maxWidth' => '100%'])
-@section('title', __('messages.repair_requests_title'))
+@section('title', $type === 'mechanic' ? (app()->getLocale() == 'vi' ? 'Yêu cầu sửa máy' : (app()->getLocale() == 'zh' ? '机电维修请求' : 'Machine Repair Requests')) : ($type === 'contractor' ? (app()->getLocale() == 'vi' ? 'Yêu cầu sửa công trình' : (app()->getLocale() == 'zh' ? '工程报修请求' : 'Construction Repair Requests')) : __('messages.repair_requests_title')))
 
 @section('content')
 <div class="d-flex align-items-center justify-content-between mb-4">
@@ -10,8 +10,24 @@
             </svg>
         </a>
         <div>
-            <h4 class="mb-0 fw-bold">{{ __('messages.repair_requests_title') }}</h4>
-            <div class="text-secondary small">{{ __('messages.repair_requests_subtitle') }}</div>
+            <h4 class="mb-0 fw-bold">
+                @if($type === 'mechanic')
+                    {{ app()->getLocale() == 'vi' ? 'Yêu cầu sửa máy' : (app()->getLocale() == 'zh' ? '机电维修请求' : 'Machine Repair Requests') }}
+                @elseif($type === 'contractor')
+                    {{ app()->getLocale() == 'vi' ? 'Yêu cầu sửa công trình' : (app()->getLocale() == 'zh' ? '工程报修请求' : 'Construction Repair Requests') }}
+                @else
+                    {{ __('messages.repair_requests_title') }}
+                @endif
+            </h4>
+            <div class="text-secondary small">
+                @if($type === 'mechanic')
+                    {{ app()->getLocale() == 'vi' ? 'Danh sách thiết bị báo hỏng đang chờ sửa chữa cơ điện' : (app()->getLocale() == 'zh' ? '等待机电维修的故障设备列表' : 'List of reported machines pending mechanic repair') }}
+                @elseif($type === 'contractor')
+                    {{ app()->getLocale() == 'vi' ? 'Danh sách sự cố đang chờ khắc phục từ thầu phụ công trình' : (app()->getLocale() == 'zh' ? '等待承包商修复的工程故障列表' : 'List of reported issues pending contractor repair') }}
+                @else
+                    {{ __('messages.repair_requests_subtitle') }}
+                @endif
+            </div>
         </div>
     </div>
 </div>

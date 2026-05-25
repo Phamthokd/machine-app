@@ -139,6 +139,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware(['role_or_permission:admin|warehouse|machines.import_csv'])->group(function () {
         Route::get('/machines/import-csv', [MachineCsvImportController::class, 'form']);
         Route::post('/machines/import-csv', [MachineCsvImportController::class, 'import']);
+        Route::get('/machines/import-csv/template', [MachineCsvImportController::class, 'downloadTemplate']);
     });
 
     Route::middleware(['role_or_permission:admin|warehouse|machines.manage'])->group(function () {

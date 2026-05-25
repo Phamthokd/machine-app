@@ -478,7 +478,7 @@
                                                     <div class="d-flex gap-3">
                                                         <div class="bg-danger text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; flex-shrink: 0;">!</div>
                                                         <div>
-                                                            <div class="fs-6">{{ $result->checklist?->content ?? __('messages.question_deleted') }}</div>
+                                                            <div class="fs-6">{{ $result->checklist ? __($result->checklist->content) : __('messages.question_deleted') }}</div>
                                                             <div class="fw-normal small mt-2 bg-white bg-opacity-50 p-2 rounded-3 text-dark">
                                                                 <span class="fw-bold">{{ __('messages.detected_error_content') }}</span> {{ $result->note }}
                                                             </div>

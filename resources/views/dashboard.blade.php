@@ -66,20 +66,20 @@ $maxWidth = '1200px';
         <h5 class="fw-bold text-secondary mb-3">{{ __('messages.management_functions') }}</h5>
 
         <div class="row row-cols-2 row-cols-md-3 g-3">
-            @feature('repairs.manage')
+            @if(\App\Support\FeatureAccess::allows($currentUser, 'repairs.manage') && !$currentUser->isContractorUser())
             <div class="col">
-                <a href="/repair-requests" class="btn btn-white border border-danger border-opacity-25 w-100 py-4 rounded-4 shadow-sm fw-semibold d-flex flex-column align-items-center justify-content-center h-100 tap hover-shadow transition">
+                <a href="/repair-requests?type=mechanic" class="btn btn-white border border-danger border-opacity-25 w-100 py-4 rounded-4 shadow-sm fw-semibold d-flex flex-column align-items-center justify-content-center h-100 tap hover-shadow transition">
                     <div class="bg-danger bg-opacity-10 text-danger p-3 rounded-circle mb-3">
                         <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
                         </svg>
                     </div>
-                    <span class="text-danger">{{ __('messages.repair_requests') }}</span>
+                    <span class="text-danger">{{ __('messages.repair_requests_mechanic') }}</span>
                 </a>
             </div>
-            @endfeature
+            @endif
 
-            @feature('repairs.view')
+            @if(\App\Support\FeatureAccess::allows($currentUser, 'repairs.view') && !$currentUser->isContractorUser())
             <div class="col">
                 <a href="/repairs" class="btn btn-white border w-100 py-4 rounded-4 shadow-sm fw-semibold d-flex flex-column align-items-center justify-content-center h-100 tap hover-shadow transition">
                     <div class="bg-primary bg-opacity-10 text-primary p-3 rounded-circle mb-3">
@@ -91,10 +91,27 @@ $maxWidth = '1200px';
                             <polyline points="10 9 9 9 8 9" />
                         </svg>
                     </div>
-                    <span>{{ __('messages.repair_history') }}</span>
+                    <span>{{ __('messages.repair_history_mechanic') }}</span>
                 </a>
             </div>
-            @endfeature
+            @endif
+
+            @if(\App\Support\FeatureAccess::allows($currentUser, 'repairs.manage') && ($currentUser->isContractorUser() || $currentUser->isAdminUser() || $currentUser->isTeamLeaderUser() || $currentUser->hasRole('warehouse')))
+            <div class="col">
+                <a href="/repair-requests?type=contractor" class="btn btn-white border border-warning border-opacity-25 w-100 py-4 rounded-4 shadow-sm fw-semibold d-flex flex-column align-items-center justify-content-center h-100 tap hover-shadow transition">
+                    <div class="bg-warning bg-opacity-10 text-warning p-3 rounded-circle mb-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                            <line x1="9" y1="3" x2="9" y2="21"/>
+                            <line x1="15" y1="3" x2="15" y2="21"/>
+                            <line x1="3" y1="9" x2="21" y2="9"/>
+                            <line x1="3" y1="15" x2="21" y2="15"/>
+                        </svg>
+                    </div>
+                    <span class="text-warning">{{ __('messages.construction_requests') }}</span>
+                </a>
+            </div>
+            @endif
 
             {{-- Evaluations tile (admin, repair_tech, team_leader) --}}
             @if(auth()->user()->hasRole('admin') || auth()->user()->hasRole('repair_tech') || auth()->user()->hasRole('team_leader'))

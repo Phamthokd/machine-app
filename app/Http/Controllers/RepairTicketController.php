@@ -95,12 +95,10 @@ class RepairTicketController extends Controller
         // Determine Type
         if ($isContractor) {
             $validated['type'] = 'contractor';
-        } elseif ($isTeamLeader) {
+        } else {
             // Validate type input, default to mechanic if valid
             $type = $request->input('type', 'mechanic');
             $validated['type'] = in_array($type, ['mechanic', 'contractor']) ? $type : 'mechanic';
-        } else {
-            $validated['type'] = 'mechanic';
         }
 
         $hasPending = RepairTicket::where('machine_id', $validated['machine_id'])
@@ -181,14 +179,31 @@ class RepairTicketController extends Controller
         return view('repairs.index', compact('repairs', 'departments'));
     }
 
-    public function contractorIndex()
+    public function contractorIndex(Request $request)
     {
-        $repairs = RepairTicket::with(['machine.department', 'createdBy', 'mechanic'])
-            ->where('type', 'contractor')
-            ->orderByDesc('id')
-            ->simplePaginate(20);
+        $query = RepairTicket::with(['machine.department', 'department', 'createdBy', 'mechanic'])
+            ->where('type', 'contractor');
 
-        return view('repairs.contractor_index', compact('repairs'));
+        // Apply filters
+        if ($request->filled('department_id')) {
+            $query->where('department_id', $request->department_id);
+        }
+
+        if ($request->filled('start_date')) {
+            $query->whereDate('created_at', '>=', $request->start_date);
+        }
+
+        if ($request->filled('end_date')) {
+            $query->whereDate('created_at', '<=', $request->end_date);
+        }
+
+        $repairs = $query->orderByDesc('id')
+            ->paginate(20)
+            ->withQueryString();
+
+        $departments = \App\Models\Department::whereHas('machines')->orderBy('name')->get();
+
+        return view('repairs.contractor_index', compact('repairs', 'departments'));
     }
 
     public function show(RepairTicket $repair)
@@ -386,7 +401,7 @@ class RepairTicketController extends Controller
 
         // 1. Define Headers
         $headers = [
-            'Mã phiếu',
+            'STT',
             'Mã thiết bị',
             'Tên thiết bị',
             'Tổ',
@@ -403,7 +418,7 @@ class RepairTicketController extends Controller
         ];
 
         // 2. Helper to render a Row
-        $renderRow = function ($r) {
+        $renderRow = function ($r, $index) {
             $reportedTime = $r->created_at;
             $waitTime = '';
             if ($r->started_at) {
@@ -416,7 +431,7 @@ class RepairTicketController extends Controller
             }
 
             $cells = [
-                $r->code,
+                $index,
                 $r->machine->ma_thiet_bi ?? '',
                 $r->machine->ten_thiet_bi ?? '',
                 $r->department->name ?? ($r->machine->department->name ?? ''),
@@ -475,8 +490,9 @@ class RepairTicketController extends Controller
             fwrite($output, ' xmlns:html="http://www.w3.org/TR/REC-html40">' . "\n");
 
             fwrite($output, $startSheet('Lịch sử công trình'));
+            $index = 1;
             foreach ($repairs as $r) {
-                fwrite($output, $renderRow($r));
+                fwrite($output, $renderRow($r, $index++));
             }
             fwrite($output, $endSheet);
             fwrite($output, "</Workbook>");
@@ -595,24 +611,32 @@ class RepairTicketController extends Controller
         return redirect("/repairs/{$repair->id}/edit");
     }
 
-    public function requestsIndex()
+    public function requestsIndex(Request $request)
     {
         $query = RepairTicket::with(['machine.department', 'createdBy', 'mechanic'])
             ->where('status', 'pending');
 
-        // Filter based on role
-        if (auth()->user()->isContractorUser()) {
-            $query->where('type', 'contractor');
-        } elseif (auth()->user()->isAdminUser()) {
-            // Admin sees ALL requests (both mechanic and contractor)
+        $type = $request->query('type');
+        if (in_array($type, ['mechanic', 'contractor'])) {
+            $query->where('type', $type);
         } else {
-            // Default to mechanic requests (Repair Tech, Warehouse, Team Leader, etc.)
-            $query->where('type', 'mechanic');
+            // Filter based on role if no explicit type is provided
+            if (auth()->user()->isContractorUser()) {
+                $type = 'contractor';
+                $query->where('type', 'contractor');
+            } elseif (auth()->user()->isAdminUser()) {
+                $type = 'all';
+                // Admin sees ALL requests (both mechanic and contractor)
+            } else {
+                $type = 'mechanic';
+                // Default to mechanic requests (Repair Tech, Warehouse, Team Leader, etc.)
+                $query->where('type', 'mechanic');
+            }
         }
 
         $requests = $query->orderByDesc('created_at')->get();
 
-        return view('repairs.requests', compact('requests'));
+        return view('repairs.requests', compact('requests', 'type'));
     }
 
     public function destroy(RepairTicket $repair)

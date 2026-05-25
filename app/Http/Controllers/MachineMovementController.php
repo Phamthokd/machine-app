@@ -11,13 +11,33 @@ use Illuminate\Support\Facades\Auth;
 
 class MachineMovementController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $movements = MachineMovement::with(['machine', 'fromDepartment', 'toDepartment', 'user'])
-            ->orderByDesc('created_at')
-            ->simplePaginate(20);
+        $query = MachineMovement::with(['machine', 'fromDepartment', 'toDepartment', 'user']);
 
-        return view('machines.move_history', compact('movements'));
+        if ($request->filled('department_id')) {
+            $deptId = $request->department_id;
+            $query->where(function ($q) use ($deptId) {
+                $q->where('from_department_id', $deptId)
+                  ->orWhere('to_department_id', $deptId);
+            });
+        }
+
+        if ($request->filled('start_date')) {
+            $query->whereDate('created_at', '>=', $request->start_date);
+        }
+
+        if ($request->filled('end_date')) {
+            $query->whereDate('created_at', '<=', $request->end_date);
+        }
+
+        $movements = $query->orderByDesc('created_at')
+            ->paginate(20)
+            ->withQueryString();
+
+        $departments = Department::orderBy('name')->get();
+
+        return view('machines.move_history', compact('movements', 'departments'));
     }
 
     public function edit($id)
@@ -61,11 +81,27 @@ class MachineMovementController extends Controller
             ->with('success', 'Đã chuyển máy sang tổ mới thành công.');
     }
 
-    public function export()
+    public function export(Request $request)
     {
-        $movements = MachineMovement::with(['machine', 'fromDepartment', 'toDepartment', 'user'])
-            ->orderByDesc('created_at')
-            ->get();
+        $query = MachineMovement::with(['machine', 'fromDepartment', 'toDepartment', 'user']);
+
+        if ($request->filled('department_id')) {
+            $deptId = $request->department_id;
+            $query->where(function ($q) use ($deptId) {
+                $q->where('from_department_id', $deptId)
+                  ->orWhere('to_department_id', $deptId);
+            });
+        }
+
+        if ($request->filled('start_date')) {
+            $query->whereDate('created_at', '>=', $request->start_date);
+        }
+
+        if ($request->filled('end_date')) {
+            $query->whereDate('created_at', '<=', $request->end_date);
+        }
+
+        $movements = $query->orderByDesc('created_at')->get();
 
         $fileName = 'machine-movements-' . now()->format('Ymd-His') . '.xls';
 

@@ -390,7 +390,7 @@ $color = $pct >= 80 ? 'success' : ($pct >= 60 ? 'warning' : 'danger');
                             </div>
                             <div class="modal-body p-4">
                                 <div class="bg-light rounded p-3 mb-4 text-muted small border">
-                                    <strong>{{ __('messages.7s_improvement_status') }}:</strong> {{ $result->checklist?->content }}
+                                    <strong>{{ __('messages.7s_improvement_status') }}:</strong> {{ $result->checklist ? __($result->checklist->content) : '—' }}
                                 </div>
 
                                 <div class="mb-4">
@@ -469,7 +469,7 @@ $color = $pct >= 80 ? 'success' : ($pct >= 60 ? 'warning' : 'danger');
                                 <line x1="12" y1="16" x2="12.01" y2="16" />
                             </svg>
                             <div>
-                                <div class="fs-6">{{ $result->checklist?->content }}</div>
+                                <div class="fs-6">{{ $result->checklist ? __($result->checklist->content) : '—' }}</div>
                                 <div class="fw-normal small mt-1">Điểm: <span class="badge bg-{{ $result->grade === 'C' ? 'warning' : ($result->grade === 'D' ? 'danger' : 'dark') }}">{{ $result->grade }}</span>
                                     @if($result->note) — {{ $result->note }} @endif
                                 </div>
@@ -542,7 +542,7 @@ $color = $pct >= 80 ? 'success' : ($pct >= 60 ? 'warning' : 'danger');
                     <div class="card-header bg-info bg-opacity-10 text-info fw-bold border-0 py-3">
                         <div class="d-flex justify-content-between align-items-start">
                             <div>
-                                <div class="fs-6">{{ $result->checklist?->content }}</div>
+                                <div class="fs-6">{{ $result->checklist ? __($result->checklist->content) : '—' }}</div>
                                 <div class="fw-normal small mt-1">
                                     {{ __('messages.7s_improver_label') }}: <strong>{{ $result->improver->name ?? '—' }}</strong>
                                 </div>
@@ -620,7 +620,7 @@ $color = $pct >= 80 ? 'success' : ($pct >= 60 ? 'warning' : 'danger');
                         <div class="d-flex gap-3">
                             <div class="bg-danger text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; flex-shrink: 0;">!</div>
                             <div>
-                                <div class="fs-6">{{ $result->checklist?->content ?? __('messages.question_deleted') }}</div>
+                                <div class="fs-6">{{ $result->checklist ? __($result->checklist->content) : __('messages.question_deleted') }}</div>
                                 <div class="fw-normal small mt-2 bg-white bg-opacity-50 p-2 rounded-3 text-dark">
                                     <span class="fw-bold">{{ __('messages.detected_error_content') }}</span> {{ $result->note }}
                                 </div>
@@ -685,7 +685,7 @@ $color = $pct >= 80 ? 'success' : ($pct >= 60 ? 'warning' : 'danger');
                 @foreach($nonBResults->where('department_agreement', false)->whereNull('auditor_rejection_decision') as $result)
                 <div class="card border-0 shadow-sm mb-4 rounded-4 overflow-hidden">
                     <div class="card-header bg-warning bg-opacity-10 text-dark fw-bold border-0 py-3 px-4">
-                        <div class="fs-6 mb-2">{{ $result->checklist?->content }}</div>
+                        <div class="fs-6 mb-2">{{ $result->checklist ? __($result->checklist->content) : '' }}</div>
                         <div class="bg-white p-2 rounded small border text-danger">
                             <strong>{{ __('messages.audit_reject_reason_label') }}:</strong> {{ $result->department_reject_reason }}
                         </div>

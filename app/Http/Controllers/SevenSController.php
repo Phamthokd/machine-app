@@ -512,7 +512,7 @@ td, th { border: 1px solid #999; padding: 4px 6px; vertical-align: middle; mso-n
     foreach ($grouped as $section => $results) {
       $html .= '
   <tr class="section-row">
-    <td colspan="10">' . htmlspecialchars($section) . '</td>
+    <td colspan="10">' . htmlspecialchars(__($section)) . '</td>
   </tr>';
       foreach ($results as $result) {
         $grade = $result->grade;
@@ -522,7 +522,7 @@ td, th { border: 1px solid #999; padding: 4px 6px; vertical-align: middle; mso-n
         $html .= '
   <tr style="vertical-align:top; height:' . (!empty((array)($result->image_path ?? [])) ? (ceil(count((array)($result->image_path ?? [])) / 2) * 160) : 40) . 'px;">
     <td class="item-num">' . $num++ . '</td>
-    <td>' . htmlspecialchars($result->checklist?->content ?? '—') . '</td>
+    <td>' . htmlspecialchars($result->checklist ? __($result->checklist->content) : '—') . '</td>
     <td style="color:#555; font-size:9pt;">' . ($result->checklist ? __($result->checklist->content, [], 'zh') : '—') . '</td>
     <td class="grade-cell" style="background:' . $bg . '; color:' . $fc . ';">' . $grade . '</td>
     <td class="score-cell">' . $gradeScores[$grade] . '</td>

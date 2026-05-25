@@ -204,6 +204,28 @@
     .btn-create-ticket:active {
         transform: translateY(0);
     }
+
+    /* Premium Option Cards inside Modal */
+    .breakdown-option-card {
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .breakdown-option-card:hover {
+        transform: translateY(-3px);
+        border-color: #cbd5e1 !important;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08) !important;
+        background: #ffffff !important;
+    }
+    .breakdown-option-card:active {
+        transform: scale(0.98);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05) !important;
+    }
+    .breakdown-option-card:hover .arrow-box {
+        color: var(--primary-color) !important;
+        transform: translateX(3px);
+    }
+    .arrow-box {
+        transition: all 0.2s;
+    }
 </style>
 
 <!-- Hero Section -->
@@ -334,12 +356,93 @@
 </div>
 @else
 <div class="floating-action">
-    <a href="/repairs/create?machine={{ $machine->ma_thiet_bi }}" class="btn-create-ticket tap shadow-lg">
+    <button type="button" class="btn-create-ticket tap shadow-lg" data-bs-toggle="modal" data-bs-target="#breakdownTypeModal">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
         {{ __('messages.report_issue_btn') }}
-    </a>
+    </button>
 </div>
 @endif
 @endif
 
 @endsection
+
+@push('modals')
+<!-- Breakdown Type Selection Modal -->
+<div class="modal fade" id="breakdownTypeModal" tabindex="-1" aria-labelledby="breakdownTypeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 480px;">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 24px; overflow: hidden; background: #ffffff;">
+            <!-- Modal Header with premium design -->
+            <div class="modal-header border-0 text-center d-flex flex-column align-items-center pt-4 pb-2" style="position: relative;">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="position: absolute; right: 20px; top: 20px; filter: grayscale(1); opacity: 0.6; transition: all 0.2s; border: none; background: transparent;"></button>
+                <div class="mb-3 d-flex align-items-center justify-content-center" style="width: 56px; height: 56px; background: rgba(79, 70, 229, 0.08); border-radius: 50%; color: #4f46e5;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                        <line x1="12" y1="9" x2="12" y2="13"/>
+                        <line x1="12" y1="17" x2="12.01" y2="17"/>
+                    </svg>
+                </div>
+                <h5 class="modal-title fw-bold text-dark px-3 text-center" id="breakdownTypeModalLabel" style="font-size: 1.25rem;">
+                    {{ app()->getLocale() == 'vi' ? 'Chọn loại sự cố báo hỏng' : (app()->getLocale() == 'zh' ? '选择报修故障类型' : 'Select breakdown type') }}
+                </h5>
+                <p class="text-muted small px-4 mt-1 mb-0 text-center">
+                    {{ app()->getLocale() == 'vi' ? 'Vui lòng chọn loại dịch vụ sửa chữa phù hợp để kỹ thuật viên hỗ trợ nhanh nhất' : (app()->getLocale() == 'zh' ? '请选择合适的维修服务，以便技术人员尽快提供支持' : 'Please select the appropriate repair service for the fastest technical support') }}
+                </p>
+            </div>
+            
+            <!-- Modal Body with Premium Stacked Gradient Buttons -->
+            <div class="modal-body p-4 d-flex flex-column gap-3">
+                <!-- Option 1: Call Repair Tech -->
+                <a href="/repairs/create?machine={{ $machine->ma_thiet_bi }}&type=mechanic" class="breakdown-option-card d-flex align-items-center p-3 text-decoration-none shadow-sm transition-all" style="border-radius: 16px; border: 1.5px solid #eef2f6; background: linear-gradient(135deg, #ffffff 0%, #fbfcfe 100%);">
+                    <div class="option-icon-box d-flex align-items-center justify-content-center me-3" style="width: 52px; height: 52px; background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); border-radius: 12px; color: white; box-shadow: 0 4px 10px rgba(79, 70, 229, 0.25); flex-shrink: 0;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+                        </svg>
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="option-title fw-bold text-dark" style="font-size: 1.05rem;">
+                            {{ __('messages.type_repair') }} ({{ app()->getLocale() == 'vi' ? 'Cơ điện' : (app()->getLocale() == 'zh' ? '机电' : 'Mechanic') }})
+                        </div>
+                        <div class="option-desc text-muted small mt-1" style="font-size: 0.82rem; line-height: 1.3;">
+                            {{ app()->getLocale() == 'vi' ? 'Báo hỏng máy móc thiết bị, cơ khí, sự cố điện máy...' : (app()->getLocale() == 'zh' ? '报告机器设备、机械、电机故障...' : 'Report machine, mechanical, or electrical issues...') }}
+                        </div>
+                    </div>
+                    <div class="arrow-box ms-2 text-muted">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                    </div>
+                </a>
+                
+                <!-- Option 2: Call Contractor -->
+                <a href="/repairs/create?machine={{ $machine->ma_thiet_bi }}&type=contractor" class="breakdown-option-card d-flex align-items-center p-3 text-decoration-none shadow-sm transition-all" style="border-radius: 16px; border: 1.5px solid #eef2f6; background: linear-gradient(135deg, #ffffff 0%, #fbfcfe 100%);">
+                    <div class="option-icon-box d-flex align-items-center justify-content-center me-3" style="width: 52px; height: 52px; background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%); border-radius: 12px; color: white; box-shadow: 0 4px 10px rgba(14, 165, 233, 0.25); flex-shrink: 0;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                            <line x1="9" y1="3" x2="9" y2="21"/>
+                            <line x1="15" y1="3" x2="15" y2="21"/>
+                            <line x1="3" y1="9" x2="21" y2="9"/>
+                            <line x1="3" y1="15" x2="21" y2="15"/>
+                        </svg>
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="option-title fw-bold text-dark" style="font-size: 1.05rem;">
+                            {{ __('messages.type_construction') }} ({{ app()->getLocale() == 'vi' ? 'Thầu phụ' : (app()->getLocale() == 'zh' ? '承包商' : 'Contractor') }})
+                        </div>
+                        <div class="option-desc text-muted small mt-1" style="font-size: 0.82rem; line-height: 1.3;">
+                            {{ app()->getLocale() == 'vi' ? 'Báo lỗi điện nước, nhà xưởng, cơ sở hạ tầng, xây dựng...' : (app()->getLocale() == 'zh' ? '报告水电、厂房、基础设施、建筑故障...' : 'Report water, electricity, workshop, facilities, civil issues...') }}
+                        </div>
+                    </div>
+                    <div class="arrow-box ms-2 text-muted">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                    </div>
+                </a>
+            </div>
+            
+            <div class="modal-footer border-0 p-3 bg-light bg-opacity-50 text-center justify-content-center">
+                <button type="button" class="btn btn-secondary btn-sm px-4 py-2" data-bs-dismiss="modal" style="border-radius: 20px; font-weight: 600; border: none; background: #e2e8f0; color: #475569;">
+                    {{ app()->getLocale() == 'vi' ? 'Đóng' : (app()->getLocale() == 'zh' ? '关闭' : 'Close') }}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+@endpush
+
