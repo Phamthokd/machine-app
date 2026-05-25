@@ -27,7 +27,7 @@ class SevenSDonHangSeeder extends Seeder
             [
                 'section'    => 'S1 & S2 & S3 : Sắp xếp & sàng lọc, sạch sẽ',
                 'sort_order' => 3,
-                'content'    => 'Lối đi, khu vực làm việc có sạch sẽ không, không để giấy tờ, vật dụng cá nhân lên xến trên bàn',
+                'content'    => 'Lối đi, khu vực làm việc có sạch sẽ không, không để giấy tờ, vật dụng cá nhân lộn xộn trên bàn',
             ],
             [
                 'section'    => 'S1 & S2 & S3 : Sắp xếp & sàng lọc, sạch sẽ',
