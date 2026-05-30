@@ -147,6 +147,7 @@ return [
     'location_txt' => '位置 (文本)',
     'warehouse_in_date' => '进仓日期',
     'warehouse_out_date' => '出仓日期',
+    'warranty_period' => '保修期',
     'actions' => '操作',
     'all_departments' => '-- 所有部门 --',
     'search_placeholder' => '按编号、名称、序列号搜索...',

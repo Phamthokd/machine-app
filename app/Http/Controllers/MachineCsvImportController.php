@@ -23,30 +23,48 @@ class MachineCsvImportController extends Controller
             'brand',
             'model',
             'serial',
+            'invoice_cd',
             'year',
-            'department'
+            'country',
+            'stock_in_date',
+            'vi_tri_text',
+            'ngay_vao_kho',
+            'ngay_ra_kho',
+            'warranty_period'
         ];
 
         $samples = [
             [
-                'MA-001',
-                'Máy may JUKI DDL-8700',
-                'Tổ 1',
-                'JUKI',
-                'DDL-8700',
-                '123456',
-                '2022',
-                'Khu A - Máy 01'
+                '00-MM-0001-KXD',
+                'Chainstitch machine',
+                'Phòng mẫu máy may',
+                'JOYEE',
+                'JY-W480A',
+                '110301004',
+                'INV-2023-001',
+                '2012',
+                'China',
+                '29/07/2023',
+                'Xưởng 5',
+                '29/07/2023',
+                '',
+                '12 tháng'
             ],
             [
-                'MA-002',
-                'Máy vắt sổ Pegasus',
-                'Tổ 2',
-                'Pegasus',
-                'EXT5214',
-                '789012',
-                '2023',
-                'Khu B - Máy 02'
+                '00-MM-0002-KXD',
+                'Double needle lockstitch',
+                'Kho cơ khí máy may',
+                'JACK',
+                'KJK-5845-3',
+                '70712854',
+                'INV-2026-009',
+                '2012',
+                'Japan',
+                '05/02/2026',
+                'Kho cơ khí',
+                '',
+                '05/02/2026',
+                '24 tháng'
             ]
         ];
 
@@ -159,14 +177,15 @@ class MachineCsvImportController extends Controller
         $i_brand     = $idxAny(['brand']);
         $i_model     = $idxAny(['model']);
         $i_serial    = $idxAny(['serial']);
-        $i_invoice   = $idxAny(['invoice/cd', 'invoice', 'invoice cd']);
+        $i_invoice   = $idxAny(['invoice/cd', 'invoice', 'invoice cd', 'invoice_cd']);
         $i_year      = $idxAny(['year']);
-        $i_country   = $idxAny(['country of origin', 'country']);
-
-        $i_stockin   = $idxAny(['stock-in date', 'stock in date', 'stock_in_date']);
-        $i_department= $idxAny(['department', 'vi_tri', 'vị trí']);
-        $i_ngayvao   = $idxAny(['ngày vào kho', 'ngay vao kho']);
-        $i_ngayra    = $idxAny(['ngày ra kho', 'ngay ra kho']);
+        $i_country   = $idxAny(['country of origin', 'country', 'nước sản xuất', 'nuoc san xuat']);
+ 
+        $i_stockin   = $idxAny(['stock-in date', 'stock in date', 'stock_in_date', 'ngày nhập', 'ngay nhap']);
+        $i_department= $idxAny(['department', 'vi_tri', 'vị trí', 'vi_tri_text', 'vị trí (txt)', 'vi tri (txt)']);
+        $i_ngayvao   = $idxAny(['ngày vào kho', 'ngay vao kho', 'ngay_vao_kho']);
+        $i_ngayra    = $idxAny(['ngày ra kho', 'ngay ra kho', 'ngay_ra_kho']);
+        $i_warranty  = $idxAny(['thoi_gian_bao_hanh', 'thời gian bảo hành', 'warranty_period', 'warranty period']);
 
         if ($i_code === null) {
             fclose($handle);
@@ -244,6 +263,7 @@ class MachineCsvImportController extends Controller
                     'vi_tri_text' => $i_department !== null ? $this->cleanCell($row[$i_department] ?? null) : null,
                     'ngay_vao_kho' => $i_ngayvao !== null ? $parseDate($row[$i_ngayvao] ?? null) : null,
                     'ngay_ra_kho' => $i_ngayra !== null ? $parseDate($row[$i_ngayra] ?? null) : null,
+                    'warranty_period' => $i_warranty !== null ? $this->cleanCell($row[$i_warranty] ?? null) : null,
                 ]
             );
 

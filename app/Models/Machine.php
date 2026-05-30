@@ -20,6 +20,7 @@ class Machine extends Model
         'vi_tri_text',
         'ngay_vao_kho',
         'ngay_ra_kho',
+        'warranty_period',
     ];
 
     

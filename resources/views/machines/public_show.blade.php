@@ -277,6 +277,10 @@
             <div class="info-label">{{ __('messages.year_produced') }}</div>
             <div class="info-value">{{ $machine->year ?? '—' }}</div>
         </div>
+        <div class="info-item">
+            <div class="info-label">{{ __('messages.warranty_period') }}</div>
+            <div class="info-value">{{ $machine->warranty_period ?? '—' }}</div>
+        </div>
         <div class="info-item full-width">
             <div class="info-label">{{ __('messages.location_note') }}</div>
             <div class="info-value">{{ $machine->vi_tri_text ?? '—' }}</div>

@@ -147,6 +147,7 @@ return [
     'location_txt' => 'VỊ TRÍ (TXT)',
     'warehouse_in_date' => 'NGÀY VÀO KHO',
     'warehouse_out_date' => 'NGÀY RA KHO',
+    'warranty_period' => 'THỜI GIAN BẢO HÀNH',
     'actions' => 'HÀNH ĐỘNG',
     'all_departments' => '-- Tất cả tổ --',
     'search_placeholder' => 'Tìm theo Mã, Tên, Serial...',

@@ -147,6 +147,7 @@ return [
     'location_txt' => 'Location (Txt)',
     'warehouse_in_date' => 'Warehouse In',
     'warehouse_out_date' => 'Warehouse Out',
+    'warranty_period' => 'Warranty Period',
     'actions' => 'Actions',
     'all_departments' => '-- All Departments --',
     'search_placeholder' => 'Search by Code, Name, Serial...',

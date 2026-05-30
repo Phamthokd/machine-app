@@ -69,6 +69,7 @@
                         <th class="py-2 px-2">{{ __('messages.location_txt') }}</th>
                         <th class="py-2 px-2">{{ __('messages.warehouse_in_date') }}</th>
                         <th class="py-2 px-2">{{ __('messages.warehouse_out_date') }}</th>
+                        <th class="py-2 px-2">{{ __('messages.warranty_period') }}</th>
                         <th class="py-2 px-2 text-center" style="width: 80px;">{{ __('messages.actions') }}</th>
                     </tr>
                 </thead>
@@ -90,6 +91,7 @@
                         <td class="px-2">{{ $m->vi_tri_text }}</td>
                         <td class="px-2">{{ $m->ngay_vao_kho ? \Carbon\Carbon::parse($m->ngay_vao_kho)->format('d/m/Y') : '' }}</td>
                         <td class="px-2">{{ $m->ngay_ra_kho ? \Carbon\Carbon::parse($m->ngay_ra_kho)->format('d/m/Y') : '' }}</td>
+                        <td class="px-2">{{ $m->warranty_period }}</td>
                         <td class="px-2 text-center">
                             <div class="d-flex justify-content-center gap-2">
                                 <a href="{{ route('machines.print_qr', $m->id) }}" target="_blank" class="btn btn-sm btn-outline-dark border-0 p-1" title="{{ __('messages.print_qr_action') }}">
@@ -103,7 +105,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="14" class="text-center py-5 text-secondary">
+                        <td colspan="15" class="text-center py-5 text-secondary">
                             {{ __('messages.no_data_found') }}
                         </td>
                     </tr>

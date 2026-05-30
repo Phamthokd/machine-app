@@ -59,6 +59,7 @@
                             <th class="py-3 px-2" style="min-width: 160px;">DEPARTMENT (TXT)</th>
                             <th class="py-3 px-2" style="min-width: 140px;">NGÀY VÀO KHO</th>
                             <th class="py-3 px-2" style="min-width: 140px;">NGÀY RA KHO</th>
+                            <th class="py-3 px-2" style="min-width: 180px;">{{ __('messages.warranty_period') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -105,6 +106,9 @@
                             </td>
                             <td class="p-2">
                                 <input type="date" class="form-control border-0" name="ngay_ra_kho" value="{{ old('ngay_ra_kho', $machine->ngay_ra_kho ? date('Y-m-d', strtotime($machine->ngay_ra_kho)) : '') }}">
+                            </td>
+                            <td class="p-2">
+                                <input type="text" class="form-control border-0" name="warranty_period" value="{{ old('warranty_period', $machine->warranty_period) }}" placeholder="Ví dụ: 12 tháng">
                             </td>
                         </tr>
                     </tbody>

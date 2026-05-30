@@ -52,6 +52,7 @@ class MachineController extends Controller
             'vi_tri_text' => 'nullable|string|max:255',
             'ngay_vao_kho' => 'nullable|date',
             'ngay_ra_kho' => 'nullable|date',
+            'warranty_period' => 'nullable|string|max:255',
         ]);
 
         $machine->update($validated);
