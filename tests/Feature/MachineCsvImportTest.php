@@ -92,4 +92,26 @@ class MachineCsvImportTest extends TestCase
             'name' => 'Tổ Kiểm Thử',
         ]);
     }
+
+    public function test_admin_can_import_csv_with_excel_corrupted_formats(): void
+    {
+        // Define CSV content with scientific notation invoice_cd and date year
+        $csvContent = "ma_thiet_bi,ten_thiet_bi,to_hien_tai,invoice_cd,year\n" .
+                      "MA-888,Máy test corrupt,Tổ Kiểm Thử,1.06508E+11,7/16/1905";
+
+        $file = UploadedFile::fake()->createWithContent('import_corrupt.csv', $csvContent);
+
+        $response = $this->actingAs($this->admin)
+            ->post('/machines/import-csv', [
+                'file' => $file,
+            ]);
+
+        $response->assertRedirect();
+        
+        $this->assertDatabaseHas('machines', [
+            'ma_thiet_bi' => 'MA-888',
+            'invoice_cd' => '106508000000',
+            'year' => '2024',
+        ]);
+    }
 }

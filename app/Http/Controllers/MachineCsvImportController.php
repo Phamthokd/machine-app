@@ -256,7 +256,7 @@ class MachineCsvImportController extends Controller
                     'model' => $i_model !== null ? $this->cleanCell($row[$i_model] ?? null) : null,
                     'serial' => $i_serial !== null ? $this->cleanCell($row[$i_serial] ?? null) : null,
                     'invoice_cd' => $i_invoice !== null ? $this->cleanCell($row[$i_invoice] ?? null) : null,
-                    'year' => $i_year !== null ? $this->cleanCell($row[$i_year] ?? null) : null,
+                    'year' => $i_year !== null ? $this->cleanYear($row[$i_year] ?? null) : null,
                     'country' => $i_country !== null ? $this->cleanCell($row[$i_country] ?? null) : null,
 
                     'stock_in_date' => $i_stockin !== null ? $parseDate($row[$i_stockin] ?? null) : null,
@@ -296,6 +296,61 @@ class MachineCsvImportController extends Controller
         if ($v === null) return null;
         $v = trim((string)$v);
         if ($v === '' || mb_strtolower($v, 'UTF-8') === 'n/a') return null;
+
+        // Convert scientific notation (e.g. 1.06508E+11 -> 106508000000)
+        if (preg_match('/^\d+(\.\d+)?[eE]\+\d+$/', $v)) {
+            $floatVal = (float)$v;
+            if ($floatVal == (int)$floatVal) {
+                $v = sprintf('%.0f', $floatVal);
+            } else {
+                $v = sprintf('%f', $floatVal);
+            }
+        }
+
+        return $v;
+    }
+
+    private function cleanYear($v): ?string
+    {
+        $v = $this->cleanCell($v);
+        if ($v === null) return null;
+
+        // Recover Excel date-formatted year (e.g. 7/16/1905 -> 2024)
+        if (preg_match('/^\d+[\/\-]\d+[\/\-]\d+$/', $v)) {
+            try {
+                $vNormalized = str_replace('-', '/', $v);
+                $parts = explode('/', $vNormalized);
+                
+                $d = 0; $m = 0; $y = 0;
+                if (count($parts) === 3) {
+                    $val1 = (int)$parts[0];
+                    $val2 = (int)$parts[1];
+                    $val3 = (int)$parts[2];
+                    
+                    if ($val3 >= 1900 && $val3 <= 1910) {
+                        $y = $val3;
+                        if ($val1 <= 12 && $val2 <= 31) {
+                            $m = $val1;
+                            $d = $val2;
+                        } elseif ($val1 <= 31 && $val2 <= 12) {
+                            $d = $val1;
+                            $m = $val2;
+                        }
+                    }
+                }
+                
+                if ($y > 0 && $m > 0 && $d > 0) {
+                    $dt = new \DateTime();
+                    $dt->setDate($y, $m, $d);
+                    $base = new \DateTime('1899-12-30');
+                    $diff = $base->diff($dt);
+                    return (string)$diff->days;
+                }
+            } catch (\Exception $e) {
+                // Ignore
+            }
+        }
+
         return $v;
     }
 }
