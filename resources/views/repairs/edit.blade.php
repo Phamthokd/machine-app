@@ -74,12 +74,18 @@
 
             <div class="mb-3">
                 <label class="form-label">{{ __('messages.supporter_optional') }}</label>
-                <select class="form-select" name="nguoi_ho_tro">
-                    <option value="">{{ __('messages.select_supporter') }}</option>
+                <select class="form-select" name="nguoi_ho_tro[]" multiple style="min-height: 100px;">
+                    @php
+                        $selected = old('nguoi_ho_tro', $repair->nguoi_ho_tro ?? '');
+                        if (!is_array($selected)) {
+                            $selected = explode(', ', $selected);
+                        }
+                    @endphp
                     @foreach($contractors as $c)
-                    <option value="{{ $c->name }}" @selected(old('nguoi_ho_tro', $repair->nguoi_ho_tro) == $c->name)>{{ $c->name }}</option>
+                    <option value="{{ $c->name }}" @selected(in_array($c->name, $selected))>{{ $c->name }}</option>
                     @endforeach
                 </select>
+                <div class="form-text text-muted" style="font-size: 0.75rem;">💡 Giữ phím Ctrl (hoặc Command trên Mac) để chọn nhiều người.</div>
             </div>
             @else
             <!-- MECHANIC FORM -->

@@ -49,6 +49,15 @@ class RepairTicketController extends Controller
 
     public function store(Request $request)
     {
+        if ($request->has('nguoi_ho_tro')) {
+            $nguoiHoTro = $request->input('nguoi_ho_tro');
+            if (is_array($nguoiHoTro)) {
+                $request->merge([
+                    'nguoi_ho_tro' => implode(', ', array_filter($nguoiHoTro))
+                ]);
+            }
+        }
+
         $isTeamLeader = auth()->user()->isTeamLeaderUser();
         $isContractor = auth()->user()->isContractorUser();
 
@@ -87,8 +96,8 @@ class RepairTicketController extends Controller
         $validated['created_by'] = auth()->id();
         $validated['code'] = 'RM-' . now()->format('Ymd') . '-' . str_pad((string) random_int(1, 9999), 4, '0', STR_PAD_LEFT);
 
-        // If not a team leader and not a contractor, the creator is implicitly the mechanic
-        if (!$isTeamLeader && !$isContractor) {
+        // If not a team leader, the creator is implicitly the mechanic
+        if (!$isTeamLeader) {
             $validated['mechanic_id'] = auth()->id();
         }
 
@@ -133,7 +142,11 @@ class RepairTicketController extends Controller
             $validated['ended_at'] = now();
         }
 
-        $ticket = RepairTicket::create($validated);
+        $ticket = new RepairTicket($validated);
+        if (!$isTeamLeader) {
+            $ticket->created_at = $validated['started_at'];
+        }
+        $ticket->save();
 
         // Redirect
         $machine = Machine::findOrFail($validated['machine_id']);
@@ -510,6 +523,15 @@ class RepairTicketController extends Controller
 
     public function update(Request $request, RepairTicket $repair)
     {
+        if ($request->has('nguoi_ho_tro')) {
+            $nguoiHoTro = $request->input('nguoi_ho_tro');
+            if (is_array($nguoiHoTro)) {
+                $request->merge([
+                    'nguoi_ho_tro' => implode(', ', array_filter($nguoiHoTro))
+                ]);
+            }
+        }
+
         $rules = [
             'ma_hang' => ['required', 'string', 'max:255'],
             'cong_doan' => ['required', 'string', 'max:255'],
@@ -564,6 +586,15 @@ class RepairTicketController extends Controller
     public function updateCompleted(Request $request, RepairTicket $repair)
     {
         abort_unless(auth()->user()->isAdminUser(), 403);
+
+        if ($request->has('nguoi_ho_tro')) {
+            $nguoiHoTro = $request->input('nguoi_ho_tro');
+            if (is_array($nguoiHoTro)) {
+                $request->merge([
+                    'nguoi_ho_tro' => implode(', ', array_filter($nguoiHoTro))
+                ]);
+            }
+        }
 
         $rules = [
             'ma_hang' => ['nullable', 'string', 'max:255'],

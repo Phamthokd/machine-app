@@ -271,12 +271,18 @@
 
         <div class="mb-3">
             <label class="form-label">{{ __('messages.helper_label') }} ({{ __('messages.optional_label') }})</label>
-            <select class="form-select" name="nguoi_ho_tro">
-                <option value="">{{ __('messages.select_helper') }}</option>
+            <select class="form-select" name="nguoi_ho_tro[]" multiple style="min-height: 100px;">
+                @php
+                    $selected = old('nguoi_ho_tro', []);
+                    if (!is_array($selected)) {
+                        $selected = explode(', ', $selected);
+                    }
+                @endphp
                 @foreach($contractors as $c)
-                <option value="{{ $c->name }}" @selected(old('nguoi_ho_tro')==$c->name)>{{ $c->name }}</option>
+                <option value="{{ $c->name }}" @selected(in_array($c->name, $selected))>{{ $c->name }}</option>
                 @endforeach
             </select>
+            <div class="form-text text-muted" style="font-size: 0.75rem;">💡 Giữ phím Ctrl (hoặc Command trên Mac) để chọn nhiều người.</div>
         </div>
 
         <!-- Hidden fields for Contractor -->
@@ -416,10 +422,10 @@
     </div>
     @endunlessrole
 
-    @hasrole('team_leader')
-    <!-- Hidden started_at for Team Leader (Auto Now) -->
+    @if(auth()->user()->hasAnyRole(['team_leader', 'contractor']))
+    <!-- Hidden started_at for Team Leader & Contractor (Auto Now) -->
     <input type="hidden" name="started_at" value="{{ now()->format('Y-m-d\\TH:i') }}">
-    @endhasrole
+    @endif
 
     <!-- Spacer to ensure content isn't hidden behind footer -->
     <div class="footer-spacer"></div>

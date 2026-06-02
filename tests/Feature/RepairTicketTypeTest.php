@@ -235,4 +235,26 @@ class RepairTicketTypeTest extends TestCase
         // Should show the mechanic's name
         $response->assertSee($this->contractorUser->name);
     }
+
+    public function test_contractor_can_create_ticket_with_multiple_helpers(): void
+    {
+        $response = $this->actingAs($this->contractorUser)
+            ->post('/repairs', [
+                'machine_id' => $this->machine->id,
+                'department_id' => $this->department->id,
+                'nguyen_nhan' => 'Sự cố nhà xưởng',
+                'noi_dung_sua_chua' => 'Khắc phục sự cố',
+                'started_at' => now()->format('Y-m-d H:i:s'),
+                'type' => 'contractor',
+                'nguoi_ho_tro' => ['Người hỗ trợ 1', 'Người hỗ trợ 2']
+            ]);
+
+        $response->assertRedirect("/m/{$this->machine->ma_thiet_bi}");
+        
+        $ticket = RepairTicket::where('machine_id', $this->machine->id)->first();
+        $this->assertNotNull($ticket);
+        $this->assertEquals($this->contractorUser->id, $ticket->mechanic_id);
+        $this->assertEquals($ticket->created_at->toDateTimeString(), \Carbon\Carbon::parse($ticket->started_at)->toDateTimeString());
+        $this->assertEquals('Người hỗ trợ 1, Người hỗ trợ 2', $ticket->nguoi_ho_tro);
+    }
 }
