@@ -44,6 +44,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/scan', [QrScanController::class, 'index']);
     Route::get('/m/{ma_thiet_bi}', [MachinePublicController::class, 'show']);
 
+    // Universal Repair Reporting (All authenticated users)
+    Route::get('/repairs/create', [RepairTicketController::class, 'create']);
+    Route::post('/repairs', [RepairTicketController::class, 'store']);
+
     Route::middleware(['role_or_permission:admin|warehouse|contractor|repairs.contractor'])->group(function () {
         Route::get('/repairs/contractor/export', [RepairTicketController::class, 'exportContractor']);
         Route::get('/repairs/contractor', [RepairTicketController::class, 'contractorIndex']);
@@ -52,8 +56,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // REPAIR GROUP: Admin, Warehouse, Repair Tech, Contractor, Team Leader
     Route::middleware(['role_or_permission:admin|warehouse|repair_tech|contractor|team_leader|repairs.manage'])->group(function () {
         Route::get('/repair-requests', [RepairTicketController::class, 'requestsIndex']);
-        Route::get('/repairs/create', [RepairTicketController::class, 'create']);
-        Route::post('/repairs', [RepairTicketController::class, 'store']);
         Route::get('/repairs/{repair}/edit', [RepairTicketController::class, 'edit']);
         Route::put('/repairs/{repair}', [RepairTicketController::class, 'update']);
         Route::post('/repairs/{repair}/accept', [RepairTicketController::class, 'accept'])->name('repairs.accept');

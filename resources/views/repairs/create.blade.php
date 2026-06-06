@@ -257,7 +257,7 @@
             {{ __('messages.repair_info_section') }}
         </div>
 
-        @hasrole('contractor')
+        @if(auth()->user()->hasRole('contractor'))
         <!-- Simplified Form for Contractor -->
         <div class="mb-3">
             <label class="form-label">{{ __('messages.damage_reason_label') }} <span class="text-danger">*</span></label>
@@ -290,8 +290,7 @@
         <input type="hidden" name="cong_doan" value="N/A">
         <input type="hidden" name="endline_qc_name" value="N/A">
 
-        @else
-        @hasrole('team_leader')
+        @elseif(!auth()->user()->hasAnyRole(['admin', 'warehouse', 'repair_tech']))
         <!-- Type Selection -->
         <div class="mb-3">
             <label class="form-label">{{ __('messages.request_type') }} <span class="text-danger">*</span></label>
@@ -311,13 +310,13 @@
             </div>
         </div>
 
-        <!-- Simplified Form for Team Leader (Request Only) -->
+        <!-- Simplified Form for Reporter (Request Only) -->
         <div class="mb-3">
             <label class="form-label">{{ __('messages.issue_desc_label') }} <span class="text-danger">*</span></label>
             <textarea class="form-control" name="nguyen_nhan" placeholder="VD: Máy kêu to, không chạy, đứt chỉ..." rows="4" required>{{ old('nguyen_nhan') }}</textarea>
         </div>
 
-        <!-- Hidden fields for Team Leader -->
+        <!-- Hidden fields for Reporter -->
         <input type="hidden" name="ma_hang" value="N/A">
         <input type="hidden" name="cong_doan" value="N/A">
         <input type="hidden" name="noi_dung_sua_chua" value="N/A"> <!-- Will be updated later by mechanic -->
@@ -355,12 +354,11 @@
             <textarea class="form-control" name="noi_dung_sua_chua" placeholder="VD: Thay kim, chỉnh ổ, vệ sinh..." required>{{ old('noi_dung_sua_chua') }}</textarea>
         </div>
         @endif
-        @endhasrole
-        @endhasrole
+        @endif
     </div>
 
-    @unlessrole('contractor|team_leader')
-    <!-- Time & Personnel (Only for Non-Contractors & Non-TeamLeaders) -->
+    @if(auth()->user()->hasAnyRole(['admin', 'warehouse', 'repair_tech']))
+    <!-- Time & Personnel (Only for Technicians) -->
     <div class="form-section">
         <div class="section-title">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -420,10 +418,10 @@
         </div>
 
     </div>
-    @endunlessrole
+    @endif
 
-    @if(auth()->user()->hasAnyRole(['team_leader', 'contractor']))
-    <!-- Hidden started_at for Team Leader & Contractor (Auto Now) -->
+    @if(!auth()->user()->hasAnyRole(['admin', 'warehouse', 'repair_tech']))
+    <!-- Hidden started_at for Contractor & Reporters (Auto Now) -->
     <input type="hidden" name="started_at" value="{{ now()->format('Y-m-d\\TH:i') }}">
     @endif
 
@@ -433,7 +431,7 @@
     <!-- Submit Button -->
     <div class="fixed-bottom container p-3 bg-white border-top" style="max-width: 600px;">
         <button type="submit" class="btn btn-primary w-100 py-3 rounded-pill fw-bold shadow-lg d-flex align-items-center justify-content-center gap-2">
-            @hasrole('team_leader')
+            @if(!auth()->user()->hasAnyRole(['admin', 'warehouse', 'repair_tech', 'contractor']))
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
             </svg>
@@ -445,7 +443,7 @@
                 <polyline points="7 3 7 8 15 8" />
             </svg>
             {{ __('messages.save_ticket_btn') }}
-            @endhasrole
+            @endif
         </button>
     </div>
 

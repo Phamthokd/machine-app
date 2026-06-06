@@ -344,7 +344,7 @@
 </div>
 
 <!-- Floating Action Button -->
-@if(auth()->user()->canManageRepairs())
+@if(auth()->check())
 @php
     $hasPending = $machine->repairTickets->contains(function ($t) {
         return empty($t->ended_at);

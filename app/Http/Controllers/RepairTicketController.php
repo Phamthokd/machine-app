@@ -60,6 +60,8 @@ class RepairTicketController extends Controller
 
         $isTeamLeader = auth()->user()->isTeamLeaderUser();
         $isContractor = auth()->user()->isContractorUser();
+        $isTechnician = auth()->user()->hasAnyRole(['admin', 'warehouse', 'repair_tech']);
+        $isReporter = !$isTechnician && !$isContractor;
 
         $rules = [
             'machine_id' => ['required', 'exists:machines,id'],
@@ -68,8 +70,8 @@ class RepairTicketController extends Controller
             'started_at' => ['required', 'date'],
         ];
 
-        if ($isTeamLeader) {
-            // Team Leader: Minimal validation
+        if ($isReporter) {
+            // Reporter (non-technical user): Minimal validation
             $rules['ma_hang'] = ['nullable'];
             $rules['cong_doan'] = ['nullable'];
             $rules['noi_dung_sua_chua'] = ['nullable'];
@@ -96,8 +98,8 @@ class RepairTicketController extends Controller
         $validated['created_by'] = auth()->id();
         $validated['code'] = 'RM-' . now()->format('Ymd') . '-' . str_pad((string) random_int(1, 9999), 4, '0', STR_PAD_LEFT);
 
-        // If not a team leader, the creator is implicitly the mechanic
-        if (!$isTeamLeader) {
+        // If not a reporter, the creator is implicitly the mechanic
+        if (!$isReporter) {
             $validated['mechanic_id'] = auth()->id();
         }
 
@@ -134,7 +136,7 @@ class RepairTicketController extends Controller
             }
         }
 
-        if ($isTeamLeader) {
+        if ($isReporter) {
             $validated['status'] = 'pending';
             $validated['ended_at'] = null; // Open ticket
         } else {
@@ -143,7 +145,7 @@ class RepairTicketController extends Controller
         }
 
         $ticket = new RepairTicket($validated);
-        if (!$isTeamLeader) {
+        if (!$isReporter) {
             $ticket->created_at = $validated['started_at'];
         }
         $ticket->save();
@@ -151,7 +153,7 @@ class RepairTicketController extends Controller
         // Redirect
         $machine = Machine::findOrFail($validated['machine_id']);
 
-        if ($isTeamLeader) {
+        if ($isReporter) {
             return redirect("/m/{$machine->ma_thiet_bi}")
                 ->with('success', "Đã gửi báo hỏng: {$ticket->code}. Đang chờ thợ máy tiếp nhận.");
         }

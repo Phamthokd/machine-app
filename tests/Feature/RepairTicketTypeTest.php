@@ -257,4 +257,54 @@ class RepairTicketTypeTest extends TestCase
         $this->assertEquals($ticket->created_at->toDateTimeString(), \Carbon\Carbon::parse($ticket->started_at)->toDateTimeString());
         $this->assertEquals('Người hỗ trợ 1, Người hỗ trợ 2', $ticket->nguoi_ho_tro);
     }
+
+    public function test_standard_user_without_roles_can_create_repair_ticket(): void
+    {
+        $standardUser = User::factory()->create();
+
+        $response = $this->actingAs($standardUser)
+            ->post('/repairs', [
+                'machine_id' => $this->machine->id,
+                'department_id' => $this->department->id,
+                'nguyen_nhan' => 'Lỗi màn hình cảm ứng',
+                'started_at' => now()->format('Y-m-d H:i:s'),
+                'type' => 'mechanic',
+            ]);
+
+        $response->assertRedirect("/m/{$this->machine->ma_thiet_bi}");
+        $this->assertDatabaseHas('repair_tickets', [
+            'machine_id' => $this->machine->id,
+            'type' => 'mechanic',
+            'status' => 'pending',
+            'nguyen_nhan' => 'Lỗi màn hình cảm ứng',
+            'created_by' => $standardUser->id,
+            'mechanic_id' => null,
+        ]);
+    }
+
+    public function test_audit_user_can_create_repair_ticket(): void
+    {
+        Role::firstOrCreate(['name' => 'audit']);
+        $auditUser = User::factory()->create();
+        $auditUser->assignRole('audit');
+
+        $response = $this->actingAs($auditUser)
+            ->post('/repairs', [
+                'machine_id' => $this->machine->id,
+                'department_id' => $this->department->id,
+                'nguyen_nhan' => 'Kẹt dây đai máy',
+                'started_at' => now()->format('Y-m-d H:i:s'),
+                'type' => 'mechanic',
+            ]);
+
+        $response->assertRedirect("/m/{$this->machine->ma_thiet_bi}");
+        $this->assertDatabaseHas('repair_tickets', [
+            'machine_id' => $this->machine->id,
+            'type' => 'mechanic',
+            'status' => 'pending',
+            'nguyen_nhan' => 'Kẹt dây đai máy',
+            'created_by' => $auditUser->id,
+            'mechanic_id' => null,
+        ]);
+    }
 }
