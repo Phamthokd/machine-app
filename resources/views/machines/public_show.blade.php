@@ -404,7 +404,7 @@
                     </div>
                     <div class="flex-grow-1">
                         <div class="option-title fw-bold text-dark" style="font-size: 1.05rem;">
-                            {{ __('messages.type_repair') }} ({{ app()->getLocale() == 'vi' ? 'Cơ điện' : (app()->getLocale() == 'zh' ? '机电' : 'Mechanic') }})
+                            {{ __('messages.type_repair') }}
                         </div>
                         <div class="option-desc text-muted small mt-1" style="font-size: 0.82rem; line-height: 1.3;">
                             {{ app()->getLocale() == 'vi' ? 'Báo hỏng máy móc thiết bị, cơ khí, sự cố điện máy...' : (app()->getLocale() == 'zh' ? '报告机器设备、机械、电机故障...' : 'Report machine, mechanical, or electrical issues...') }}
