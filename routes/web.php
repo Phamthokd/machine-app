@@ -47,11 +47,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Universal Repair Reporting (All authenticated users)
     Route::get('/repairs/create', [RepairTicketController::class, 'create']);
     Route::post('/repairs', [RepairTicketController::class, 'store']);
-
-    Route::middleware(['role_or_permission:admin|warehouse|contractor|repairs.contractor'])->group(function () {
-        Route::get('/repairs/contractor/export', [RepairTicketController::class, 'exportContractor']);
-        Route::get('/repairs/contractor', [RepairTicketController::class, 'contractorIndex']);
-    });
+    Route::get('/repairs/contractor/export', [RepairTicketController::class, 'exportContractor']);
+    Route::get('/repairs/contractor', [RepairTicketController::class, 'contractorIndex']);
 
     // REPAIR GROUP: Admin, Warehouse, Repair Tech, Contractor, Team Leader
     Route::middleware(['role_or_permission:admin|warehouse|repair_tech|contractor|team_leader|repairs.manage'])->group(function () {

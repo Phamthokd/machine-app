@@ -24,7 +24,7 @@ class FeatureAccess
             'environment_reports.access' => $user->hasAnyRole(['admin', 'environment']) || $user->can('environment_reports.access'),
             'repairs.manage' => $user->hasAnyRole(['admin', 'warehouse', 'repair_tech', 'contractor', 'team_leader']) || $user->can('repairs.manage'),
             'repairs.view' => $user->hasAnyRole(['admin', 'warehouse', 'repair_tech', 'contractor', 'team_leader', 'audit', '7s']) || $user->can('repairs.view'),
-            'repairs.contractor' => $user->hasAnyRole(['admin', 'warehouse', 'contractor', 'audit', '7s']) || $user->can('repairs.contractor'),
+            'repairs.contractor' => true,
             'machines.move' => $user->hasAnyRole(['admin', 'warehouse', 'team_leader']) || $user->can('machines.move'),
             'movement_history.view' => $user->hasAnyRole(['admin', 'warehouse', 'team_leader', 'audit', '7s']) || $user->can('movement_history.view'),
             'machines.manage' => $user->hasAnyRole(['admin', 'warehouse', 'audit', '7s']) || $user->can('machines.manage'),

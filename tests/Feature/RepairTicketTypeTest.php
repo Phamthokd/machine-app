@@ -307,4 +307,14 @@ class RepairTicketTypeTest extends TestCase
             'mechanic_id' => null,
         ]);
     }
+
+    public function test_standard_user_can_view_contractor_history(): void
+    {
+        $standardUser = User::factory()->create();
+
+        $response = $this->actingAs($standardUser)
+            ->get('/repairs/contractor');
+
+        $response->assertOk();
+    }
 }
