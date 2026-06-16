@@ -317,4 +317,86 @@ class RepairTicketTypeTest extends TestCase
 
         $response->assertOk();
     }
+
+    public function test_senior_manager_rejects_and_deletes_ticket(): void
+    {
+        Role::firstOrCreate(['name' => 'senior_manager']);
+        $seniorManager = User::factory()->create();
+        $seniorManager->assignRole('senior_manager');
+
+        $ticket = RepairTicket::create([
+            'code' => 'RM-REJECT-9999',
+            'machine_id' => $this->machine->id,
+            'department_id' => $this->department->id,
+            'ma_hang' => 'N/A',
+            'cong_doan' => 'N/A',
+            'noi_dung_sua_chua' => 'N/A',
+            'nguyen_nhan' => 'Lỗi chập nguồn điện',
+            'started_at' => now(),
+            'status' => 'pending',
+            'approval_status' => 'pending_approval',
+            'type' => 'contractor',
+            'created_by' => $this->teamLeader->id,
+        ]);
+
+        $response = $this->actingAs($seniorManager)
+            ->post("/repairs/{$ticket->id}/reject", [
+                'approval_note' => 'Thiếu mô tả sự cố chi tiết',
+            ]);
+
+        $response->assertRedirect();
+        $this->assertDatabaseMissing('repair_tickets', [
+            'id' => $ticket->id,
+        ]);
+    }
+
+    public function test_supervisor_can_access_history_and_requests(): void
+    {
+        Role::firstOrCreate(['name' => 'supervisor']);
+        $supervisor = User::factory()->create();
+        $supervisor->assignRole('supervisor');
+
+        // Can view repair history (repairs.view / /repairs)
+        $response = $this->actingAs($supervisor)->get('/repairs');
+        $response->assertOk();
+
+        // Can view movement history (movement_history.view / /movement-history)
+        $response = $this->actingAs($supervisor)->get('/movement-history');
+        $response->assertOk();
+
+        // Can view repair requests (repairs.manage / /repair-requests)
+        $response = $this->actingAs($supervisor)->get('/repair-requests');
+        $response->assertOk();
+
+        // Create a repair ticket
+        $ticket = RepairTicket::create([
+            'code' => 'RM-TEST-SUPERVISOR',
+            'machine_id' => $this->machine->id,
+            'department_id' => $this->department->id,
+            'ma_hang' => 'N/A',
+            'cong_doan' => 'N/A',
+            'noi_dung_sua_chua' => 'N/A',
+            'nguyen_nhan' => 'Lỗi chập nguồn điện',
+            'started_at' => now(),
+            'status' => 'pending',
+            'type' => 'contractor',
+            'created_by' => $this->teamLeader->id,
+        ]);
+
+        // Supervisor cannot accept ticket (403)
+        $response = $this->actingAs($supervisor)->post("/repairs/{$ticket->id}/accept");
+        $response->assertStatus(403);
+
+        // Supervisor cannot edit ticket (403)
+        $response = $this->actingAs($supervisor)->get("/repairs/{$ticket->id}/edit");
+        $response->assertStatus(403);
+
+        // Supervisor cannot update ticket (403)
+        $response = $this->actingAs($supervisor)->put("/repairs/{$ticket->id}", [
+            'nguyen_nhan' => 'Lỗi khác',
+            'noi_dung_sua_chua' => 'Sửa khác',
+            'started_at' => now()->format('Y-m-d H:i:s'),
+        ]);
+        $response->assertStatus(403);
+    }
 }

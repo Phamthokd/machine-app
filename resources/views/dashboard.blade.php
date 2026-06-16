@@ -96,7 +96,7 @@ $maxWidth = '1200px';
             </div>
             @endif
 
-            @if(\App\Support\FeatureAccess::allows($currentUser, 'repairs.manage') && ($currentUser->isContractorUser() || $currentUser->isAdminUser() || $currentUser->isTeamLeaderUser() || $currentUser->hasRole('warehouse')))
+            @if(\App\Support\FeatureAccess::allows($currentUser, 'repairs.manage') && ($currentUser->isContractorUser() || $currentUser->isAdminUser() || $currentUser->isTeamLeaderUser() || $currentUser->hasRole('warehouse') || $currentUser->hasRole('supervisor')))
             <div class="col">
                 <a href="/repair-requests?type=contractor" class="btn btn-white border border-warning border-opacity-25 w-100 py-4 rounded-4 shadow-sm fw-semibold d-flex flex-column align-items-center justify-content-center h-100 tap hover-shadow transition">
                     <div class="bg-warning bg-opacity-10 text-warning p-3 rounded-circle mb-3">
@@ -141,6 +141,31 @@ $maxWidth = '1200px';
                     <span>{{ __('messages.repair_evaluation') }}</span>
                     @if($pendingEvalCount > 0)
                         <small class="text-warning fw-bold mt-1">{{ $pendingEvalCount }} {{ __('messages.pending_evaluations') }}</small>
+                    @endif
+                </a>
+            </div>
+            @endif
+
+            {{-- Phê duyệt sửa chữa (chỉ senior_manager và admin) --}}
+            @if(\App\Support\FeatureAccess::allows($currentUser, 'repairs.approve'))
+            @php
+                $pendingApprovalCount = \App\Models\RepairTicket::where('approval_status', 'pending_approval')->count();
+            @endphp
+            <div class="col">
+                <a href="/repairs/approvals" class="btn btn-white border w-100 py-4 rounded-4 shadow-sm fw-semibold d-flex flex-column align-items-center justify-content-center h-100 tap hover-shadow transition position-relative {{ $pendingApprovalCount > 0 ? 'border-warning border-2' : '' }}">
+                    @if($pendingApprovalCount > 0)
+                        <span class="position-absolute top-0 end-0 translate-middle badge rounded-pill bg-danger" style="font-size: 0.75rem;">
+                            {{ $pendingApprovalCount }}
+                        </span>
+                    @endif
+                    <div class="bg-warning bg-opacity-10 text-warning p-3 rounded-circle mb-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                        </svg>
+                    </div>
+                    <span>🔑 {{ __('messages.repair_approvals') }}</span>
+                    @if($pendingApprovalCount > 0)
+                        <small class="text-danger fw-bold mt-1">{{ $pendingApprovalCount }} {{ __('messages.awaiting_approval_badge') }}</small>
                     @endif
                 </a>
             </div>

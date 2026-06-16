@@ -28,10 +28,16 @@ class RepairTicket extends Model
         'eval_repair_speed',
         'eval_error_rate',
         'evaluated_at',
+        // Approval workflow
+        'approval_status', // null | pending_approval | approved | rejected
+        'approval_note',
+        'approved_by',
+        'approved_at',
     ];
 
     protected $casts = [
         'evaluated_at' => 'datetime',
+        'approved_at'  => 'datetime',
     ];
 
     public function machine()
@@ -52,6 +58,21 @@ class RepairTicket extends Model
     public function mechanic()
     {
         return $this->belongsTo(User::class, 'mechanic_id');
+    }
+
+    public function approvedBy()
+    {
+        return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    public function isPendingApproval(): bool
+    {
+        return $this->approval_status === 'pending_approval';
+    }
+
+    public function isApproved(): bool
+    {
+        return $this->approval_status === 'approved' || $this->approval_status === null;
     }
 }
 

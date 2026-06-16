@@ -22,6 +22,8 @@ class RoleSeeder extends Seeder
             '7s',
             'contractor',
             'environment',
+            'supervisor',       // Chủ quản: có thể tạo phiếu cần phê duyệt
+            'senior_manager',   // Quản lý cấp cao: phê duyệt phiếu sửa
         ];
 
         // Xoá các role không nằm trong danh sách chuẩn (để dọn dẹp VPS)

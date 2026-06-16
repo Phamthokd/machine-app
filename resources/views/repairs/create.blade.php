@@ -153,6 +153,39 @@
         color: #dc2626;
         margin-bottom: 12px;
     }
+
+    /* Approval Modal */
+    .modal-approval .modal-content {
+        border-radius: 20px;
+        border: none;
+        overflow: hidden;
+    }
+    .modal-approval .modal-header {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        color: white;
+        border: none;
+        padding: 20px 24px 16px;
+    }
+    .modal-approval .modal-body {
+        padding: 24px;
+    }
+    .modal-approval .modal-footer {
+        border: none;
+        padding: 0 24px 24px;
+        gap: 12px;
+    }
+    .approval-icon-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 60px;
+        height: 60px;
+        background: #fffbeb;
+        border: 2px solid #fcd34d;
+        border-radius: 50%;
+        font-size: 1.8rem;
+        margin-bottom: 12px;
+    }
 </style>
 
 {{-- Modal cảnh báo phiếu chưa đánh giá (chỉ hiện với tổ trưởng có >= 3 phiếu) --}}
@@ -204,6 +237,48 @@
 @endif
 @endhasrole
 
+{{-- Modal chọn cần phê duyệt hay không (chỉ dành cho Chủ quản / supervisor) --}}
+@hasrole('supervisor')
+<div class="modal fade modal-approval" id="approvalChoiceModal" tabindex="-1"
+     data-bs-backdrop="static" data-bs-keyboard="false"
+     aria-labelledby="approvalChoiceModalLabel" aria-modal="true" role="dialog">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="d-flex align-items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    </svg>
+                    <h5 class="modal-title mb-0 fw-bold" id="approvalChoiceModalLabel">
+                        {{ __('messages.approval_needed_title') }}
+                    </h5>
+                </div>
+            </div>
+            <div class="modal-body text-center">
+                <div class="approval-icon-badge mx-auto">🔑</div>
+                <h6 class="fw-bold text-warning-emphasis mb-2">{{ __('messages.approval_needed_create_body') }}</h6>
+                <p class="text-muted mb-0" style="font-size:0.9rem;">
+                    {!! __('messages.approval_needed_create_hint') !!}
+                </p>
+            </div>
+            <div class="modal-footer flex-column">
+                <button type="button" id="btnNeedsApproval"
+                        class="btn btn-warning w-100 fw-bold rounded-pill py-2 d-flex align-items-center justify-content-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    </svg>
+                    {{ __('messages.approval_yes_create_btn') }}
+                </button>
+                <button type="button" id="btnNoApproval"
+                        class="btn btn-outline-secondary w-100 rounded-pill py-2">
+                    {{ __('messages.approval_no_create_btn') }}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+@endhasrole
+
 <div class="d-flex align-items-center gap-3 mb-4">
     <a href="/m/{{ $machine->ma_thiet_bi }}" class="text-decoration-none text-secondary d-flex align-items-center gap-1">
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -214,10 +289,12 @@
     <h4 class="mb-0 fw-bold">{{ __('messages.create_ticket') }}</h4>
 </div>
 
-<form method="POST" action="/repairs">
+<form method="POST" action="/repairs" id="repairForm">
     @csrf
     <input type="hidden" name="machine_id" value="{{ $machine->id }}">
     <input type="hidden" name="department_id" value="{{ $machine->department->id }}">
+    {{-- needs_approval: đọc từ URL (truyền từ trang máy khi supervisor chọn) --}}
+    <input type="hidden" name="needs_approval" id="needsApprovalInput" value="{{ request('needs_approval', '0') }}">
 
     <!-- Machine Info -->
     <div class="machine-summary">
@@ -459,4 +536,49 @@
         startedAtField.value = local;
     }
 </script>
+
+{{-- JS: Supervisor approval modal logic --}}
+@hasrole('supervisor')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const contractorRadio = document.getElementById('type_contractor');
+    const mechanicRadio   = document.getElementById('type_mechanic');
+    const needsApprovalInput = document.getElementById('needsApprovalInput');
+    const approvalModal  = document.getElementById('approvalChoiceModal');
+    const btnNeeds       = document.getElementById('btnNeedsApproval');
+    const btnNo          = document.getElementById('btnNoApproval');
+
+    if (!approvalModal || !contractorRadio) return;
+
+    const bsModal = new bootstrap.Modal(approvalModal);
+
+    // Khi chọn "Bộ phận công trình" → hiện modal
+    contractorRadio.addEventListener('change', function () {
+        if (this.checked) {
+            needsApprovalInput.value = '0'; // reset
+            bsModal.show();
+        }
+    });
+
+    // Nếu chọn lại "Sửa máy" → ẩn modal nếu đang mở
+    if (mechanicRadio) {
+        mechanicRadio.addEventListener('change', function () {
+            needsApprovalInput.value = '0';
+        });
+    }
+
+    // Nút "Có, cần duyệt"
+    btnNeeds.addEventListener('click', function () {
+        needsApprovalInput.value = '1';
+        bsModal.hide();
+    });
+
+    // Nút "Không cần duyệt"
+    btnNo.addEventListener('click', function () {
+        needsApprovalInput.value = '0';
+        bsModal.hide();
+    });
+});
+</script>
+@endhasrole
 @endsection

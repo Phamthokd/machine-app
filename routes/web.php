@@ -50,8 +50,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/repairs/contractor/export', [RepairTicketController::class, 'exportContractor']);
     Route::get('/repairs/contractor', [RepairTicketController::class, 'contractorIndex']);
 
+    // APPROVAL GROUP: Senior Manager + Admin
+    Route::middleware(['role_or_permission:admin|senior_manager|repairs.approve'])->group(function () {
+        Route::get('/repairs/approvals', [RepairTicketController::class, 'approvalsIndex'])->name('repairs.approvals');
+        Route::post('/repairs/{repair}/approve', [RepairTicketController::class, 'approve'])->name('repairs.approve');
+        Route::post('/repairs/{repair}/reject', [RepairTicketController::class, 'reject'])->name('repairs.reject');
+    });
+
     // REPAIR GROUP: Admin, Warehouse, Repair Tech, Contractor, Team Leader
-    Route::middleware(['role_or_permission:admin|warehouse|repair_tech|contractor|team_leader|repairs.manage'])->group(function () {
+    Route::middleware(['role_or_permission:admin|warehouse|repair_tech|contractor|team_leader|supervisor|repairs.manage'])->group(function () {
         Route::get('/repair-requests', [RepairTicketController::class, 'requestsIndex']);
         Route::get('/repairs/{repair}/edit', [RepairTicketController::class, 'edit']);
         Route::put('/repairs/{repair}', [RepairTicketController::class, 'update']);
@@ -60,7 +67,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // REPAIR READ-ONLY + EXPORT: also accessible by Audit and 7S
-    Route::middleware(['role_or_permission:admin|warehouse|repair_tech|contractor|team_leader|audit|7s|repairs.view'])->group(function () {
+    Route::middleware(['role_or_permission:admin|warehouse|repair_tech|contractor|team_leader|audit|7s|supervisor|repairs.view'])->group(function () {
         Route::get('/repairs/export', [RepairTicketController::class, 'export']);
         Route::get('/repairs', [RepairTicketController::class, 'index']);
         Route::get('/repairs/{repair}', [RepairTicketController::class, 'show'])->whereNumber('repair');
@@ -80,7 +87,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // MOVEMENT READ-ONLY + MOVE FORM + EXPORT: also accessible by Audit and 7S
-    Route::middleware(['role_or_permission:admin|warehouse|team_leader|audit|7s|movement_history.view'])->group(function () {
+    Route::middleware(['role_or_permission:admin|warehouse|team_leader|audit|7s|supervisor|movement_history.view'])->group(function () {
         Route::get('/machines/{id}/move', [MachineMovementController::class, 'edit']);
         Route::get('/movement-history', [MachineMovementController::class, 'index']);
         Route::get('/movement-history/export', [MachineMovementController::class, 'export']);

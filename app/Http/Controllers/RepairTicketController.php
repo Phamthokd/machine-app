@@ -61,13 +61,14 @@ class RepairTicketController extends Controller
         $isTeamLeader = auth()->user()->isTeamLeaderUser();
         $isContractor = auth()->user()->isContractorUser();
         $isTechnician = auth()->user()->hasAnyRole(['admin', 'warehouse', 'repair_tech']);
+        $isSupervisor = auth()->user()->hasRole('supervisor');
         $isReporter = !$isTechnician && !$isContractor;
 
         $rules = [
-            'machine_id' => ['required', 'exists:machines,id'],
+            'machine_id'    => ['required', 'exists:machines,id'],
             'department_id' => ['required', 'exists:departments,id'],
-            'nguyen_nhan' => ['required', 'string'],
-            'started_at' => ['required', 'date'],
+            'nguyen_nhan'   => ['required', 'string'],
+            'started_at'    => ['required', 'date'],
         ];
 
         if ($isReporter) {
@@ -139,6 +140,11 @@ class RepairTicketController extends Controller
         if ($isReporter) {
             $validated['status'] = 'pending';
             $validated['ended_at'] = null; // Open ticket
+
+            // Supervisor tạo phiếu công trình có thể yêu cầu phê duyệt
+            if ($isSupervisor && $validated['type'] === 'contractor' && $request->input('needs_approval') == '1') {
+                $validated['approval_status'] = 'pending_approval';
+            }
         } else {
             $validated['status'] = 'submitted'; // Or completed
             $validated['ended_at'] = now();
@@ -154,6 +160,10 @@ class RepairTicketController extends Controller
         $machine = Machine::findOrFail($validated['machine_id']);
 
         if ($isReporter) {
+            if (isset($validated['approval_status']) && $validated['approval_status'] === 'pending_approval') {
+                return redirect("/m/{$machine->ma_thiet_bi}")
+                    ->with('success', "Đã gửi báo hỏng: {$ticket->code}. Đang chờ quản lý cấp cao phê duyệt.");
+            }
             return redirect("/m/{$machine->ma_thiet_bi}")
                 ->with('success', "Đã gửi báo hỏng: {$ticket->code}. Đang chờ thợ máy tiếp nhận.");
         }
@@ -517,6 +527,10 @@ class RepairTicketController extends Controller
 
     public function edit(RepairTicket $repair)
     {
+        if (auth()->user()->hasRole('supervisor')) {
+            abort(403, 'Chủ quản không được phép chỉnh sửa phiếu này.');
+        }
+
         $repair->load('machine');
         $machine = $repair->machine;
         $contractors = \App\Models\User::role('contractor')->get();
@@ -525,6 +539,10 @@ class RepairTicketController extends Controller
 
     public function update(Request $request, RepairTicket $repair)
     {
+        if (auth()->user()->hasRole('supervisor')) {
+            abort(403, 'Chủ quản không được phép chỉnh sửa phiếu này.');
+        }
+
         if ($request->has('nguoi_ho_tro')) {
             $nguoiHoTro = $request->input('nguoi_ho_tro');
             if (is_array($nguoiHoTro)) {
@@ -632,6 +650,10 @@ class RepairTicketController extends Controller
     {
         abort_unless(auth()->user()->canManageRepairs(), 403);
 
+        if (auth()->user()->hasRole('supervisor')) {
+            abort(403, 'Chủ quản không được phép tiếp nhận sửa chữa.');
+        }
+
         // Allow taking unassigned tickets.
         if (empty($repair->mechanic_id)) {
             $repair->update([
@@ -647,7 +669,13 @@ class RepairTicketController extends Controller
     public function requestsIndex(Request $request)
     {
         $query = RepairTicket::with(['machine.department', 'createdBy', 'mechanic'])
-            ->where('status', 'pending');
+            ->where('status', 'pending')
+            ->where(function ($q) {
+                // Ẩn phiếu đang chờ phê duyệt khỏi danh sách yêu cầu bình thường
+                // Chỉ hiển thị phiếu không cần duyệt hoặc đã được duyệt
+                $q->whereNull('approval_status')
+                  ->orWhere('approval_status', 'approved');
+            });
 
         $type = $request->query('type');
         if (in_array($type, ['mechanic', 'contractor'])) {
@@ -751,5 +779,71 @@ class RepairTicketController extends Controller
         $departments  = \App\Models\Department::whereHas('machines')->orderBy('name')->get();
 
         return view('repairs.evaluations', compact('evaluations', 'departments'));
+    }
+
+    // ─── APPROVAL WORKFLOW ────────────────────────────────────────────────────
+
+    /**
+     * Danh sách phiếu chờ phê duyệt (chỉ senior_manager và admin)
+     */
+    public function approvalsIndex(Request $request)
+    {
+        $query = RepairTicket::with(['machine.department', 'department', 'createdBy'])
+            ->where('approval_status', 'pending_approval');
+
+        if ($request->filled('start_date')) {
+            $query->whereDate('created_at', '>=', $request->start_date);
+        }
+        if ($request->filled('end_date')) {
+            $query->whereDate('created_at', '<=', $request->end_date);
+        }
+
+        $pendingApprovals = $query->orderByDesc('created_at')->paginate(20)->withQueryString();
+        $totalPending = RepairTicket::where('approval_status', 'pending_approval')->count();
+
+        return view('repairs.approvals', compact('pendingApprovals', 'totalPending'));
+    }
+
+    /**
+     * Phê duyệt phiếu sửa chữa
+     */
+    public function approve(RepairTicket $repair)
+    {
+        abort_unless(
+            auth()->user()->hasAnyRole(['admin', 'senior_manager']) || auth()->user()->can('repairs.approve'),
+            403,
+            __('messages.unauthorized_approval')
+        );
+
+        abort_unless($repair->approval_status === 'pending_approval', 400, __('messages.not_pending_approval'));
+
+        $repair->update([
+            'approval_status' => 'approved',
+            'approved_by'     => auth()->id(),
+            'approved_at'     => now(),
+            'approval_note'   => null,
+        ]);
+
+        return back()->with('success', __('messages.approve_success', ['code' => $repair->code]));
+    }
+
+    public function reject(Request $request, RepairTicket $repair)
+    {
+        abort_unless(
+            auth()->user()->hasAnyRole(['admin', 'senior_manager']) || auth()->user()->can('repairs.approve'),
+            403,
+            __('messages.unauthorized_reject')
+        );
+
+        abort_unless($repair->approval_status === 'pending_approval', 400, __('messages.not_pending_approval'));
+
+        $request->validate([
+            'approval_note' => ['required', 'string', 'max:500'],
+        ]);
+
+        $code = $repair->code;
+        $repair->delete();
+
+        return back()->with('success', __('messages.reject_success', ['code' => $code]));
     }
 }
