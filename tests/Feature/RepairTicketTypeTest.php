@@ -399,4 +399,69 @@ class RepairTicketTypeTest extends TestCase
         ]);
         $response->assertStatus(403);
     }
+
+    public function test_senior_manager_can_access_history_requests_seven_s_and_audit(): void
+    {
+        Role::firstOrCreate(['name' => 'senior_manager']);
+        Role::firstOrCreate(['name' => '7s']);
+        Role::firstOrCreate(['name' => 'audit']);
+
+        $seniorManager = User::factory()->create();
+        $seniorManager->assignRole('senior_manager');
+
+        // Can view repair history (repairs.view / /repairs)
+        $response = $this->actingAs($seniorManager)->get('/repairs');
+        $response->assertOk();
+
+        // Can view movement history (movement_history.view / /movement-history)
+        $response = $this->actingAs($seniorManager)->get('/movement-history');
+        $response->assertOk();
+
+        // Can view repair requests (repairs.manage / /repair-requests)
+        $response = $this->actingAs($seniorManager)->get('/repair-requests');
+        $response->assertOk();
+
+        // Create a repair ticket
+        $ticket = RepairTicket::create([
+            'code' => 'RM-TEST-SENIOR-MGR',
+            'machine_id' => $this->machine->id,
+            'department_id' => $this->department->id,
+            'ma_hang' => 'N/A',
+            'cong_doan' => 'N/A',
+            'noi_dung_sua_chua' => 'N/A',
+            'nguyen_nhan' => 'Lỗi chập nguồn điện',
+            'started_at' => now(),
+            'status' => 'pending',
+            'type' => 'contractor',
+            'created_by' => $this->teamLeader->id,
+        ]);
+
+        // Senior Manager cannot accept ticket (403)
+        $response = $this->actingAs($seniorManager)->post("/repairs/{$ticket->id}/accept");
+        $response->assertStatus(403);
+
+        // Senior Manager cannot edit ticket (403)
+        $response = $this->actingAs($seniorManager)->get("/repairs/{$ticket->id}/edit");
+        $response->assertStatus(403);
+
+        // Senior Manager cannot update ticket (403)
+        $response = $this->actingAs($seniorManager)->put("/repairs/{$ticket->id}", [
+            'nguyen_nhan' => 'Lỗi khác',
+            'noi_dung_sua_chua' => 'Sửa khác',
+            'started_at' => now()->format('Y-m-d H:i:s'),
+        ]);
+        $response->assertStatus(403);
+
+        // Can access /seven-s list
+        $response = $this->actingAs($seniorManager)->get('/seven-s');
+        $response->assertOk();
+
+        // Can access /seven-s/create
+        $response = $this->actingAs($seniorManager)->get('/seven-s/create');
+        $response->assertOk();
+
+        // Can access /audits list
+        $response = $this->actingAs($seniorManager)->get('/audits');
+        $response->assertOk();
+    }
 }

@@ -96,7 +96,7 @@ $maxWidth = '1200px';
             </div>
             @endif
 
-            @if(\App\Support\FeatureAccess::allows($currentUser, 'repairs.manage') && ($currentUser->isContractorUser() || $currentUser->isAdminUser() || $currentUser->isTeamLeaderUser() || $currentUser->hasRole('warehouse') || $currentUser->hasRole('supervisor')))
+            @if(\App\Support\FeatureAccess::allows($currentUser, 'repairs.manage') && ($currentUser->isContractorUser() || $currentUser->isAdminUser() || $currentUser->isTeamLeaderUser() || $currentUser->hasRole('warehouse') || $currentUser->hasRole('supervisor') || $currentUser->hasRole('senior_manager')))
             <div class="col">
                 <a href="/repair-requests?type=contractor" class="btn btn-white border border-warning border-opacity-25 w-100 py-4 rounded-4 shadow-sm fw-semibold d-flex flex-column align-items-center justify-content-center h-100 tap hover-shadow transition">
                     <div class="bg-warning bg-opacity-10 text-warning p-3 rounded-circle mb-3">

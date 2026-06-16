@@ -70,7 +70,7 @@
                     </td>
                     <td class="px-3 text-end">
                         <div class="d-flex align-items-center justify-content-end gap-2">
-                            @if(auth()->user()->hasAnyRole(['team_leader', 'audit', 'supervisor']))
+                            @if(auth()->user()->hasAnyRole(['team_leader', 'audit', 'supervisor', 'senior_manager']))
                                 @if($r->mechanic_id)
                                     @php
                                     $parts = explode(' ', $r->mechanic->name ?? __('messages.unknown_user'));

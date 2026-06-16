@@ -30,7 +30,7 @@ class SevenSController extends Controller
     $query = SevenSRecord::with(['inspector', 'results'])->orderByDesc('created_at');
 
     // 1. Base Filter by Role/Managed Department
-    if (!$user->isAdminUser()) {
+    if (!$user->isAdminUser() && !$user->hasRole('senior_manager')) {
       $managedDepartments = $this->userManagedDepartments($user);
       $query->where(function ($q) use ($user, $managedDepartments) {
         $q->where('inspector_id', $user->id);
@@ -294,7 +294,7 @@ class SevenSController extends Controller
     $query = SevenSRecord::with(['inspector', 'results']);
 
     $managedDepartments = $this->userManagedDepartments($user);
-    if (!empty($managedDepartments)) {
+    if (!empty($managedDepartments) && !$user->hasRole('senior_manager')) {
       $query->whereIn('department', $managedDepartments);
     }
 

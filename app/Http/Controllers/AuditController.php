@@ -30,7 +30,7 @@ class AuditController extends Controller
 
         // 1. Authorization/Base Filter: Filter by all managed departments if the user has any
         $managedDepartments = $this->userManagedDepartments($user);
-        if (!empty($managedDepartments)) {
+        if (!empty($managedDepartments) && !$user->hasRole('senior_manager')) {
             $query->whereHas('template', function ($q) use ($managedDepartments) {
                 $q->whereIn('department_name', $managedDepartments);
             });
@@ -261,7 +261,7 @@ class AuditController extends Controller
         $query = AuditRecord::with(['template', 'auditor', 'results']);
 
         $managedDepartments = $this->userManagedDepartments($user);
-        if (!empty($managedDepartments)) {
+        if (!empty($managedDepartments) && !$user->hasRole('senior_manager')) {
             $query->whereHas('template', function ($q) use ($managedDepartments) {
                 $q->whereIn('department_name', $managedDepartments);
             });

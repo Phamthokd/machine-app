@@ -527,8 +527,8 @@ class RepairTicketController extends Controller
 
     public function edit(RepairTicket $repair)
     {
-        if (auth()->user()->hasRole('supervisor')) {
-            abort(403, 'Chủ quản không được phép chỉnh sửa phiếu này.');
+        if (auth()->user()->hasRole('supervisor') || auth()->user()->hasRole('senior_manager')) {
+            abort(403, 'Bạn không được phép chỉnh sửa phiếu này.');
         }
 
         $repair->load('machine');
@@ -539,8 +539,8 @@ class RepairTicketController extends Controller
 
     public function update(Request $request, RepairTicket $repair)
     {
-        if (auth()->user()->hasRole('supervisor')) {
-            abort(403, 'Chủ quản không được phép chỉnh sửa phiếu này.');
+        if (auth()->user()->hasRole('supervisor') || auth()->user()->hasRole('senior_manager')) {
+            abort(403, 'Bạn không được phép chỉnh sửa phiếu này.');
         }
 
         if ($request->has('nguoi_ho_tro')) {
@@ -650,8 +650,8 @@ class RepairTicketController extends Controller
     {
         abort_unless(auth()->user()->canManageRepairs(), 403);
 
-        if (auth()->user()->hasRole('supervisor')) {
-            abort(403, 'Chủ quản không được phép tiếp nhận sửa chữa.');
+        if (auth()->user()->hasRole('supervisor') || auth()->user()->hasRole('senior_manager')) {
+            abort(403, 'Bạn không được phép tiếp nhận sửa chữa.');
         }
 
         // Allow taking unassigned tickets.

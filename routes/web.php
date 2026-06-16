@@ -58,7 +58,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // REPAIR GROUP: Admin, Warehouse, Repair Tech, Contractor, Team Leader
-    Route::middleware(['role_or_permission:admin|warehouse|repair_tech|contractor|team_leader|supervisor|repairs.manage'])->group(function () {
+    Route::middleware(['role_or_permission:admin|warehouse|repair_tech|contractor|team_leader|supervisor|senior_manager|repairs.manage'])->group(function () {
         Route::get('/repair-requests', [RepairTicketController::class, 'requestsIndex']);
         Route::get('/repairs/{repair}/edit', [RepairTicketController::class, 'edit']);
         Route::put('/repairs/{repair}', [RepairTicketController::class, 'update']);
@@ -67,7 +67,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // REPAIR READ-ONLY + EXPORT: also accessible by Audit and 7S
-    Route::middleware(['role_or_permission:admin|warehouse|repair_tech|contractor|team_leader|audit|7s|supervisor|repairs.view'])->group(function () {
+    Route::middleware(['role_or_permission:admin|warehouse|repair_tech|contractor|team_leader|audit|7s|supervisor|senior_manager|repairs.view'])->group(function () {
         Route::get('/repairs/export', [RepairTicketController::class, 'export']);
         Route::get('/repairs', [RepairTicketController::class, 'index']);
         Route::get('/repairs/{repair}', [RepairTicketController::class, 'show'])->whereNumber('repair');
@@ -87,7 +87,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // MOVEMENT READ-ONLY + MOVE FORM + EXPORT: also accessible by Audit and 7S
-    Route::middleware(['role_or_permission:admin|warehouse|team_leader|audit|7s|supervisor|movement_history.view'])->group(function () {
+    Route::middleware(['role_or_permission:admin|warehouse|team_leader|audit|7s|supervisor|senior_manager|movement_history.view'])->group(function () {
         Route::get('/machines/{id}/move', [MachineMovementController::class, 'edit']);
         Route::get('/movement-history', [MachineMovementController::class, 'index']);
         Route::get('/movement-history/export', [MachineMovementController::class, 'export']);
@@ -106,7 +106,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // AUDIT GROUP: Admin, Audit
-    Route::middleware(['role_or_permission:admin|audit|audits.access'])->group(function () {
+    Route::middleware(['role_or_permission:admin|audit|senior_manager|audits.access'])->group(function () {
         Route::get('/audits/export', [\App\Http\Controllers\AuditController::class, 'export'])->name('audits.export');
         Route::get('/audits/{audit}/export', [\App\Http\Controllers\AuditController::class, 'exportDetail'])->name('audits.export_detail');
         Route::post('/audits/{audit}/improvements', [\App\Http\Controllers\AuditController::class, 'updateImprovements'])->name('audits.improvements');
@@ -123,7 +123,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/audits/{audit}', [\App\Http\Controllers\AuditController::class, 'show'])->name('audits.show');
     });
 
-    Route::middleware(['role_or_permission:admin|7s|seven_s.access'])->group(function () {
+    Route::middleware(['role_or_permission:admin|7s|senior_manager|seven_s.access'])->group(function () {
         Route::get('/seven-s/export', [\App\Http\Controllers\SevenSController::class, 'export'])->name('seven-s.export');
         Route::get('/seven-s', [\App\Http\Controllers\SevenSController::class, 'index'])->name('seven-s.index');
         Route::get('/seven-s/create', [\App\Http\Controllers\SevenSController::class, 'create'])->name('seven-s.create');
