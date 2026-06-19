@@ -30,7 +30,7 @@ $improveableResults = $failedResults->filter(function($r) {
 $canRespond = $isDepartmentUser && $unrespondedResults->isNotEmpty();
 $canReviewRejections = $isAuditUser && $rejectedResultsPendingAudit->isNotEmpty();
 
-$canImprove = $isDepartmentUser
+$canImprove = ($isDepartmentUser || $isAdmin)
 && $improveableResults->isNotEmpty()
 && (!$isFullyReviewed || (auth()->check() && auth()->user()->isAdminUser()));
 

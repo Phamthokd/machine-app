@@ -421,7 +421,12 @@ class AuditController extends Controller
 
     public function updateImprovements(Request $request, $id)
     {
-        $audit = AuditRecord::with('results')->findOrFail($id);
+        $audit = AuditRecord::with('results', 'template')->findOrFail($id);
+        $user = auth()->user();
+
+        if (!$user->isAdminUser() && !$user->managesDepartment($audit->template->department_name)) {
+            abort(403, 'Bạn không thuộc bộ phận này nên không thể cập nhật kế hoạch cải thiện.');
+        }
 
         $isFullyReviewed = $audit->results->contains(function ($r) {
             return !empty($r->improver_name);
@@ -430,7 +435,7 @@ class AuditController extends Controller
                 return !empty($r->improver_name) && empty($r->reviewer_name);
             })->isEmpty();
 
-        if ($isFullyReviewed && !auth()->user()->isAdminUser()) {
+        if ($isFullyReviewed && !$user->isAdminUser()) {
             abort(403, 'Phiếu này đã được đánh giá lần 2 và bị khóa. Chỉ Admin mới có thể chỉnh sửa.');
         }
 
@@ -445,16 +450,21 @@ class AuditController extends Controller
             $result = $audit->results->where('id', $resultId)->first();
             if ($result) {
                 // If already has an improvement and not an admin, don't allow rewrite
-                if (!empty($result->improver_name) && !auth()->user()->isAdminUser()) {
+                if (!empty($result->improver_name) && !$user->isAdminUser()) {
                     continue;
                 }
 
-                $result->update([
+                $updateData = [
                     'root_cause' => $improvementData['root_cause'],
                     'corrective_action' => $improvementData['corrective_action'],
                     'improvement_deadline' => $improvementData['improvement_deadline'],
-                    'improver_name' => auth()->user()->name,
-                ]);
+                ];
+
+                if (empty($result->improver_name)) {
+                    $updateData['improver_name'] = $user->name;
+                }
+
+                $result->update($updateData);
             }
         }
 
