@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\RepairTicket;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
 
 class RepairTicketTypeTest extends TestCase
@@ -463,5 +464,114 @@ class RepairTicketTypeTest extends TestCase
         // Can access /audits list
         $response = $this->actingAs($seniorManager)->get('/audits');
         $response->assertOk();
+    }
+
+    public function test_bok_repair_workflow(): void
+    {
+        Role::firstOrCreate(['name' => 'bok']);
+        $bokUser = User::factory()->create();
+        $bokUser->assignRole('bok');
+
+        Permission::firstOrCreate(['name' => 'repairs.create_bok']);
+        $this->teamLeader->givePermissionTo('repairs.create_bok');
+
+        // 1. Team leader creates BOK ticket
+        $response = $this->actingAs($this->teamLeader)
+            ->post('/repairs', [
+                'machine_id' => $this->machine->id,
+                'department_id' => $this->department->id,
+                'nguyen_nhan' => 'Báo sửa BOK lỗi xilanh',
+                'started_at' => now()->format('Y-m-d H:i:s'),
+                'type' => 'bok',
+            ]);
+
+        $response->assertRedirect("/m/{$this->machine->ma_thiet_bi}");
+        $this->assertDatabaseHas('repair_tickets', [
+            'machine_id' => $this->machine->id,
+            'type' => 'bok',
+            'mo_ta_loi' => 'Báo sửa BOK lỗi xilanh',
+            'nguyen_nhan' => 'N/A',
+            'status' => 'pending',
+        ]);
+
+        $ticket = RepairTicket::where('machine_id', $this->machine->id)->where('type', 'bok')->first();
+
+        // 2. BOK user accepts the ticket
+        $response = $this->actingAs($bokUser)->post("/repairs/{$ticket->id}/accept");
+        $response->assertRedirect("/repairs/{$ticket->id}/edit");
+
+        $ticket->refresh();
+        $this->assertEquals($bokUser->id, $ticket->mechanic_id);
+
+        // 3. BOK user updates the ticket
+        $response = $this->actingAs($bokUser)->put("/repairs/{$ticket->id}", [
+            'nguyen_nhan' => 'Xilanh bị xì hơi nặng',
+            'noi_dung_sua_chua' => 'Đã thay thế gioăng phớt mới',
+            'started_at' => now()->format('Y-m-d H:i:s'),
+        ]);
+
+        $response->assertRedirect('/repair-requests');
+        $ticket->refresh();
+        $this->assertEquals('Xilanh bị xì hơi nặng', $ticket->nguyen_nhan);
+        $this->assertEquals('Đã thay thế gioăng phớt mới', $ticket->noi_dung_sua_chua);
+        $this->assertEquals('submitted', $ticket->status);
+    }
+
+    public function test_multiple_bok_tickets_can_be_created(): void
+    {
+        Permission::firstOrCreate(['name' => 'repairs.create_bok']);
+        $this->teamLeader->givePermissionTo('repairs.create_bok');
+
+        // 1. Create first BOK ticket
+        $response1 = $this->actingAs($this->teamLeader)
+            ->post('/repairs', [
+                'machine_id' => $this->machine->id,
+                'department_id' => $this->department->id,
+                'nguyen_nhan' => 'Lỗi xilanh',
+                'started_at' => now()->format('Y-m-d H:i:s'),
+                'type' => 'bok',
+            ]);
+        $response1->assertRedirect("/m/{$this->machine->ma_thiet_bi}");
+
+        // 2. Create second BOK ticket while the first one is still pending (not ended)
+        $response2 = $this->actingAs($this->teamLeader)
+            ->post('/repairs', [
+                'machine_id' => $this->machine->id,
+                'department_id' => $this->department->id,
+                'nguyen_nhan' => 'Lỗi cảm biến hành trình',
+                'started_at' => now()->format('Y-m-d H:i:s'),
+                'type' => 'bok',
+            ]);
+        $response2->assertRedirect("/m/{$this->machine->ma_thiet_bi}");
+
+        $this->assertEquals(2, RepairTicket::where('machine_id', $this->machine->id)->where('type', 'bok')->count());
+    }
+
+    public function test_create_bok_ticket_form_accessible_when_pending_exists(): void
+    {
+        Permission::firstOrCreate(['name' => 'repairs.create_bok']);
+        $this->teamLeader->givePermissionTo('repairs.create_bok');
+
+        // 1. Create a pending mechanic ticket
+        RepairTicket::create([
+            'machine_id' => $this->machine->id,
+            'department_id' => $this->department->id,
+            'nguyen_nhan' => 'Lỗi kẹt kim cơ điện',
+            'type' => 'mechanic',
+            'status' => 'pending',
+            'created_by' => $this->teamLeader->id,
+        ]);
+
+        // 2. Try to visit create page for BOK ticket
+        $response = $this->actingAs($this->teamLeader)
+            ->get("/repairs/create?machine={$this->machine->ma_thiet_bi}&type=bok");
+
+        $response->assertOk();
+
+        // 3. Try to visit create page for another mechanic ticket (should redirect)
+        $response2 = $this->actingAs($this->teamLeader)
+            ->get("/repairs/create?machine={$this->machine->ma_thiet_bi}&type=mechanic");
+
+        $response2->assertRedirect("/m/{$this->machine->ma_thiet_bi}");
     }
 }

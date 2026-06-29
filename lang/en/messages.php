@@ -1564,6 +1564,7 @@ return [
     'submitted_by_candidate'  => 'Candidate Self-Submitted',
     'search_name_phone_position' => 'Search by name, phone, position...',
     'role_bok' => 'BOK',
+    'role_worker' => 'Worker',
     'type_bok' => 'BOK Repair',
     'type_bok_desc' => 'Report failure, issue related to BOK department...',
     'bok_requests' => 'BOK Requests',

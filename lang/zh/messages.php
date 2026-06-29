@@ -1564,6 +1564,7 @@ return [
     'submitted_by_candidate'  => '应征者自填',
     'search_name_phone_position' => '按姓名、电话、应聘岗位搜索...',
     'role_bok' => 'BOK',
+    'role_worker' => '工人',
     'type_bok' => 'BOK维修',
     'type_bok_desc' => '报告与BOK痕迹相关的故障、异常问题...',
     'bok_requests' => 'BOK维修请求',

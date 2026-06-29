@@ -1521,6 +1521,7 @@ return [
     'submitted_by_candidate'  => 'Ứng viên tự điền',
     'search_name_phone_position' => 'Tìm theo tên, SĐT, vị trí...',
     'role_bok' => 'BOK',
+    'role_worker' => 'Công nhân',
     'type_bok' => 'Sửa BOK',
     'type_bok_desc' => 'Báo hỏng, sự cố liên quan đến bộ phận BOK...',
     'bok_requests' => 'Yêu cầu sửa BOK',

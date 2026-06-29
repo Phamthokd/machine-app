@@ -345,30 +345,39 @@
 
 <!-- Floating Action Button -->
 @if(auth()->check())
-@php
-    $hasPending = $machine->repairTickets->contains(function ($t) {
-        return empty($t->ended_at);
-    });
-@endphp
+    @php
+        $hasPendingNonBok = $machine->repairTickets->contains(function ($t) {
+            return empty($t->ended_at) && $t->type !== 'bok';
+        });
+        $canCreateBok = \App\Support\FeatureAccess::allows(auth()->user(), 'repairs.create_bok');
+    @endphp
 
-@if($hasPending)
-<div class="floating-action">
-    <button class="btn-create-ticket shadow-lg" style="background: #fbbf24; color: #78350f; cursor: not-allowed; border: 1px solid #f59e0b;" disabled>
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        {{ __('messages.reported_waiting_repair') }}
-    </button>
-</div>
-@else
-<div class="floating-action">
-    <button type="button" class="btn-create-ticket tap shadow-lg" data-bs-toggle="modal" data-bs-target="#breakdownTypeModal">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
-        {{ __('messages.report_issue_btn') }}
-    </button>
-</div>
-@endif
+    @if($hasPendingNonBok && !$canCreateBok)
+        <div class="floating-action">
+            <button class="btn-create-ticket shadow-lg" style="background: #fbbf24; color: #78350f; cursor: not-allowed; border: 1px solid #f59e0b; width: 100%; padding: 16px; border-radius: 16px; font-weight: 700; font-size: 1rem; display: flex; align-items: center; justify-content: center; gap: 8px;" disabled>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                {{ __('messages.reported_waiting_repair') }}
+            </button>
+        </div>
+    @else
+        <div class="floating-action">
+            <button type="button" class="btn-create-ticket tap shadow-lg" data-bs-toggle="modal" data-bs-target="#breakdownTypeModal">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+                {{ __('messages.report_issue_btn') }}
+            </button>
+        </div>
+    @endif
 @endif
 
 @push('modals')
+@php
+    $hasPendingMechanic = $machine->repairTickets->contains(function ($t) {
+        return empty($t->ended_at) && $t->type === 'mechanic';
+    });
+    $hasPendingContractor = $machine->repairTickets->contains(function ($t) {
+        return empty($t->ended_at) && $t->type === 'contractor';
+    });
+@endphp
 <!-- Breakdown Type Selection Modal -->
 <div class="modal fade" id="breakdownTypeModal" tabindex="-1" aria-labelledby="breakdownTypeModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" style="max-width: 480px;">
@@ -391,50 +400,111 @@
             </div>
             
             <div class="modal-body p-4 d-flex flex-column gap-3">
-                <a href="/repairs/create?machine={{ $machine->ma_thiet_bi }}&type=mechanic" class="breakdown-option-card d-flex align-items-center p-3 text-decoration-none shadow-sm transition-all" style="border-radius: 16px; border: 1.5px solid #eef2f6; background: linear-gradient(135deg, #ffffff 0%, #fbfcfe 100%);">
-                    <div class="option-icon-box d-flex align-items-center justify-content-center me-3" style="width: 52px; height: 52px; background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); border-radius: 12px; color: white; box-shadow: 0 4px 10px rgba(79, 70, 229, 0.25); flex-shrink: 0;">
+                @if($hasPendingMechanic)
+                    <div class="breakdown-option-card d-flex align-items-center p-3 opacity-75 w-100" style="border-radius: 16px; border: 1.5px solid #e2e8f0; background: #f8fafc; cursor: not-allowed;">
+                        <div class="option-icon-box d-flex align-items-center justify-content-center me-3" style="width: 52px; height: 52px; background: #94a3b8; border-radius: 12px; color: white;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+                            </svg>
+                        </div>
+                        <div class="flex-grow-1 text-start">
+                            <div class="option-title fw-bold text-secondary" style="font-size: 1.05rem;">
+                                {{ __('messages.type_repair') }} ({{ __('messages.status_repairing') }})
+                            </div>
+                            <div class="option-desc text-muted small mt-1" style="font-size: 0.82rem; line-height: 1.3;">
+                                {{ __('messages.reported_waiting_repair') }}
+                            </div>
+                        </div>
+                    </div>
+                @else
+                    <a href="/repairs/create?machine={{ $machine->ma_thiet_bi }}&type=mechanic" class="breakdown-option-card d-flex align-items-center p-3 text-decoration-none shadow-sm transition-all" style="border-radius: 16px; border: 1.5px solid #eef2f6; background: linear-gradient(135deg, #ffffff 0%, #fbfcfe 100%);">
+                        <div class="option-icon-box d-flex align-items-center justify-content-center me-3" style="width: 52px; height: 52px; background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); border-radius: 12px; color: white; box-shadow: 0 4px 10px rgba(79, 70, 229, 0.25); flex-shrink: 0;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+                            </svg>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="option-title fw-bold text-dark" style="font-size: 1.05rem;">
+                                {{ __('messages.type_repair') }}
+                            </div>
+                            <div class="option-desc text-muted small mt-1" style="font-size: 0.82rem; line-height: 1.3;">
+                                {{ __('messages.type_repair_desc') }}
+                            </div>
+                        </div>
+                        <div class="arrow-box ms-2 text-muted">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                        </div>
+                    </a>
+                @endif
+                
+                @if(\App\Support\FeatureAccess::allows(auth()->user(), 'repairs.create_bok'))
+                <a href="/repairs/create?machine={{ $machine->ma_thiet_bi }}&type=bok" class="breakdown-option-card d-flex align-items-center p-3 text-decoration-none shadow-sm transition-all" style="border-radius: 16px; border: 1.5px solid #eef2f6; background: linear-gradient(135deg, #ffffff 0%, #fbfcfe 100%);">
+                    <div class="option-icon-box d-flex align-items-center justify-content-center me-3" style="width: 52px; height: 52px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-radius: 12px; color: white; box-shadow: 0 4px 10px rgba(245, 158, 11, 0.25); flex-shrink: 0;">
                         <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
                         </svg>
                     </div>
                     <div class="flex-grow-1">
                         <div class="option-title fw-bold text-dark" style="font-size: 1.05rem;">
-                            {{ __('messages.type_repair') }}
+                            {{ __('messages.type_bok') }}
                         </div>
                         <div class="option-desc text-muted small mt-1" style="font-size: 0.82rem; line-height: 1.3;">
-                            {{ __('messages.type_repair_desc') }}
+                            {{ __('messages.type_bok_desc') }}
                         </div>
                     </div>
                     <div class="arrow-box ms-2 text-muted">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
                     </div>
                 </a>
-                
-                <button type="button" id="btnSelectContractor"
-                    onclick="handleContractorSelect()"
-                    class="breakdown-option-card d-flex align-items-center p-3 text-decoration-none shadow-sm transition-all w-100 text-start"
-                    style="border-radius: 16px; border: 1.5px solid #eef2f6; background: linear-gradient(135deg, #ffffff 0%, #fbfcfe 100%); cursor: pointer;">
-                    <div class="option-icon-box d-flex align-items-center justify-content-center me-3" style="width: 52px; height: 52px; background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%); border-radius: 12px; color: white; box-shadow: 0 4px 10px rgba(14, 165, 233, 0.25); flex-shrink: 0;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                            <line x1="9" y1="3" x2="9" y2="21"/>
-                            <line x1="15" y1="3" x2="15" y2="21"/>
-                            <line x1="3" y1="9" x2="21" y2="9"/>
-                            <line x1="3" y1="15" x2="21" y2="15"/>
-                        </svg>
-                    </div>
-                    <div class="flex-grow-1">
-                        <div class="option-title fw-bold text-dark" style="font-size: 1.05rem;">
-                            {{ __('messages.type_construction') }} ({{ __('messages.contractor_label_simple') }})
+                @endif
+
+                @if($hasPendingContractor)
+                    <div class="breakdown-option-card d-flex align-items-center p-3 opacity-75 w-100" style="border-radius: 16px; border: 1.5px solid #e2e8f0; background: #f8fafc; cursor: not-allowed;">
+                        <div class="option-icon-box d-flex align-items-center justify-content-center me-3" style="width: 52px; height: 52px; background: #94a3b8; border-radius: 12px; color: white;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                <line x1="9" y1="3" x2="9" y2="21"/>
+                                <line x1="15" y1="3" x2="15" y2="21"/>
+                                <line x1="3" y1="9" x2="21" y2="9"/>
+                                <line x1="3" y1="15" x2="21" y2="15"/>
+                            </svg>
                         </div>
-                        <div class="option-desc text-muted small mt-1" style="font-size: 0.82rem; line-height: 1.3;">
-                            {{ __('messages.type_construction_desc') }}
+                        <div class="flex-grow-1 text-start">
+                            <div class="option-title fw-bold text-secondary" style="font-size: 1.05rem;">
+                                {{ __('messages.type_construction') }} ({{ __('messages.status_repairing') }})
+                            </div>
+                            <div class="option-desc text-muted small mt-1" style="font-size: 0.82rem; line-height: 1.3;">
+                                {{ __('messages.reported_waiting_repair') }}
+                            </div>
                         </div>
                     </div>
-                    <div class="arrow-box ms-2 text-muted">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-                    </div>
-                </button>
+                @else
+                    <button type="button" id="btnSelectContractor"
+                        onclick="handleContractorSelect()"
+                        class="breakdown-option-card d-flex align-items-center p-3 text-decoration-none shadow-sm transition-all w-100 text-start"
+                        style="border-radius: 16px; border: 1.5px solid #eef2f6; background: linear-gradient(135deg, #ffffff 0%, #fbfcfe 100%); cursor: pointer;">
+                        <div class="option-icon-box d-flex align-items-center justify-content-center me-3" style="width: 52px; height: 52px; background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%); border-radius: 12px; color: white; box-shadow: 0 4px 10px rgba(14, 165, 233, 0.25); flex-shrink: 0;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                <line x1="9" y1="3" x2="9" y2="21"/>
+                                <line x1="15" y1="3" x2="15" y2="21"/>
+                                <line x1="3" y1="9" x2="21" y2="9"/>
+                                <line x1="3" y1="15" x2="21" y2="15"/>
+                            </svg>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="option-title fw-bold text-dark" style="font-size: 1.05rem;">
+                                {{ __('messages.type_construction') }} ({{ __('messages.contractor_label_simple') }})
+                            </div>
+                            <div class="option-desc text-muted small mt-1" style="font-size: 0.82rem; line-height: 1.3;">
+                                {{ __('messages.type_construction_desc') }}
+                            </div>
+                        </div>
+                        <div class="arrow-box ms-2 text-muted">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                        </div>
+                    </button>
+                @endif
             </div>
             
             <div class="modal-footer border-0 p-3 bg-light bg-opacity-50 text-center justify-content-center">

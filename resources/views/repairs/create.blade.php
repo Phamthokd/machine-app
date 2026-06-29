@@ -289,7 +289,7 @@
     <h4 class="mb-0 fw-bold">{{ __('messages.create_ticket') }}</h4>
 </div>
 
-<form method="POST" action="/repairs" id="repairForm">
+<form method="POST" action="/repairs" id="repairForm" enctype="multipart/form-data">
     @csrf
     <input type="hidden" name="machine_id" value="{{ $machine->id }}">
     <input type="hidden" name="department_id" value="{{ $machine->department->id }}">
@@ -367,23 +367,29 @@
         <input type="hidden" name="cong_doan" value="N/A">
         <input type="hidden" name="endline_qc_name" value="N/A">
 
-        @elseif(!auth()->user()->hasAnyRole(['admin', 'warehouse', 'repair_tech']))
-        <!-- Type Selection -->
+        @elseif(!auth()->user()->hasAnyRole(['admin', 'warehouse', 'repair_tech', 'bok']))
+        <!-- Type Selection (Read-only display) -->
         <div class="mb-3">
-            <label class="form-label">{{ __('messages.request_type') }} <span class="text-danger">*</span></label>
-            <div class="d-flex gap-4">
-                <div class="form-check">
-                    <input class="form-check-input" type="radio" name="type" id="type_mechanic" value="mechanic" @checked(request('type', 'mechanic') === 'mechanic')>
-                    <label class="form-check-label" for="type_mechanic">
+            <label class="form-label">{{ __('messages.request_type') }}</label>
+            <div class="d-flex align-items-center">
+                @php
+                    $reqType = request('type', 'mechanic');
+                @endphp
+                <input type="hidden" name="type" id="repair_type_input" value="{{ $reqType }}">
+                
+                @if($reqType === 'mechanic')
+                    <span class="badge bg-danger bg-opacity-10 text-danger px-3 py-2 rounded-pill fw-semibold" style="font-size: 0.95rem;">
                         🔧 {{ __('messages.type_repair') }}
-                    </label>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="radio" name="type" id="type_contractor" value="contractor" @checked(request('type') === 'contractor')>
-                    <label class="form-check-label" for="type_contractor">
+                    </span>
+                @elseif($reqType === 'contractor')
+                    <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill fw-semibold" style="font-size: 0.95rem;">
                         🏗 {{ __('messages.type_construction') }}
-                    </label>
-                </div>
+                    </span>
+                @elseif($reqType === 'bok')
+                    <span class="badge bg-warning bg-opacity-10 text-warning-emphasis px-3 py-2 rounded-pill fw-semibold" style="font-size: 0.95rem;">
+                        📦 {{ __('messages.type_bok') }}
+                    </span>
+                @endif
             </div>
         </div>
 
@@ -393,14 +399,21 @@
             <textarea class="form-control" name="nguyen_nhan" placeholder="VD: Máy kêu to, không chạy, đứt chỉ..." rows="4" required>{{ old('nguyen_nhan') }}</textarea>
         </div>
 
+        <!-- Photos Upload Section (only for BOK type) -->
+        <div class="mb-3" id="bokPhotosSection" style="display: none;">
+            <label class="form-label">{{ __('messages.attached_photos') }}</label>
+            <input type="file" class="form-control" name="images[]" multiple accept="image/*">
+            <div class="form-text text-muted" style="font-size: 0.75rem;">💡 {{ __('messages.multiple_photos_hint') }}</div>
+        </div>
+
         <!-- Hidden fields for Reporter -->
         <input type="hidden" name="ma_hang" value="N/A">
         <input type="hidden" name="cong_doan" value="N/A">
         <input type="hidden" name="noi_dung_sua_chua" value="N/A"> <!-- Will be updated later by mechanic -->
         <input type="hidden" name="endline_qc_name" value="N/A">
         @else
-        <!-- Standard Form for Repair Tech / Admin -->
-        <input type="hidden" name="type" value="{{ request('type', 'mechanic') }}">
+        <!-- Standard Form for Repair Tech / Admin / BOK -->
+        <input type="hidden" name="type" id="repair_type_input" value="{{ request('type', auth()->user()->hasRole('bok') ? 'bok' : 'mechanic') }}">
         @if(request('type') == 'maintenance')
         <input type="hidden" name="ma_hang" value="{{ __('messages.maintenance_label') }}">
         <input type="hidden" name="cong_doan" value="{{ __('messages.maintenance_label') }}">
@@ -409,6 +422,26 @@
         <div class="mb-3">
             <label class="form-label">{{ __('messages.maintenance_fix_label') }} <span class="text-danger">*</span></label>
             <textarea class="form-control" name="noi_dung_sua_chua" placeholder="VD: Tra dầu, lau chùi, kiểm tra định kỳ..." required>{{ old('noi_dung_sua_chua', __('messages.maintenance_label')) }}</textarea>
+        </div>
+        @elseif(request('type') == 'bok' || auth()->user()->hasRole('bok'))
+        <input type="hidden" name="ma_hang" value="N/A">
+        <input type="hidden" name="cong_doan" value="N/A">
+        <input type="hidden" name="endline_qc_name" value="N/A">
+
+        <div class="mb-3">
+            <label class="form-label">{{ __('messages.damage_reason_label') }} <span class="text-danger">*</span></label>
+            <textarea class="form-control" name="nguyen_nhan" placeholder="VD: Đứt dây hơi, hỏng xilanh..." required>{{ old('nguyen_nhan') }}</textarea>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">{{ __('messages.repair_content_label') }} <span class="text-danger">*</span></label>
+            <textarea class="form-control" name="noi_dung_sua_chua" placeholder="VD: Thay dây mới, căn chỉnh..." required>{{ old('noi_dung_sua_chua') }}</textarea>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">{{ __('messages.attached_photos') }}</label>
+            <input type="file" class="form-control" name="images[]" multiple accept="image/*">
+            <div class="form-text text-muted" style="font-size: 0.75rem;">💡 {{ __('messages.multiple_photos_hint') }}</div>
         </div>
         @else
         <div class="mb-3">
@@ -535,6 +568,24 @@
             .slice(0, 16);
         startedAtField.value = local;
     }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const typeInput = document.getElementById('repair_type_input');
+        const bokPhotosSection = document.getElementById('bokPhotosSection');
+        
+        function toggleBokPhotos() {
+            const activeType = typeInput ? typeInput.value : '';
+            if (activeType === 'bok') {
+                if (bokPhotosSection) bokPhotosSection.style.display = 'block';
+            } else {
+                if (bokPhotosSection) bokPhotosSection.style.display = 'none';
+            }
+        }
+        
+        if (typeInput && bokPhotosSection) {
+            toggleBokPhotos();
+        }
+    });
 </script>
 
 {{-- JS: Supervisor approval modal logic --}}

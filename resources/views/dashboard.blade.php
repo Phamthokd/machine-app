@@ -66,7 +66,7 @@ $maxWidth = '1200px';
         <h5 class="fw-bold text-secondary mb-3">{{ __('messages.management_functions') }}</h5>
 
         <div class="row row-cols-2 row-cols-md-3 g-3">
-            @if(\App\Support\FeatureAccess::allows($currentUser, 'repairs.manage') && !$currentUser->isContractorUser())
+            @if(\App\Support\FeatureAccess::allows($currentUser, 'repairs.manage') && !$currentUser->isContractorUser() && !$currentUser->hasRole('bok'))
             <div class="col">
                 <a href="/repair-requests?type=mechanic" class="btn btn-white border border-danger border-opacity-25 w-100 py-4 rounded-4 shadow-sm fw-semibold d-flex flex-column align-items-center justify-content-center h-100 tap hover-shadow transition">
                     <div class="bg-danger bg-opacity-10 text-danger p-3 rounded-circle mb-3">
@@ -79,7 +79,7 @@ $maxWidth = '1200px';
             </div>
             @endif
 
-            @if(\App\Support\FeatureAccess::allows($currentUser, 'repairs.view') && !$currentUser->isContractorUser())
+            @if(\App\Support\FeatureAccess::allows($currentUser, 'repairs.view') && !$currentUser->isContractorUser() && !$currentUser->hasRole('bok'))
             <div class="col">
                 <a href="/repairs" class="btn btn-white border w-100 py-4 rounded-4 shadow-sm fw-semibold d-flex flex-column align-items-center justify-content-center h-100 tap hover-shadow transition">
                     <div class="bg-primary bg-opacity-10 text-primary p-3 rounded-circle mb-3">
@@ -92,6 +92,40 @@ $maxWidth = '1200px';
                         </svg>
                     </div>
                     <span>{{ __('messages.repair_history_mechanic') }}</span>
+                </a>
+            </div>
+            @endif
+
+            @if(\App\Support\FeatureAccess::allows($currentUser, 'repairs.manage') && ($currentUser->hasRole('bok') || $currentUser->isAdminUser() || $currentUser->hasRole('supervisor') || $currentUser->hasRole('senior_manager') || $currentUser->can('repairs.create_bok')))
+            <div class="col">
+                <a href="/repair-requests?type=bok" class="btn btn-white border border-warning border-opacity-25 w-100 py-4 rounded-4 shadow-sm fw-semibold d-flex flex-column align-items-center justify-content-center h-100 tap hover-shadow transition">
+                    <div class="bg-warning bg-opacity-10 text-warning p-3 rounded-circle mb-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                            <line x1="9" y1="3" x2="9" y2="21"/>
+                            <line x1="15" y1="3" x2="15" y2="21"/>
+                            <line x1="3" y1="9" x2="21" y2="9"/>
+                            <line x1="3" y1="15" x2="21" y2="15"/>
+                        </svg>
+                    </div>
+                    <span class="text-warning">{{ __('messages.bok_requests') }}</span>
+                </a>
+            </div>
+            @endif
+
+            @if(\App\Support\FeatureAccess::allows($currentUser, 'repairs.view') && ($currentUser->hasRole('bok') || $currentUser->isAdminUser() || $currentUser->hasRole('supervisor') || $currentUser->hasRole('senior_manager') || $currentUser->can('repairs.bok')))
+            <div class="col">
+                <a href="/repairs/bok" class="btn btn-white border w-100 py-4 rounded-4 shadow-sm fw-semibold d-flex flex-column align-items-center justify-content-center h-100 tap hover-shadow transition">
+                    <div class="bg-info bg-opacity-10 text-info p-3 rounded-circle mb-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                            <polyline points="14 2 14 8 20 8" />
+                            <line x1="16" y1="13" x2="8" y2="13" />
+                            <line x1="16" y1="17" x2="8" y2="17" />
+                            <polyline points="10 9 9 9 8 9" />
+                        </svg>
+                    </div>
+                    <span>{{ __('messages.bok_history') }}</span>
                 </a>
             </div>
             @endif
@@ -171,7 +205,7 @@ $maxWidth = '1200px';
             </div>
             @endif
 
-            @feature('repairs.contractor')
+            @if(\App\Support\FeatureAccess::allows($currentUser, 'repairs.contractor') && !$currentUser->hasRole('bok'))
             <div class="col">
                 <a href="/repairs/contractor" class="btn btn-white border w-100 py-4 rounded-4 shadow-sm fw-semibold d-flex flex-column align-items-center justify-content-center h-100 tap hover-shadow transition">
                     <div class="bg-info bg-opacity-10 text-info p-3 rounded-circle mb-3">
@@ -182,7 +216,7 @@ $maxWidth = '1200px';
                     <span>{{ __('messages.construction_history') }}</span>
                 </a>
             </div>
-            @endfeature
+            @endif
 
             @featureany('movement_history.view', 'machines.move')
             <div class="col">
@@ -294,6 +328,22 @@ $maxWidth = '1200px';
                 </a>
             </div>
             @endfeature
+
+            @if($currentUser->isAdminUser() || $currentUser->hasRole('senior_manager'))
+            <div class="col">
+                <a href="{{ route('candidates.index') }}" class="btn btn-white border w-100 py-4 rounded-4 shadow-sm fw-semibold d-flex flex-column align-items-center justify-content-center h-100 tap hover-shadow transition">
+                    <div class="bg-warning bg-opacity-10 text-warning p-3 rounded-circle mb-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                            <circle cx="8.5" cy="7" r="4"/>
+                            <line x1="20" y1="8" x2="20" y2="14"/>
+                            <line x1="23" y1="11" x2="17" y2="11"/>
+                        </svg>
+                    </div>
+                    <span>{{ __('messages.candidates') }}</span>
+                </a>
+            </div>
+            @endif
 
             <div class="col">
                 <form method="POST" action="{{ route('logout') }}" class="h-100">

@@ -1,5 +1,5 @@
 @extends('layouts.app-simple', ['maxWidth' => '100%'])
-@section('title', $type === 'mechanic' ? (app()->getLocale() == 'vi' ? 'Yêu cầu sửa máy' : (app()->getLocale() == 'zh' ? '机电维修请求' : 'Machine Repair Requests')) : ($type === 'contractor' ? (app()->getLocale() == 'vi' ? 'Yêu cầu sửa công trình' : (app()->getLocale() == 'zh' ? '工程报修请求' : 'Construction Repair Requests')) : __('messages.repair_requests_title')))
+@section('title', $type === 'mechanic' ? (app()->getLocale() == 'vi' ? 'Yêu cầu sửa máy' : (app()->getLocale() == 'zh' ? '机电维修请求' : 'Machine Repair Requests')) : ($type === 'contractor' ? (app()->getLocale() == 'vi' ? 'Yêu cầu sửa công trình' : (app()->getLocale() == 'zh' ? '工程报修请求' : 'Construction Repair Requests')) : ($type === 'bok' ? (app()->getLocale() == 'vi' ? 'Yêu cầu sửa BOK' : (app()->getLocale() == 'zh' ? 'BOK维修请求' : 'BOK Repair Requests')) : __('messages.repair_requests_title'))))
 
 @section('content')
 <div class="d-flex align-items-center justify-content-between mb-4">
@@ -15,6 +15,8 @@
                     {{ app()->getLocale() == 'vi' ? 'Yêu cầu sửa máy' : (app()->getLocale() == 'zh' ? '机电维修请求' : 'Machine Repair Requests') }}
                 @elseif($type === 'contractor')
                     {{ app()->getLocale() == 'vi' ? 'Yêu cầu sửa công trình' : (app()->getLocale() == 'zh' ? '工程报修请求' : 'Construction Repair Requests') }}
+                @elseif($type === 'bok')
+                    {{ app()->getLocale() == 'vi' ? 'Yêu cầu sửa BOK' : (app()->getLocale() == 'zh' ? 'BOK维修请求' : 'BOK Repair Requests') }}
                 @else
                     {{ __('messages.repair_requests_title') }}
                 @endif
@@ -24,6 +26,8 @@
                     {{ app()->getLocale() == 'vi' ? 'Danh sách thiết bị báo hỏng đang chờ sửa chữa cơ điện' : (app()->getLocale() == 'zh' ? '等待机电维修的故障设备列表' : 'List of reported machines pending mechanic repair') }}
                 @elseif($type === 'contractor')
                     {{ app()->getLocale() == 'vi' ? 'Danh sách sự cố đang chờ khắc phục từ thầu phụ công trình' : (app()->getLocale() == 'zh' ? '等待承包商修复的工程故障列表' : 'List of reported issues pending contractor repair') }}
+                @elseif($type === 'bok')
+                    {{ app()->getLocale() == 'vi' ? 'Danh sách sự cố đang chờ khắc phục từ bộ phận BOK' : (app()->getLocale() == 'zh' ? '等待BOK修复的故障列表' : 'List of reported issues pending BOK repair') }}
                 @else
                     {{ __('messages.repair_requests_subtitle') }}
                 @endif
@@ -70,7 +74,20 @@
                     </td>
                     <td class="px-3 text-end">
                         <div class="d-flex align-items-center justify-content-end gap-2">
-                            @if(auth()->user()->hasAnyRole(['team_leader', 'audit', 'supervisor', 'senior_manager']))
+                            @php
+                                $canAccept = false;
+                                if (auth()->user()->isAdminUser()) {
+                                    $canAccept = true;
+                                } elseif ($r->type === 'bok' && auth()->user()->hasRole('bok')) {
+                                    $canAccept = true;
+                                } elseif ($r->type === 'mechanic' && auth()->user()->hasRole('repair_tech')) {
+                                    $canAccept = true;
+                                } elseif ($r->type === 'contractor' && auth()->user()->hasRole('contractor')) {
+                                    $canAccept = true;
+                                }
+                            @endphp
+
+                            @if(!$canAccept)
                                 @if($r->mechanic_id)
                                     @php
                                     $parts = explode(' ', $r->mechanic->name ?? __('messages.unknown_user'));
@@ -89,6 +106,7 @@
                                             data-bs-toggle="modal"
                                             data-bs-target="#scanAcceptModal"
                                             data-machine-code="{{ $r->machine->ma_thiet_bi }}"
+                                            data-ticket-type="{{ $r->type }}"
                                             data-redirect-url="/repairs/{{ $r->id }}/edit">
                                             {{ __('messages.process_resume_btn') }}
                                         </button>
@@ -109,6 +127,7 @@
                                         data-bs-toggle="modal"
                                         data-bs-target="#scanAcceptModal"
                                         data-machine-code="{{ $r->machine->ma_thiet_bi }}"
+                                        data-ticket-type="{{ $r->type }}"
                                         data-form-id="accept-form-{{ $r->id }}">
                                         {{ __('messages.process_btn') }}
                                     </button>
@@ -143,8 +162,6 @@
         </table>
     </div>
 </div>
-
-<!-- Scanner Modal -->
 <div class="modal fade" id="scanAcceptModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow rounded-4">
@@ -161,10 +178,19 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body text-center pt-2">
-                <p class="text-muted small mb-3">{{ __('messages.scan_to_accept_desc') }}</p>
+                <p class="text-muted small mb-3" id="acceptModalDesc">{{ __('messages.scan_to_accept_desc') }}</p>
                 <div class="fw-bold text-dark mb-3" style="font-size: 1.1rem;" id="targetMachineLabel"></div>
 
+                <!-- Camera reader for standard tickets -->
                 <div id="acceptQrReader" class="mx-auto rounded-3 overflow-hidden shadow-sm border" style="width: 100%; max-width: 300px;"></div>
+
+                <!-- Manual Input for BOK tickets -->
+                <div id="acceptManualInputContainer" class="d-none mx-auto" style="max-width: 300px;">
+                    <div class="input-group mb-3">
+                        <input type="text" id="acceptManualInput" class="form-control rounded-start-pill ps-3" placeholder="Nhập mã thiết bị..." style="height: 48px; border-color: #cbd5e1;">
+                        <button class="btn btn-primary rounded-end-pill px-3" type="button" id="btnConfirmManualInput" style="height: 48px; font-weight: 600;">Xác nhận</button>
+                    </div>
+                </div>
 
                 <div id="acceptScanError" class="alert alert-danger mt-3 mb-0 d-none text-start small">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1">
@@ -192,6 +218,11 @@
         const scanModal = document.getElementById('scanAcceptModal');
         const errorDiv = document.getElementById('acceptScanError');
         const machineLabel = document.getElementById('targetMachineLabel');
+        const descP = document.getElementById('acceptModalDesc');
+        const readerDiv = document.getElementById('acceptQrReader');
+        const manualContainer = document.getElementById('acceptManualInputContainer');
+        const manualInput = document.getElementById('acceptManualInput');
+        const confirmBtn = document.getElementById('btnConfirmManualInput');
 
         function stopScanner() {
             if (acceptHtml5QrCode && acceptHtml5QrCode.isScanning) {
@@ -201,67 +232,104 @@
             }
         }
 
+        function handleManualSubmit() {
+            let val = manualInput.value.trim();
+            if (val === targetMachineCode) {
+                if (targetRedirectUrl) {
+                    window.location.href = targetRedirectUrl;
+                } else if (targetFormId) {
+                    document.getElementById(targetFormId).submit();
+                }
+            } else {
+                errorDiv.classList.remove('d-none');
+                setTimeout(() => errorDiv.classList.add('d-none'), 3000);
+            }
+        }
+
+        confirmBtn.addEventListener('click', handleManualSubmit);
+        manualInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                handleManualSubmit();
+            }
+        });
+
         scanModal.addEventListener('show.bs.modal', function(event) {
             const button = event.relatedTarget;
             targetMachineCode = button.getAttribute('data-machine-code');
             targetFormId = button.getAttribute('data-form-id');
             targetRedirectUrl = button.getAttribute('data-redirect-url');
+            const ticketType = button.getAttribute('data-ticket-type');
+
             machineLabel.textContent = targetMachineCode;
             errorDiv.classList.add('d-none');
 
-            // Initialize scanner
-            setTimeout(() => {
-                if (!acceptHtml5QrCode) {
-                    acceptHtml5QrCode = new Html5Qrcode("acceptQrReader");
-                }
+            if (ticketType === 'bok') {
+                // Hide camera, show input
+                readerDiv.classList.add('d-none');
+                manualContainer.classList.remove('d-none');
+                descP.textContent = 'Vui lòng nhập hoặc quét mã thiết bị để xác nhận tiếp nhận:';
+                manualInput.value = '';
+                setTimeout(() => manualInput.focus(), 300);
+            } else {
+                // Show camera, hide input
+                readerDiv.classList.remove('d-none');
+                manualContainer.classList.add('d-none');
+                descP.textContent = "{{ __('messages.scan_to_accept_desc') }}";
 
-                Html5Qrcode.getCameras().then(cameras => {
-                    if (cameras && cameras.length > 0) {
-                        const backCam = cameras.find(c => (c.label || '').toLowerCase().includes('back')) || cameras[cameras.length - 1];
-
-                        acceptHtml5QrCode.start({
-                                deviceId: {
-                                    exact: backCam.id
-                                }
-                            }, {
-                                fps: 10,
-                                qrbox: {
-                                    width: 220,
-                                    height: 220
-                                },
-                                aspectRatio: 1.0
-                            },
-                            (decodedText) => {
-                                // Normalize code
-                                let scannedCode = decodedText.trim();
-                                try {
-                                    if (scannedCode.startsWith('http')) {
-                                        const parts = new URL(scannedCode).pathname.split('/').filter(Boolean);
-                                        scannedCode = parts[parts.length - 1] || scannedCode;
-                                    }
-                                } catch (e) {}
-
-                                if (scannedCode === targetMachineCode) {
-                                    // Match! Stop scanner and proceed
-                                    stopScanner();
-                                    if (targetRedirectUrl) {
-                                        window.location.href = targetRedirectUrl;
-                                    } else if (targetFormId) {
-                                        document.getElementById(targetFormId).submit();
-                                    }
-                                } else {
-                                    // Mismatch
-                                    errorDiv.classList.remove('d-none');
-                                    // Hide error after 3 seconds
-                                    setTimeout(() => errorDiv.classList.add('d-none'), 3000);
-                                }
-                            },
-                            (errorMessage) => {}
-                        ).catch(err => console.error(err));
+                // Initialize scanner
+                setTimeout(() => {
+                    if (!acceptHtml5QrCode) {
+                        acceptHtml5QrCode = new Html5Qrcode("acceptQrReader");
                     }
-                }).catch(err => console.error(err));
 
-            }, 500); // UI render delay
+                    Html5Qrcode.getCameras().then(cameras => {
+                        if (cameras && cameras.length > 0) {
+                            const backCam = cameras.find(c => (c.label || '').toLowerCase().includes('back')) || cameras[cameras.length - 1];
+
+                            acceptHtml5QrCode.start({
+                                    deviceId: {
+                                        exact: backCam.id
+                                    }
+                                }, {
+                                    fps: 10,
+                                    qrbox: {
+                                        width: 220,
+                                        height: 220
+                                    },
+                                    aspectRatio: 1.0
+                                },
+                                (decodedText) => {
+                                    // Normalize code
+                                    let scannedCode = decodedText.trim();
+                                    try {
+                                        if (scannedCode.startsWith('http')) {
+                                            const parts = new URL(scannedCode).pathname.split('/').filter(Boolean);
+                                            scannedCode = parts[parts.length - 1] || scannedCode;
+                                        }
+                                    } catch (e) {}
+
+                                    if (scannedCode === targetMachineCode) {
+                                        // Match! Stop scanner and proceed
+                                        stopScanner();
+                                        if (targetRedirectUrl) {
+                                            window.location.href = targetRedirectUrl;
+                                        } else if (targetFormId) {
+                                            document.getElementById(targetFormId).submit();
+                                        }
+                                    } else {
+                                        // Mismatch
+                                        errorDiv.classList.remove('d-none');
+                                        // Hide error after 3 seconds
+                                        setTimeout(() => errorDiv.classList.add('d-none'), 3000);
+                                    }
+                                },
+                                (errorMessage) => {}
+                            ).catch(err => console.error(err));
+                        }
+                    }).catch(err => console.error(err));
+
+                }, 500); // UI render delay
+            }
         });
 
         scanModal.addEventListener('hidden.bs.modal', function() {
@@ -269,6 +337,7 @@
             targetMachineCode = '';
             targetFormId = '';
             targetRedirectUrl = '';
+            manualInput.value = '';
         });
     });
 </script>

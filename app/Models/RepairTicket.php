@@ -12,6 +12,7 @@ class RepairTicket extends Model
         'machine_id',
         'ma_hang',
         'cong_doan',
+        'mo_ta_loi',
         'nguyen_nhan',
         'noi_dung_sua_chua',
         'started_at',
@@ -22,7 +23,7 @@ class RepairTicket extends Model
         'created_by',
         'status',
         'nguoi_ho_tro',
-        'type', // mechanic, contractor
+        'type', // mechanic, contractor, bok
         'mechanic_id',
         'eval_response_time',
         'eval_repair_speed',
@@ -33,11 +34,13 @@ class RepairTicket extends Model
         'approval_note',
         'approved_by',
         'approved_at',
+        'images',
     ];
 
     protected $casts = [
         'evaluated_at' => 'datetime',
         'approved_at'  => 'datetime',
+        'images'       => 'array',
     ];
 
     public function machine()

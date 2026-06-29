@@ -7,6 +7,8 @@ return [
             'repairs.manage' => 'messages.p_repairs_manage',
             'repairs.view' => 'messages.p_repairs_view',
             'repairs.contractor' => 'messages.p_repairs_contractor',
+            'repairs.bok' => 'messages.p_repairs_bok',
+            'repairs.create_bok' => 'messages.p_repairs_create_bok',
         ],
     ],
     [

@@ -87,6 +87,23 @@
                 </select>
                 <div class="form-text text-muted" style="font-size: 0.75rem;">💡 Giữ phím Ctrl (hoặc Command trên Mac) để chọn nhiều người.</div>
             </div>
+            @elseif($repair->type == 'bok')
+            <!-- BOK FORM -->
+            <div class="mb-3">
+                <label class="form-label fw-bold text-secondary">Mô tả lỗi</label>
+                <textarea class="form-control bg-light" readonly rows="3" style="cursor: not-allowed;">{{ $repair->mo_ta_loi }}</textarea>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Nguyên nhân hư hỏng <span class="text-danger">*</span></label>
+                <textarea class="form-control" name="nguyen_nhan" required placeholder="Nhập nguyên nhân hư hỏng...">{{ old('nguyen_nhan', $repair->nguyen_nhan === 'N/A' ? '' : $repair->nguyen_nhan) }}</textarea>
+                <div class="form-text">{{ __('messages.bok_cause_hint') }}</div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Nội dung khắc phục <span class="text-danger">*</span></label>
+                <textarea class="form-control" name="noi_dung_sua_chua" placeholder="{{ __('messages.bok_repair_hint') }}" required>{{ old('noi_dung_sua_chua', $repair->noi_dung_sua_chua === 'N/A' ? '' : $repair->noi_dung_sua_chua) }}</textarea>
+            </div>
             @else
             <!-- MECHANIC FORM -->
             <div class="mb-3">
@@ -136,7 +153,7 @@
                 <div class="form-text text-muted">{{ __('messages.start_time_hint') }}</div>
             </div>
 
-            @if($repair->type != 'contractor')
+            @if($repair->type != 'contractor' && $repair->type != 'bok')
             <!-- Static QC Fields (Only for Mechanics) -->
             <div class="mb-3">
                 <label class="form-label">{{ __('messages.endline_qc_triumph') }}</label>

@@ -10,6 +10,7 @@ use App\Http\Controllers\MachineMovementController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\EnvironmentReportController;
+use App\Http\Controllers\CandidateController;
 
 /*
 |--------------------------------------------------------------------------
@@ -28,6 +29,10 @@ Route::get('/', function () {
 });
 
 Route::get('/lang/{locale}', [App\Http\Controllers\LanguageController::class, 'switch'])->name('lang.switch');
+
+// Public candidate application form (no auth required)
+Route::get('/apply', [CandidateController::class, 'showPublicForm'])->name('candidates.public');
+Route::post('/apply', [CandidateController::class, 'storePublic'])->name('candidates.store_public');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', function () {
@@ -49,6 +54,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/repairs', [RepairTicketController::class, 'store']);
     Route::get('/repairs/contractor/export', [RepairTicketController::class, 'exportContractor']);
     Route::get('/repairs/contractor', [RepairTicketController::class, 'contractorIndex']);
+    Route::get('/repairs/bok/export', [RepairTicketController::class, 'exportBok']);
+    Route::get('/repairs/bok', [RepairTicketController::class, 'bokIndex']);
 
     // APPROVAL GROUP: Senior Manager + Admin
     Route::middleware(['role_or_permission:admin|senior_manager|repairs.approve'])->group(function () {
@@ -57,8 +64,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/repairs/{repair}/reject', [RepairTicketController::class, 'reject'])->name('repairs.reject');
     });
 
-    // REPAIR GROUP: Admin, Warehouse, Repair Tech, Contractor, Team Leader
-    Route::middleware(['role_or_permission:admin|warehouse|repair_tech|contractor|team_leader|supervisor|senior_manager|repairs.manage'])->group(function () {
+    // REPAIR GROUP: Admin, Warehouse, Repair Tech, Contractor, Team Leader, BOK
+    Route::middleware(['role_or_permission:admin|warehouse|repair_tech|contractor|team_leader|supervisor|senior_manager|bok|repairs.manage'])->group(function () {
         Route::get('/repair-requests', [RepairTicketController::class, 'requestsIndex']);
         Route::get('/repairs/{repair}/edit', [RepairTicketController::class, 'edit']);
         Route::put('/repairs/{repair}', [RepairTicketController::class, 'update']);
@@ -66,8 +73,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::delete('/repairs/{repair}', [RepairTicketController::class, 'destroy'])->whereNumber('repair');
     });
 
-    // REPAIR READ-ONLY + EXPORT: also accessible by Audit and 7S
-    Route::middleware(['role_or_permission:admin|warehouse|repair_tech|contractor|team_leader|audit|7s|supervisor|senior_manager|repairs.view'])->group(function () {
+    // REPAIR READ-ONLY + EXPORT: also accessible by Audit, 7S and BOK
+    Route::middleware(['role_or_permission:admin|warehouse|repair_tech|contractor|team_leader|audit|7s|supervisor|senior_manager|bok|repairs.view'])->group(function () {
         Route::get('/repairs/export', [RepairTicketController::class, 'export']);
         Route::get('/repairs', [RepairTicketController::class, 'index']);
         Route::get('/repairs/{repair}', [RepairTicketController::class, 'show'])->whereNumber('repair');
@@ -175,6 +182,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::patch('/users/{user}/toggle-active', [UserController::class, 'toggleActive'])->name('users.toggle_active');
         Route::delete('/users/{user}', [UserController::class, 'destroy']);
         Route::delete('/audits/{audit}', [\App\Http\Controllers\AuditController::class, 'destroy'])->name('audits.destroy');
+    });
+
+    // CANDIDATES: Admin + Senior Manager can manage, create, delete
+    Route::middleware(['role_or_permission:admin|senior_manager'])->group(function () {
+        Route::get('/candidates', [CandidateController::class, 'index'])->name('candidates.index');
+        Route::get('/candidates/create', [CandidateController::class, 'create'])->name('candidates.create');
+        Route::post('/candidates', [CandidateController::class, 'store'])->name('candidates.store');
+        Route::get('/candidates/{id}', [CandidateController::class, 'show'])->name('candidates.show')->whereNumber('id');
+        Route::delete('/candidates/{id}', [CandidateController::class, 'destroy'])->name('candidates.destroy')->whereNumber('id');
+        Route::get('/candidates/{id}/print', [CandidateController::class, 'exportPrint'])->name('candidates.print')->whereNumber('id');
     });
 });
 

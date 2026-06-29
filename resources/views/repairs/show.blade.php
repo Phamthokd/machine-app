@@ -141,7 +141,7 @@
                     {{ __('messages.repair_content') }}
                 </div>
                 <div class="p-4">
-                    <div class="row g-4">
+                        @if($repair->type !== 'contractor' && $repair->type !== 'bok')
                         <div class="col-md-6">
                             <div class="info-label">{{ __('messages.code_label') }}</div>
                             <div class="info-value">{{ $repair->ma_hang }}</div>
@@ -150,18 +150,51 @@
                             <div class="info-label">{{ __('messages.step_label') }}</div>
                             <div class="info-value">{{ $repair->cong_doan }}</div>
                         </div>
+                        @endif
+                        @if($repair->type === 'bok')
                         <div class="col-12">
-                            <div class="info-label text-danger">{{ __('messages.damage_reason') }}</div>
+                            <div class="info-label text-secondary">Mô tả lỗi</div>
+                            <div class="p-3 bg-light rounded-3 mt-1">
+                                {{ $repair->mo_ta_loi }}
+                            </div>
+                        </div>
+                        @endif
+                        <div class="col-12">
+                            <div class="info-label text-danger">
+                                @if($repair->type === 'bok')
+                                    Nguyên nhân hư hỏng
+                                @else
+                                    {{ __('messages.damage_reason') }}
+                                @endif
+                            </div>
                             <div class="p-3 bg-light rounded-3 mt-1">
                                 {{ $repair->nguyen_nhan }}
                             </div>
                         </div>
                         <div class="col-12">
-                            <div class="info-label text-success">{{ __('messages.repair_measure') }}</div>
+                            <div class="info-label text-success">
+                                @if($repair->type === 'bok')
+                                    Biện pháp khắc phục
+                                @else
+                                    {{ __('messages.repair_measure') }}
+                                @endif
+                            </div>
                             <div class="p-3 bg-light rounded-3 mt-1">
                                 {{ $repair->noi_dung_sua_chua }}
                             </div>
                         </div>
+                        @if(!empty($repair->images))
+                        <div class="col-12">
+                            <div class="info-label text-secondary">{{ __('messages.attached_photos') }}</div>
+                            <div class="d-flex flex-wrap gap-2 mt-2">
+                                @foreach($repair->images as $img)
+                                    <a href="/{{ $img }}" target="_blank">
+                                        <img src="/{{ $img }}" class="rounded-3 img-thumbnail" style="max-height: 120px; max-width: 120px; object-fit: cover;">
+                                    </a>
+                                @endforeach
+                            </div>
+                        </div>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -201,6 +234,7 @@
                         @endif
                     </div>
 
+                    @if($repair->type !== 'contractor' && $repair->type !== 'bok')
                     <hr class="opacity-10 my-4">
 
                     <h6 class="fw-bold text-secondary text-uppercase text-xs mb-3">{{ __('messages.qc_qa_confirm') }}</h6>
@@ -223,6 +257,7 @@
                         </div>
                         @endif
                     </div>
+                    @endif
 
                 </div>
             </div>

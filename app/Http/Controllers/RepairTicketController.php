@@ -18,10 +18,15 @@ class RepairTicketController extends Controller
 
         $machine = Machine::with('department')->where('ma_thiet_bi', $ma)->firstOrFail();
 
+        $type = $request->query('type');
+        if ($type === 'bok' && !auth()->user()->canCreateBokRepairs()) {
+            abort(403, 'Bạn không có quyền báo sửa chữa BOK.');
+        }
         // Prevent duplicate creation if machine is already pending
-        if (auth()->check()) {
+        if (auth()->check() && $type !== 'bok') {
             $hasPending = RepairTicket::where('machine_id', $machine->id)
                 ->whereNull('ended_at')
+                ->where('type', '!=', 'bok')
                 ->exists();
 
             if ($hasPending) {
@@ -60,15 +65,18 @@ class RepairTicketController extends Controller
 
         $isTeamLeader = auth()->user()->isTeamLeaderUser();
         $isContractor = auth()->user()->isContractorUser();
+        $isBok = auth()->user()->hasRole('bok');
         $isTechnician = auth()->user()->hasAnyRole(['admin', 'warehouse', 'repair_tech']);
         $isSupervisor = auth()->user()->hasRole('supervisor');
-        $isReporter = !$isTechnician && !$isContractor;
+        $isReporter = !$isTechnician && !$isContractor && !$isBok;
 
         $rules = [
             'machine_id'    => ['required', 'exists:machines,id'],
             'department_id' => ['required', 'exists:departments,id'],
             'nguyen_nhan'   => ['required', 'string'],
             'started_at'    => ['required', 'date'],
+            'images'        => ['nullable', 'array'],
+            'images.*'      => ['image', 'max:10240'],
         ];
 
         if ($isReporter) {
@@ -84,6 +92,12 @@ class RepairTicketController extends Controller
             $rules['noi_dung_sua_chua'] = ['required', 'string'];
             $rules['endline_qc_name'] = ['nullable'];
             $rules['nguoi_ho_tro'] = ['nullable', 'string', 'max:255'];
+        } elseif ($isBok || $request->input('type') === 'bok') {
+            // BOK validation rules
+            $rules['ma_hang'] = ['nullable'];
+            $rules['cong_doan'] = ['nullable'];
+            $rules['noi_dung_sua_chua'] = [$isBok ? 'required' : 'nullable', 'string'];
+            $rules['endline_qc_name'] = ['nullable'];
         } else {
             // Standard validation
             $rules['ma_hang'] = ['required', 'string', 'max:255'];
@@ -99,7 +113,7 @@ class RepairTicketController extends Controller
         $validated['created_by'] = auth()->id();
         $validated['code'] = 'RM-' . now()->format('Ymd') . '-' . str_pad((string) random_int(1, 9999), 4, '0', STR_PAD_LEFT);
 
-        // If not a reporter, the creator is implicitly the mechanic
+        // If not a reporter, the creator is implicitly the mechanic/contractor/bok
         if (!$isReporter) {
             $validated['mechanic_id'] = auth()->id();
         }
@@ -107,18 +121,40 @@ class RepairTicketController extends Controller
         // Determine Type
         if ($isContractor) {
             $validated['type'] = 'contractor';
+        } elseif ($isBok) {
+            $validated['type'] = 'bok';
         } else {
             // Validate type input, default to mechanic if valid
             $type = $request->input('type', 'mechanic');
-            $validated['type'] = in_array($type, ['mechanic', 'contractor']) ? $type : 'mechanic';
+            $validated['type'] = in_array($type, ['mechanic', 'contractor', 'bok']) ? $type : 'mechanic';
         }
 
-        $hasPending = RepairTicket::where('machine_id', $validated['machine_id'])
-            ->whereNull('ended_at')
-            ->exists();
+        // Auto N/A fields for Contractor and BOK
+        if (in_array($validated['type'], ['contractor', 'bok'])) {
+            $validated['ma_hang'] = 'N/A';
+            $validated['cong_doan'] = 'N/A';
+            if ($isReporter) {
+                $validated['noi_dung_sua_chua'] = 'N/A';
+            }
+        }
 
-        if ($hasPending) {
-            return back()->withInput()->with('error', 'Máy này đã được báo trước đó. Vui lòng hoàn tất phiếu báo cũ trước khi tạo lỗi mới!');
+        if ($validated['type'] === 'bok') {
+            if (!auth()->user()->canCreateBokRepairs()) {
+                abort(403, 'Bạn không có quyền báo sửa chữa BOK.');
+            }
+            $validated['mo_ta_loi'] = $validated['nguyen_nhan'] ?? '';
+            $validated['nguyen_nhan'] = 'N/A';
+        }
+
+        if ($validated['type'] !== 'bok') {
+            $hasPending = RepairTicket::where('machine_id', $validated['machine_id'])
+                ->whereNull('ended_at')
+                ->where('type', '!=', 'bok')
+                ->exists();
+
+            if ($hasPending) {
+                return back()->withInput()->with('error', 'Máy này đã được báo trước đó. Vui lòng hoàn tất phiếu báo cũ trước khi tạo lỗi mới!');
+            }
         }
 
         // Block team leader if they have >= 3 unevaluated completed tickets
@@ -148,6 +184,17 @@ class RepairTicketController extends Controller
         } else {
             $validated['status'] = 'submitted'; // Or completed
             $validated['ended_at'] = now();
+        }
+
+        // Handle image uploading
+        if ($request->hasFile('images')) {
+            $imagePaths = [];
+            foreach ($request->file('images') as $file) {
+                $filename = now()->format('Y-m-d-His-') . uniqid() . '.' . $file->extension();
+                $path = $file->storeAs('repairs', $filename, 'public');
+                $imagePaths[] = 'storage/' . ltrim($path, '/');
+            }
+            $validated['images'] = $imagePaths;
         }
 
         $ticket = new RepairTicket($validated);
@@ -206,6 +253,10 @@ class RepairTicketController extends Controller
 
     public function contractorIndex(Request $request)
     {
+        if (!auth()->user()->canViewContractorRepairs()) {
+            abort(403, 'Bạn không có quyền truy cập lịch sử sửa chữa công trình.');
+        }
+
         $query = RepairTicket::with(['machine.department', 'department', 'createdBy', 'mechanic'])
             ->where('type', 'contractor');
 
@@ -229,6 +280,37 @@ class RepairTicketController extends Controller
         $departments = \App\Models\Department::whereHas('machines')->orderBy('name')->get();
 
         return view('repairs.contractor_index', compact('repairs', 'departments'));
+    }
+
+    public function bokIndex(Request $request)
+    {
+        if (!auth()->user()->canViewBokRepairs()) {
+            abort(403, 'Bạn không có quyền truy cập lịch sử sửa chữa BOK.');
+        }
+
+        $query = RepairTicket::with(['machine.department', 'department', 'createdBy', 'mechanic'])
+            ->where('type', 'bok');
+
+        // Apply filters
+        if ($request->filled('department_id')) {
+            $query->where('department_id', $request->department_id);
+        }
+
+        if ($request->filled('start_date')) {
+            $query->whereDate('created_at', '>=', $request->start_date);
+        }
+
+        if ($request->filled('end_date')) {
+            $query->whereDate('created_at', '<=', $request->end_date);
+        }
+
+        $repairs = $query->orderByDesc('id')
+            ->paginate(20)
+            ->withQueryString();
+
+        $departments = \App\Models\Department::whereHas('machines')->orderBy('name')->get();
+
+        return view('repairs.bok_index', compact('repairs', 'departments'));
     }
 
     public function show(RepairTicket $repair)
@@ -405,6 +487,10 @@ class RepairTicketController extends Controller
 
     public function exportContractor(Request $request)
     {
+        if (!auth()->user()->canViewContractorRepairs()) {
+            abort(403, 'Bạn không có quyền xuất lịch sử sửa chữa công trình.');
+        }
+
         $query = RepairTicket::with(['machine.department', 'department', 'createdBy', 'mechanic'])
             ->where('type', 'contractor');
 
@@ -525,6 +611,131 @@ class RepairTicketController extends Controller
         }, $fileName, ['Content-Type' => 'application/vnd.ms-excel']);
     }
 
+    public function exportBok(Request $request)
+    {
+        if (!auth()->user()->canViewBokRepairs()) {
+            abort(403, 'Bạn không có quyền xuất lịch sử sửa chữa BOK.');
+        }
+
+        $query = RepairTicket::with(['machine.department', 'department', 'createdBy', 'mechanic'])
+            ->where('type', 'bok');
+
+        // Apply filters
+        if ($request->filled('department_id')) {
+            $query->where('department_id', $request->department_id);
+        }
+
+        if ($request->filled('start_date')) {
+            $query->whereDate('created_at', '>=', $request->start_date);
+        }
+
+        if ($request->filled('end_date')) {
+            $query->whereDate('created_at', '<=', $request->end_date);
+        }
+
+        $repairs = $query->orderByDesc('id')->get();
+
+        // 1. Define Headers
+        $headers = [
+            'STT',
+            'Mã thiết bị',
+            'Tên thiết bị',
+            'Tổ',
+            'Mô tả lỗi',
+            'Nguyên nhân hư hỏng',
+            'Nội dung khắc phục',
+            'Thời gian báo',
+            'Bắt đầu',
+            'Kết thúc',
+            'Thời gian chờ (phút)',
+            'Thời gian sửa (phút)',
+            'Người tạo phiếu',
+            'Người sửa (BOK)'
+        ];
+
+        // 2. Helper to render a Row
+        $renderRow = function ($r, $index) {
+            $reportedTime = $r->created_at;
+            $waitTime = '';
+            if ($r->started_at) {
+                $waitTime = \Carbon\Carbon::parse($reportedTime)->diffInMinutes(\Carbon\Carbon::parse($r->started_at));
+            }
+
+            $repairTime = '';
+            if ($r->started_at && $r->ended_at) {
+                $repairTime = \Carbon\Carbon::parse($r->started_at)->diffInMinutes(\Carbon\Carbon::parse($r->ended_at));
+            }
+
+            $cells = [
+                $index,
+                $r->machine->ma_thiet_bi ?? '',
+                $r->machine->ten_thiet_bi ?? '',
+                $r->department->name ?? ($r->machine->department->name ?? ''),
+                $r->mo_ta_loi ?? '',
+                $r->nguyen_nhan,
+                $r->noi_dung_sua_chua,
+                $reportedTime,
+                $r->started_at,
+                $r->ended_at,
+                $waitTime,
+                $repairTime,
+                $r->createdBy->name ?? '',
+                $r->mechanic->name ?? '',
+            ];
+
+            $xml = "    <Row>\n";
+            foreach ($cells as $cell) {
+                $type = 'String';
+                if (is_numeric($cell)) {
+                    if ((string)$cell === '0' || !str_starts_with((string)$cell, '0') || str_contains((string)$cell, '.')) {
+                        $type = 'Number';
+                    }
+                }
+                $safe = htmlspecialchars((string)$cell, ENT_XML1, 'UTF-8');
+                $xml .= "     <Cell><Data ss:Type=\"{$type}\">{$safe}</Data></Cell>\n";
+            }
+            $xml .= "    </Row>\n";
+            return $xml;
+        };
+
+        // 3. Helper to start a Worksheet
+        $startSheet = function ($name) use ($headers) {
+            $xml = " <Worksheet ss:Name=\"{$name}\">\n";
+            $xml .= "  <Table>\n";
+            $xml .= "   <Row>\n";
+            foreach ($headers as $h) {
+                $xml .= "    <Cell><Data ss:Type=\"String\">{$h}</Data></Cell>\n";
+            }
+            $xml .= "   </Row>\n";
+            return $xml;
+        };
+
+        $endSheet = "  </Table>\n </Worksheet>\n";
+
+        $fileName = 'bok-repairs-' . now()->format('Ymd-His') . '.xls';
+
+        return response()->streamDownload(function () use ($repairs, $renderRow, $startSheet, $endSheet) {
+            $output = fopen('php://output', 'w');
+
+            fwrite($output, '<?xml version="1.0"?>' . "\n");
+            fwrite($output, '<?mso-application progid="Excel.Sheet"?>' . "\n");
+            fwrite($output, '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" ' . "\n");
+            fwrite($output, ' xmlns:o="urn:schemas-microsoft-com:office:office" ' . "\n");
+            fwrite($output, ' xmlns:x="urn:schemas-microsoft-com:office:excel" ' . "\n");
+            fwrite($output, ' xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet" ' . "\n");
+            fwrite($output, ' xmlns:html="http://www.w3.org/TR/REC-html40">' . "\n");
+
+            fwrite($output, $startSheet('Lịch sử sửa BOK'));
+            $index = 1;
+            foreach ($repairs as $r) {
+                fwrite($output, $renderRow($r, $index++));
+            }
+            fwrite($output, $endSheet);
+            fwrite($output, "</Workbook>");
+            fclose($output);
+        }, $fileName, ['Content-Type' => 'application/vnd.ms-excel']);
+    }
+
     public function edit(RepairTicket $repair)
     {
         if (auth()->user()->hasRole('supervisor') || auth()->user()->hasRole('senior_manager')) {
@@ -572,6 +783,14 @@ class RepairTicketController extends Controller
                 'started_at' => ['required', 'date'],
                 'ended_at' => ['nullable', 'date', 'after_or_equal:started_at'],
                 'nguoi_ho_tro' => ['nullable', 'string', 'max:255'],
+            ];
+        } elseif ($repair->type == 'bok') {
+            // Simplified rules for bok
+            $rules = [
+                'nguyen_nhan' => ['required', 'string'],
+                'noi_dung_sua_chua' => ['required', 'string'],
+                'started_at' => ['required', 'date'],
+                'ended_at' => ['nullable', 'date', 'after_or_equal:started_at'],
             ];
         }
 
@@ -678,16 +897,19 @@ class RepairTicketController extends Controller
             });
 
         $type = $request->query('type');
-        if (in_array($type, ['mechanic', 'contractor'])) {
+        if (in_array($type, ['mechanic', 'contractor', 'bok'])) {
             $query->where('type', $type);
         } else {
             // Filter based on role if no explicit type is provided
             if (auth()->user()->isContractorUser()) {
                 $type = 'contractor';
                 $query->where('type', 'contractor');
+            } elseif (auth()->user()->hasRole('bok')) {
+                $type = 'bok';
+                $query->where('type', 'bok');
             } elseif (auth()->user()->isAdminUser()) {
                 $type = 'all';
-                // Admin sees ALL requests (both mechanic and contractor)
+                // Admin sees ALL requests (mechanic, contractor, and bok)
             } else {
                 $type = 'mechanic';
                 // Default to mechanic requests (Repair Tech, Warehouse, Team Leader, etc.)
