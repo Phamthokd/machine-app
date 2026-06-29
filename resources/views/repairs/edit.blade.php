@@ -94,6 +94,19 @@
                 <textarea class="form-control bg-light" readonly rows="3" style="cursor: not-allowed;">{{ $repair->mo_ta_loi }}</textarea>
             </div>
 
+            @if(!empty($repair->images))
+            <div class="mb-3">
+                <label class="form-label fw-bold text-secondary">{{ __('messages.attached_photos') }}</label>
+                <div class="d-flex flex-wrap gap-2">
+                    @foreach($repair->images as $img)
+                        <a href="/{{ $img }}" target="_blank">
+                            <img src="/{{ $img }}" class="rounded-3 img-thumbnail" style="max-height: 120px; max-width: 120px; object-fit: cover;">
+                        </a>
+                    @endforeach
+                </div>
+            </div>
+            @endif
+
             <div class="mb-3">
                 <label class="form-label fw-bold">Nguyên nhân hư hỏng <span class="text-danger">*</span></label>
                 <textarea class="form-control" name="nguyen_nhan" required placeholder="Nhập nguyên nhân hư hỏng...">{{ old('nguyen_nhan', $repair->nguyen_nhan === 'N/A' ? '' : $repair->nguyen_nhan) }}</textarea>
