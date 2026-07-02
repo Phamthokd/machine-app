@@ -175,31 +175,62 @@
         @if(auth()->user()->hasAnyRole(['admin', 'hr']))
         <div class="card border-0 bg-light rounded-4 p-4 mt-4 shadow-sm">
             <h5 class="fw-bold mb-2">📢 Chuyển đơn ứng tuyển tới quản lý cao cấp</h5>
-            <p class="text-secondary small mb-3">Tích chọn các Quản lý cao cấp sẽ được xem và theo dõi hồ sơ này.</p>
+            <p class="text-secondary small mb-3">Chọn các Quản lý cao cấp sẽ được xem và theo dõi hồ sơ này.</p>
             
             <form method="POST" action="{{ route('candidates.route', $candidate->id) }}">
                 @csrf
-                <div class="row g-2">
-                    @forelse($seniorManagers as $sm)
-                    <div class="col-12 col-md-6 col-lg-4">
-                        <label class="form-check d-flex align-items-center gap-2 p-2 bg-white rounded-3 border" style="cursor: pointer;">
-                            <input class="form-check-input" type="checkbox" name="senior_manager_ids[]" value="{{ $sm->id }}"
-                                @checked($candidate->seniorManagers->contains($sm->id))>
-                            <span class="fw-medium text-dark">{{ $sm->name }}</span>
-                        </label>
+                <div class="mb-3">
+                    <div class="dropdown w-100">
+                        <button class="btn btn-white bg-white border w-100 text-start d-flex justify-content-between align-items-center dropdown-toggle py-3 px-3 rounded-3" type="button" id="seniorManagerDropdown" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                            <span id="selectedManagersLabel">Chọn quản lý cao cấp...</span>
+                        </button>
+                        <div class="dropdown-menu p-3 w-100 shadow-sm border-0 rounded-3 mt-1" aria-labelledby="seniorManagerDropdown" style="max-height: 250px; overflow-y: auto; min-width: 250px;">
+                            @forelse($seniorManagers as $sm)
+                            <div class="form-check py-1">
+                                <label class="form-check-label d-flex align-items-center gap-2 w-100" style="cursor: pointer;">
+                                    <input class="form-check-input sm-checkbox" type="checkbox" name="senior_manager_ids[]" value="{{ $sm->id }}" data-name="{{ $sm->name }}"
+                                        @checked($candidate->seniorManagers->contains($sm->id))>
+                                    <span class="fw-medium text-dark">{{ $sm->name }}</span>
+                                </label>
+                            </div>
+                            @empty
+                            <div class="text-muted small py-1">Không tìm thấy Quản lý cao cấp nào trong hệ thống.</div>
+                            @endforelse
+                        </div>
                     </div>
-                    @empty
-                    <div class="col-12 text-muted small">Không tìm thấy Quản lý cao cấp nào trong hệ thống.</div>
-                    @endforelse
                 </div>
 
                 @if($seniorManagers->count() > 0)
-                <button type="submit" class="btn btn-primary rounded-3 fw-bold mt-3 px-4">
+                <button type="submit" class="btn btn-primary rounded-3 fw-bold px-4 py-2 mt-2">
                     💾 Cập nhật chuyển đơn
                 </button>
                 @endif
             </form>
         </div>
+
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                const checkboxes = document.querySelectorAll('.sm-checkbox');
+                const label = document.getElementById('selectedManagersLabel');
+
+                function updateLabel() {
+                    const selectedNames = [];
+                    checkboxes.forEach(cb => {
+                        if (cb.checked) {
+                            selectedNames.push(cb.getAttribute('data-name'));
+                        }
+                    });
+                    if (selectedNames.length > 0) {
+                        label.textContent = "Đã chọn: " + selectedNames.join(', ');
+                    } else {
+                        label.textContent = "Chọn quản lý cao cấp...";
+                    }
+                }
+
+                checkboxes.forEach(cb => cb.addEventListener('change', updateLabel));
+                updateLabel(); // Initial call
+            });
+        </script>
         @endif
 
         @if($candidate->submitter)
