@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        $timestamps = ['2026-07-02 14:53:20', '2026-07-02 14:53:21'];
+        $timestamps = ['2026-07-02 14:40:20', '2026-07-02 15:00:21'];
         \Illuminate\Support\Facades\DB::table('machines')
             ->whereIn('created_at', $timestamps)
             ->delete();
