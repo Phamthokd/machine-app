@@ -33,7 +33,15 @@ class CandidateController extends Controller
 
     public function index(Request $request)
     {
+        $user = auth()->user();
         $query = Candidate::latest();
+
+        // Scope to assigned candidates for senior_manager
+        if ($user->hasRole('senior_manager')) {
+            $query->whereHas('seniorManagers', function ($q) use ($user) {
+                $q->where('users.id', $user->id);
+            });
+        }
 
         if ($request->filled('search')) {
             $search = $request->search;
@@ -77,8 +85,21 @@ class CandidateController extends Controller
 
     public function show($id)
     {
-        $candidate = Candidate::findOrFail($id);
-        return view('candidates.show', compact('candidate'));
+        $candidate = Candidate::with('seniorManagers')->findOrFail($id);
+
+        // Access control for senior manager
+        if (auth()->user()->hasRole('senior_manager')) {
+            if (!$candidate->seniorManagers->contains(auth()->id())) {
+                abort(403, 'Bạn không được phép truy cập hồ sơ này.');
+            }
+        }
+
+        $seniorManagers = [];
+        if (auth()->user()->hasAnyRole(['admin', 'hr'])) {
+            $seniorManagers = \App\Models\User::role('senior_manager')->get();
+        }
+
+        return view('candidates.show', compact('candidate', 'seniorManagers'));
     }
 
     public function destroy($id)
@@ -98,8 +119,32 @@ class CandidateController extends Controller
 
     public function exportPrint($id)
     {
-        $candidate = Candidate::findOrFail($id);
+        $candidate = Candidate::with('seniorManagers')->findOrFail($id);
+
+        // Access control for senior manager
+        if (auth()->user()->hasRole('senior_manager')) {
+            if (!$candidate->seniorManagers->contains(auth()->id())) {
+                abort(403, 'Bạn không được phép in hồ sơ này.');
+            }
+        }
+
         return view('candidates.print', compact('candidate'));
+    }
+
+    public function routeCandidate(Request $request, $id)
+    {
+        abort_unless(auth()->user()->hasAnyRole(['admin', 'hr']), 403);
+
+        $candidate = Candidate::findOrFail($id);
+
+        $request->validate([
+            'senior_manager_ids' => ['nullable', 'array'],
+            'senior_manager_ids.*' => ['integer', 'exists:users,id'],
+        ]);
+
+        $candidate->seniorManagers()->sync($request->input('senior_manager_ids', []));
+
+        return back()->with('success', 'Đã chuyển đơn ứng tuyển thành công.');
     }
 
     // ─── Helpers ─────────────────────────────────────────────────────────────

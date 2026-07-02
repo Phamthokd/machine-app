@@ -26,6 +26,7 @@ class RoleSeeder extends Seeder
             'senior_manager',   // Quản lý cấp cao: phê duyệt phiếu sửa
             'bok',
             'worker',
+            'hr',
         ];
 
         // Xoá các role không nằm trong danh sách chuẩn (để dọn dẹp VPS)

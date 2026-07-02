@@ -14,10 +14,7 @@ class AuditController extends Controller
 {
     private function userManagedDepartments(User $user): array
     {
-        return array_values(array_filter(array_map(
-            fn($department) => AuditTemplate::normalizeDepartmentName($department),
-            $user->managedDepartments()
-        )));
+        return AuditTemplate::getDepartmentQueryNames($user->managedDepartments());
     }
 
     public function index(Request $request)

@@ -14,10 +14,7 @@ class SevenSController extends Controller
 {
   private function userManagedDepartments(User $user): array
   {
-    return array_values(array_filter(array_map(
-      fn ($department) => AuditTemplate::normalizeDepartmentName($department),
-      $user->managedDepartments()
-    )));
+    return AuditTemplate::getDepartmentQueryNames($user->managedDepartments());
   }
   /* Danh sách phiếu kiểm tra */
   public function index(Request $request)

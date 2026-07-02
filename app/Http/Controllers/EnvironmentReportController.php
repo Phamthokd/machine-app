@@ -21,8 +21,7 @@ class EnvironmentReportController extends Controller
         $query = EnvironmentReport::with(['creator', 'entries']);
 
         if (!empty($user->managed_department)) {
-            $mappedDepartment = AuditTemplate::normalizeDepartmentName($user->managed_department);
-            $query->whereRaw('LOWER(TRIM(department_name)) = ?', [$mappedDepartment]);
+            $query->whereIn('department_name', AuditTemplate::getDepartmentQueryNames([$user->managed_department]));
         }
 
         if ($request->filled('report_year')) {

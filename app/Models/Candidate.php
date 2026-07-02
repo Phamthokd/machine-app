@@ -31,6 +31,11 @@ class Candidate extends Model
         return $this->belongsTo(User::class, 'submitted_by');
     }
 
+    public function seniorManagers()
+    {
+        return $this->belongsToMany(User::class, 'candidate_senior_manager', 'candidate_id', 'user_id');
+    }
+
     public function getGenderLabelAttribute(): string
     {
         return $this->gender === 'male' ? __('messages.gender_male') : __('messages.gender_female');

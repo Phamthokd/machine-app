@@ -172,6 +172,36 @@
         <div class="info-row"><div class="info-label">{{ __('messages.expected_salary') }}</div><div class="info-value fw-bold text-success">{{ $candidate->expected_salary }}</div></div>
         @endif
 
+        @if(auth()->user()->hasAnyRole(['admin', 'hr']))
+        <div class="card border-0 bg-light rounded-4 p-4 mt-4 shadow-sm">
+            <h5 class="fw-bold mb-2">📢 Chuyển đơn ứng tuyển tới quản lý cao cấp</h5>
+            <p class="text-secondary small mb-3">Tích chọn các Quản lý cao cấp sẽ được xem và theo dõi hồ sơ này.</p>
+            
+            <form method="POST" action="{{ route('candidates.route', $candidate->id) }}">
+                @csrf
+                <div class="row g-2">
+                    @forelse($seniorManagers as $sm)
+                    <div class="col-12 col-md-6 col-lg-4">
+                        <label class="form-check d-flex align-items-center gap-2 p-2 bg-white rounded-3 border" style="cursor: pointer;">
+                            <input class="form-check-input" type="checkbox" name="senior_manager_ids[]" value="{{ $sm->id }}"
+                                @checked($candidate->seniorManagers->contains($sm->id))>
+                            <span class="fw-medium text-dark">{{ $sm->name }}</span>
+                        </label>
+                    </div>
+                    @empty
+                    <div class="col-12 text-muted small">Không tìm thấy Quản lý cao cấp nào trong hệ thống.</div>
+                    @endforelse
+                </div>
+
+                @if($seniorManagers->count() > 0)
+                <button type="submit" class="btn btn-primary rounded-3 fw-bold mt-3 px-4">
+                    💾 Cập nhật chuyển đơn
+                </button>
+                @endif
+            </form>
+        </div>
+        @endif
+
         @if($candidate->submitter)
         <div class="mt-4 p-3 bg-light rounded-3 small text-muted">
             {{ __('messages.submitted_by') }}: <strong>{{ $candidate->submitter->name }}</strong> — {{ $candidate->created_at->format('H:i d/m/Y') }}

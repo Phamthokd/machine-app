@@ -329,7 +329,7 @@ $maxWidth = '1200px';
             </div>
             @endfeature
 
-            @if($currentUser->isAdminUser() || $currentUser->hasRole('senior_manager'))
+            @if($currentUser->isAdminUser() || $currentUser->hasRole('senior_manager') || $currentUser->hasRole('hr'))
             <div class="col">
                 <a href="{{ route('candidates.index') }}" class="btn btn-white border w-100 py-4 rounded-4 shadow-sm fw-semibold d-flex flex-column align-items-center justify-content-center h-100 tap hover-shadow transition">
                     <div class="bg-warning bg-opacity-10 text-warning p-3 rounded-circle mb-3">
