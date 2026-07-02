@@ -1,0 +1,27 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        $timestamps = ['2026-07-02 14:53:20', '2026-07-02 14:53:21'];
+        \Illuminate\Support\Facades\DB::table('machines')
+            ->whereIn('created_at', $timestamps)
+            ->delete();
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        //
+    }
+};
