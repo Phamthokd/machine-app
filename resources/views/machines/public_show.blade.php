@@ -240,6 +240,9 @@
         </div>
         <div class="d-flex gap-2" style="position: relative; z-index: 10;">
             @if(auth()->user()->canManageRepairs())
+            <a href="/repairs/create?machine={{ $machine->ma_thiet_bi }}&type=maintenance&prefill=daily_inspection" class="btn btn-primary btn-sm fw-bold shadow-sm tap" style="border-radius: 8px; background-color: var(--primary-color); border-color: var(--primary-color);">
+                {{ __('messages.daily_inspection') }}
+            </a>
             <a href="/repairs/create?machine={{ $machine->ma_thiet_bi }}&type=maintenance" class="btn btn-success btn-sm fw-bold shadow-sm tap" style="border-radius: 8px;">
                 {{ __('messages.maintenance') }}
             </a>

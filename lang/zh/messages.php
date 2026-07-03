@@ -87,6 +87,7 @@ return [
     'type_construction' => '施工/设施',
     'issue_desc_label' => '故障 / 损坏描述',
     'maintenance_label' => '保养',
+    'daily_inspection' => '点检',
     'maintenance_fix_label' => '保养详情',
     'start_time_label' => '开始时间',
     'endline_qc_label' => '末端 QC 组长',

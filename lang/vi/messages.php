@@ -87,6 +87,7 @@ return [
     'type_construction' => 'Công trình',
     'issue_desc_label' => 'Mô tả sự cố / Hư hỏng',
     'maintenance_label' => 'Bảo dưỡng',
+    'daily_inspection' => 'Kiểm tra',
     'maintenance_fix_label' => 'Nội dung khắc phục (Bảo dưỡng)',
     'start_time_label' => 'Giờ bắt đầu',
     'endline_qc_label' => 'Tổ trưởng Endline QC',

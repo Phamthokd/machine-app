@@ -87,6 +87,7 @@ return [
     'type_construction' => 'Construction',
     'issue_desc_label' => 'Issue / Damage Description',
     'maintenance_label' => 'Maintenance',
+    'daily_inspection' => 'Inspect',
     'maintenance_fix_label' => 'Maintenance Details',
     'start_time_label' => 'Start Time',
     'endline_qc_label' => 'Endline QC Team Leader',

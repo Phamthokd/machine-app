@@ -288,6 +288,14 @@
     </a>
     <h4 class="mb-0 fw-bold">{{ __('messages.create_ticket') }}</h4>
 </div>
+@php
+    $prefillValue = '';
+    if (request('prefill') === 'daily_inspection') {
+        $prefillValue = 'Kiểm tra hàng ngày';
+    } elseif (request('type') === 'maintenance') {
+        $prefillValue = 'Bảo dưỡng hàng tháng';
+    }
+@endphp
 
 <form method="POST" action="/repairs" id="repairForm" enctype="multipart/form-data">
     @csrf
@@ -338,12 +346,12 @@
         <!-- Simplified Form for Contractor -->
         <div class="mb-3">
             <label class="form-label">{{ __('messages.damage_reason_label') }} <span class="text-danger">*</span></label>
-            <textarea class="form-control" name="nguyen_nhan" placeholder="VD: Đứt chỉ, kẹt ổ, gãy kim..." required>{{ old('nguyen_nhan') }}</textarea>
+            <textarea class="form-control" name="nguyen_nhan" placeholder="VD: Đứt chỉ, kẹt ổ, gãy kim..." required>{{ old('nguyen_nhan', $prefillValue) }}</textarea>
         </div>
 
         <div class="mb-3">
             <label class="form-label">{{ __('messages.repair_content_label') }} <span class="text-danger">*</span></label>
-            <textarea class="form-control" name="noi_dung_sua_chua" placeholder="VD: Thay kim, chỉnh ổ, vệ sinh..." required>{{ old('noi_dung_sua_chua') }}</textarea>
+            <textarea class="form-control" name="noi_dung_sua_chua" placeholder="VD: Thay kim, chỉnh ổ, vệ sinh..." required>{{ old('noi_dung_sua_chua', $prefillValue) }}</textarea>
         </div>
 
         <div class="mb-3">
@@ -396,7 +404,7 @@
         <!-- Simplified Form for Reporter (Request Only) -->
         <div class="mb-3">
             <label class="form-label">{{ __('messages.issue_desc_label') }} <span class="text-danger">*</span></label>
-            <textarea class="form-control" name="nguyen_nhan" placeholder="VD: Máy kêu to, không chạy, đứt chỉ..." rows="4" required>{{ old('nguyen_nhan') }}</textarea>
+            <textarea class="form-control" name="nguyen_nhan" placeholder="VD: Máy kêu to, không chạy, đứt chỉ..." rows="4" required>{{ old('nguyen_nhan', $prefillValue) }}</textarea>
         </div>
 
         <!-- Photos Upload Section (only for BOK type) -->
@@ -409,7 +417,7 @@
         <!-- Hidden fields for Reporter -->
         <input type="hidden" name="ma_hang" value="N/A">
         <input type="hidden" name="cong_doan" value="N/A">
-        <input type="hidden" name="noi_dung_sua_chua" value="N/A"> <!-- Will be updated later by mechanic -->
+        <input type="hidden" name="noi_dung_sua_chua" value="{{ $prefillValue ?: 'N/A' }}"> <!-- Will be updated later by mechanic -->
         <input type="hidden" name="endline_qc_name" value="N/A">
         @else
         <!-- Standard Form for Repair Tech / Admin / BOK -->
@@ -417,11 +425,11 @@
         @if(request('type') == 'maintenance')
         <input type="hidden" name="ma_hang" value="{{ __('messages.maintenance_label') }}">
         <input type="hidden" name="cong_doan" value="{{ __('messages.maintenance_label') }}">
-        <input type="hidden" name="nguyen_nhan" value="{{ __('messages.maintenance_label') }}">
+        <input type="hidden" name="nguyen_nhan" value="{{ $prefillValue ?: __('messages.maintenance_label') }}">
 
         <div class="mb-3">
             <label class="form-label">{{ __('messages.maintenance_fix_label') }} <span class="text-danger">*</span></label>
-            <textarea class="form-control" name="noi_dung_sua_chua" placeholder="VD: Tra dầu, lau chùi, kiểm tra định kỳ..." required>{{ old('noi_dung_sua_chua', __('messages.maintenance_label')) }}</textarea>
+            <textarea class="form-control" name="noi_dung_sua_chua" placeholder="VD: Tra dầu, lau chùi, kiểm tra định kỳ..." required>{{ old('noi_dung_sua_chua', $prefillValue ?: __('messages.maintenance_label')) }}</textarea>
         </div>
         @elseif(request('type') == 'bok' || auth()->user()->hasRole('bok'))
         <input type="hidden" name="ma_hang" value="N/A">
@@ -430,12 +438,12 @@
 
         <div class="mb-3">
             <label class="form-label">{{ __('messages.damage_reason_label') }} <span class="text-danger">*</span></label>
-            <textarea class="form-control" name="nguyen_nhan" placeholder="VD: Đứt dây hơi, hỏng xilanh..." required>{{ old('nguyen_nhan') }}</textarea>
+            <textarea class="form-control" name="nguyen_nhan" placeholder="VD: Đứt dây hơi, hỏng xilanh..." required>{{ old('nguyen_nhan', $prefillValue) }}</textarea>
         </div>
 
         <div class="mb-3">
             <label class="form-label">{{ __('messages.repair_content_label') }} <span class="text-danger">*</span></label>
-            <textarea class="form-control" name="noi_dung_sua_chua" placeholder="VD: Thay dây mới, căn chỉnh..." required>{{ old('noi_dung_sua_chua') }}</textarea>
+            <textarea class="form-control" name="noi_dung_sua_chua" placeholder="VD: Thay dây mới, căn chỉnh..." required>{{ old('noi_dung_sua_chua', $prefillValue) }}</textarea>
         </div>
 
         <div class="mb-3">
@@ -456,12 +464,12 @@
 
         <div class="mb-3">
             <label class="form-label">{{ __('messages.damage_reason_label') }} <span class="text-danger">*</span></label>
-            <textarea class="form-control" name="nguyen_nhan" placeholder="VD: Đứt chỉ, kẹt ổ, gãy kim..." required>{{ old('nguyen_nhan') }}</textarea>
+            <textarea class="form-control" name="nguyen_nhan" placeholder="VD: Đứt chỉ, kẹt ổ, gãy kim..." required>{{ old('nguyen_nhan', $prefillValue) }}</textarea>
         </div>
 
         <div class="mb-3">
             <label class="form-label">{{ __('messages.repair_content_label') }} <span class="text-danger">*</span></label>
-            <textarea class="form-control" name="noi_dung_sua_chua" placeholder="VD: Thay kim, chỉnh ổ, vệ sinh..." required>{{ old('noi_dung_sua_chua') }}</textarea>
+            <textarea class="form-control" name="noi_dung_sua_chua" placeholder="VD: Thay kim, chỉnh ổ, vệ sinh..." required>{{ old('noi_dung_sua_chua', $prefillValue) }}</textarea>
         </div>
         @endif
         @endif
