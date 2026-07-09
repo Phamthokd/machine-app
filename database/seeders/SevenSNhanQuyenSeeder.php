@@ -34,7 +34,6 @@ class SevenSNhanQuyenSeeder extends Seeder
             ['section' => 'messages.seven_s_nhan_quyen_section_3', 'sort_order' => 15, 'content' => 'messages.seven_s_nhan_quyen_q15'],
             ['section' => 'messages.seven_s_nhan_quyen_section_3', 'sort_order' => 16, 'content' => 'messages.seven_s_nhan_quyen_q16'],
             ['section' => 'messages.seven_s_nhan_quyen_section_3', 'sort_order' => 17, 'content' => 'messages.seven_s_nhan_quyen_q17'],
-            ['section' => 'messages.seven_s_nhan_quyen_section_3', 'sort_order' => 18, 'content' => 'messages.seven_s_nhan_quyen_q18'],
         ];
 
         foreach ($items as $item) {

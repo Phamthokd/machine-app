@@ -31,8 +31,8 @@ class SevenSNhanQuyenTest extends TestCase
         // Run the seeder
         $this->seed(\Database\Seeders\SevenSNhanQuyenSeeder::class);
 
-        // Assert 18 items are created
-        $this->assertEquals(18, SevenSChecklist::where('department', 'Nhân quyền')->count());
+        // Assert 17 items are created
+        $this->assertEquals(17, SevenSChecklist::where('department', 'Nhân quyền')->count());
 
         // Check a specific item is present
         $this->assertDatabaseHas('seven_s_checklists', [
