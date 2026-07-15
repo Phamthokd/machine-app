@@ -107,7 +107,7 @@
             <div class="machine-code">{{ $machine->ma_thiet_bi }}</div>
             <div class="machine-name">{{ $machine->ten_thiet_bi }}</div>
             <div class="qr-code">
-                {!! SimpleSoftwareIO\QrCode\Facades\QrCode::size(80)->generate($machine->ma_thiet_bi) !!}
+                {!! SimpleSoftwareIO\QrCode\Facades\QrCode::encoding('UTF-8')->size(80)->generate($machine->ma_thiet_bi) !!}
             </div>
         </div>
         @endforeach

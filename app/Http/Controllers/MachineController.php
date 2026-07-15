@@ -75,7 +75,7 @@ class MachineController extends Controller
 
     public function printQr(Machine $machine)
     {
-        $qrCode = QrCode::size(200)->generate($machine->ma_thiet_bi);
+        $qrCode = QrCode::encoding('UTF-8')->size(200)->generate($machine->ma_thiet_bi);
         return view('machines.print_qr', compact('machine', 'qrCode'));
     }
 
