@@ -637,7 +637,7 @@ return [
     'audit_sale_q6' => 'Are there full SOPs for the department and are they updated when there are changes?',
     'audit_sale_q7' => 'Are expired documents removed according to storage time regulations?',
 
-    // Order
+    // Merchandising
     'audit_dh_q1' => 'Are the documents distributed to relevant departments accurate?',
     'audit_dh_q2' => 'Are pre-production meetings organized fully?',
     'audit_dh_q3' => 'Are production raw materials and sub-materials ordered according to the procurement process?',
