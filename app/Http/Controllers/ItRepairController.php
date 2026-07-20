@@ -24,8 +24,14 @@ class ItRepairController extends Controller
             $query->where('priority', $request->priority);
         }
         if ($request->filled('department_id')) {
-            $query->whereHas('machine', function ($q) use ($request) {
-                $q->where('department_id', $request->department_id);
+            $dept = \App\Models\Department::find($request->department_id);
+            $query->where(function ($q) use ($request, $dept) {
+                $q->whereHas('machine', function ($mq) use ($request) {
+                    $mq->where('current_department_id', $request->department_id);
+                });
+                if ($dept) {
+                    $q->orWhere('department', $dept->name);
+                }
             });
         }
         
