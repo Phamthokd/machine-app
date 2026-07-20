@@ -70,7 +70,9 @@ class ItRepairController extends Controller
             $machine = \App\Models\Machine::where('ma_thiet_bi', $request->machine)->first();
         }
 
-        $itStaff = \App\Models\User::where('is_active', true)->get()->filter(fn($u) => $u->canManageItRepairs());
+        $itStaff = \App\Models\User::where('is_active', true)
+            ->get()
+            ->filter(fn($u) => !$u->isAdminUser() && !$u->hasRole('admin') && $u->canManageItRepairs());
 
         return view('it_repairs.create', compact('machine', 'itStaff'));
     }
