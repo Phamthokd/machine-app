@@ -64,11 +64,11 @@ class ItRepairController extends Controller
 
         $request->validate([
             'issue_type'       => ['required', 'in:computer,network,printer,software,phone,other'],
-            'title'            => ['required', 'string', 'max:255'],
+            'title'            => ['nullable', 'string', 'max:255'],
             'description'      => ['required', 'string'],
             'resolution_note'  => ['required', 'string'],
             'location'         => ['nullable', 'string', 'max:255'],
-            'priority'         => ['required', 'in:low,medium,high,urgent'],
+            'priority'         => ['nullable', 'in:low,medium,high,urgent'],
             'started_at'       => ['nullable', 'date'],
             'ended_at'         => ['nullable', 'date'],
             'images'           => ['nullable', 'array'],
@@ -85,6 +85,7 @@ class ItRepairController extends Controller
 
         // Determine status: if resolution is provided, mark as resolved immediately
         $hasResolution = $request->filled('resolution_note');
+        $title = $request->filled('title') ? $request->title : \Illuminate\Support\Str::limit($request->description, 50);
 
         $ticket = ItRepair::create([
             'code'            => ItRepair::generateCode(),
@@ -94,11 +95,11 @@ class ItRepairController extends Controller
             'resolver_id'     => auth()->id(),   // IT staff who fills the form IS the resolver
             'machine_id'      => $request->filled('machine_id') ? $request->machine_id : null,
             'issue_type'      => $request->issue_type,
-            'title'           => $request->title,
+            'title'           => $title,
             'description'     => $request->description,
             'resolution_note' => $request->resolution_note,
             'location'        => $request->location,
-            'priority'        => $request->priority,
+            'priority'        => $request->input('priority', 'medium'),
             'status'          => $hasResolution ? 'resolved' : 'pending',
             'resolved_at'     => $hasResolution ? now() : null,
             'started_at'      => $request->filled('started_at') ? $request->started_at : null,

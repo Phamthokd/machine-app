@@ -132,32 +132,6 @@
         box-shadow: 0 2px 8px rgba(79, 70, 229, 0.2);
     }
 
-    /* Priority Row */
-    .priority-row { display: flex; gap: 8px; flex-wrap: wrap; }
-
-    .priority-chip input[type="radio"] { display: none; }
-
-    .priority-chip label {
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        padding: 9px 14px;
-        border-radius: 99px;
-        border: 2px solid #e2e8f0;
-        background: #fafafa;
-        cursor: pointer;
-        font-size: 0.82rem;
-        font-weight: 600;
-        color: #64748b;
-        transition: all 0.2s;
-        white-space: nowrap;
-    }
-
-    .priority-chip.low input:checked + label    { border-color: #94a3b8; background: #f1f5f9; color: #475569; }
-    .priority-chip.medium input:checked + label { border-color: #0ea5e9; background: #e0f2fe; color: #0369a1; }
-    .priority-chip.high input:checked + label   { border-color: #f59e0b; background: #fef3c7; color: #b45309; }
-    .priority-chip.urgent input:checked + label { border-color: #ef4444; background: #fee2e2; color: #b91c1c; }
-
     /* Time row */
     .time-row {
         display: grid;
@@ -319,21 +293,13 @@
         </div>
     </div>
 
-    {{-- SECTION 2: Sự cố & Nội dung xử lý --}}
+    {{-- SECTION 2: Nội dung sự cố & Xử lý --}}
     <div class="form-section">
         <div class="section-title">
             <div class="icon-box">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
             </div>
             Nội dung sự cố & Xử lý
-        </div>
-
-        <div class="mb-3">
-            <label class="form-label">Sự cố <span class="text-danger">*</span></label>
-            <input type="text" name="title" class="form-control"
-                   value="{{ old('title') }}"
-                   placeholder="VD: Máy tính không lên nguồn, Mạng bị chậm, Máy in kẹt giấy..."
-                   required maxlength="255">
         </div>
 
         <div class="mb-3">
@@ -376,42 +342,7 @@
         </div>
     </div>
 
-    {{-- SECTION 4: Vị trí & Mức độ --}}
-    <div class="form-section">
-        <div class="section-title">
-            <div class="icon-box">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-            </div>
-            Vị trí & Mức độ
-        </div>
-
-        <div class="mb-3">
-            <label class="form-label">Vị trí / Phòng</label>
-            <input type="text" name="location" class="form-control"
-                   value="{{ old('location') }}"
-                   placeholder="VD: Tầng 3 – Phòng kế toán, Xưởng 6 Tầng 1...">
-        </div>
-
-        <div class="mb-0">
-            <label class="form-label">Mức độ ưu tiên <span class="text-danger">*</span></label>
-            <div class="priority-row">
-                @foreach([
-                    ['low',    '⚪', 'Thấp'],
-                    ['medium', '🔵', 'Bình thường'],
-                    ['high',   '🟠', 'Cao'],
-                    ['urgent', '🔴', 'Khẩn cấp'],
-                ] as [$val, $icon, $label])
-                <div class="priority-chip {{ $val }}">
-                    <input type="radio" id="priority_{{ $val }}" name="priority" value="{{ $val }}" required
-                           @checked(old('priority', 'medium') === $val)>
-                    <label for="priority_{{ $val }}">{{ $icon }} {{ $label }}</label>
-                </div>
-                @endforeach
-            </div>
-        </div>
-    </div>
-
-    {{-- SECTION 5: Ảnh đính kèm --}}
+    {{-- SECTION 4: Ảnh đính kèm --}}
     <div class="form-section">
         <div class="section-title">
             <div class="icon-box">
