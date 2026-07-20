@@ -727,7 +727,7 @@ return [
     'May lập trình' => 'Programmable Sewing',
     'Kế toán' => 'Accounting',
     'Sale' => 'Sale',
-    'Đơn hàng' => 'Order',
+    'Đơn hàng' => 'Merchandising',
     'Kho vải' => 'Fabric Warehouse',
     'Kho vải + PL' => 'Fabric Warehouse',
     'Nhà cắt' => 'Cutting Room',
