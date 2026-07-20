@@ -30,6 +30,8 @@ class FeatureAccess
             'repairs.bok' => !$user->hasRole('contractor') || $user->can('repairs.bok'),
             'repairs.create_bok' => $user->hasAnyRole(['admin', 'bok', 'supervisor', 'senior_manager']) || $user->can('repairs.create_bok'),
             'repairs.approve' => $user->hasAnyRole(['admin', 'senior_manager']) || $user->can('repairs.approve'),
+            'it_repairs.view' => $user->hasAnyRole(['admin', 'senior_manager']) || $user->can('it_repairs.view'),
+            'it_repairs.manage' => $user->hasAnyRole(['admin']) || $user->can('it_repairs.manage'),
             'machines.move' => $user->hasAnyRole(['admin', 'warehouse', 'team_leader']) || $user->can('machines.move'),
             'movement_history.view' => $user->hasAnyRole(['admin', 'warehouse', 'team_leader', 'audit', '7s', 'supervisor', 'senior_manager']) || $user->can('movement_history.view'),
             'machines.manage' => $user->hasAnyRole(['admin', 'warehouse', 'audit', '7s']) || $user->can('machines.manage'),

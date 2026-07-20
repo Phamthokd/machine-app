@@ -329,6 +329,32 @@ $maxWidth = '1200px';
             </div>
             @endfeature
 
+            @if(\App\Support\FeatureAccess::allows($currentUser, 'it_repairs.view') || \App\Support\FeatureAccess::allows($currentUser, 'it_repairs.manage'))
+            @php
+                $pendingItCount = \App\Models\ItRepair::where('status', 'pending')->count();
+            @endphp
+            <div class="col">
+                <a href="{{ route('it-repairs.index') }}" class="btn btn-white border w-100 py-4 rounded-4 shadow-sm fw-semibold d-flex flex-column align-items-center justify-content-center h-100 tap hover-shadow transition position-relative {{ $pendingItCount > 0 ? 'border-danger border-opacity-50' : '' }}">
+                    @if($pendingItCount > 0)
+                        <span class="position-absolute top-0 end-0 translate-middle badge rounded-pill bg-danger" style="font-size:0.75rem;">
+                            {{ $pendingItCount }}
+                        </span>
+                    @endif
+                    <div class="bg-primary bg-opacity-10 text-primary p-3 rounded-circle mb-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                            <line x1="8" y1="21" x2="16" y2="21"/>
+                            <line x1="12" y1="17" x2="12" y2="21"/>
+                        </svg>
+                    </div>
+                    <span>🖥️ Phiếu IT</span>
+                    @if($pendingItCount > 0)
+                        <small class="text-danger fw-bold mt-1">{{ $pendingItCount }} chờ xử lý</small>
+                    @endif
+                </a>
+            </div>
+            @endif
+
             @if($currentUser->isAdminUser() || $currentUser->hasRole('senior_manager') || $currentUser->hasRole('hr'))
             <div class="col">
                 <a href="{{ route('candidates.index') }}" class="btn btn-white border w-100 py-4 rounded-4 shadow-sm fw-semibold d-flex flex-column align-items-center justify-content-center h-100 tap hover-shadow transition">

@@ -9,6 +9,8 @@ return [
             'repairs.contractor' => 'messages.p_repairs_contractor',
             'repairs.bok' => 'messages.p_repairs_bok',
             'repairs.create_bok' => 'messages.p_repairs_create_bok',
+            'it_repairs.view' => 'messages.p_it_repairs_view',
+            'it_repairs.manage' => 'messages.p_it_repairs_manage',
         ],
     ],
     [

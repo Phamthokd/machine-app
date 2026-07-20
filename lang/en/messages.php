@@ -580,7 +580,7 @@ return [
     'audit_template_may_lap_trinh' => 'Programmable Sewing Audit',
     'audit_template_ke_toan' => 'Accounting Audit',
     'audit_template_sale' => 'Sale Audit',
-    'audit_template_don_hang' => 'Order Audit',
+    'audit_template_don_hang' => 'Merchandising Audit',
     'audit_template_kho_vai_pl' => 'Fabric Warehouse Audit',
     'audit_template_nha_cat' => 'Cutting Room Audit',
     'audit_template_nha_giat' => 'Washing Room Audit',

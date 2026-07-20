@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Machine;
+use App\Models\ItRepair;
 use Illuminate\Http\Request;   
 use App\Models\Department; 
 
@@ -16,11 +17,16 @@ class MachinePublicController extends Controller
         ->where('ma_thiet_bi', $ma_thiet_bi)
         ->first();
     
-    if (!$machine) {
-        abort(404, "Không tìm thấy máy: {$ma_thiet_bi}. Hãy kiểm tra DB / dữ liệu import.");
-    }
+        if (!$machine) {
+            abort(404, "Không tìm thấy máy: {$ma_thiet_bi}. Hãy kiểm tra DB / dữ liệu import.");
+        }
+
+        $itRepairs = ItRepair::with(['reporter', 'resolver'])
+            ->where('machine_id', $machine->id)
+            ->latest()
+            ->limit(10)
+            ->get();
     
-    return view('machines.public_show', compact('machine'));
-    
+        return view('machines.public_show', compact('machine', 'itRepairs'));
     }
 }

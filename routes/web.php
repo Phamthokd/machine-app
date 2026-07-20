@@ -11,6 +11,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\EnvironmentReportController;
 use App\Http\Controllers\CandidateController;
+use App\Http\Controllers\ItRepairController;
 
 /*
 |--------------------------------------------------------------------------
@@ -193,6 +194,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::delete('/candidates/{id}', [CandidateController::class, 'destroy'])->name('candidates.destroy')->whereNumber('id');
         Route::get('/candidates/{id}/print', [CandidateController::class, 'exportPrint'])->name('candidates.print')->whereNumber('id');
         Route::post('/candidates/{id}/route', [CandidateController::class, 'routeCandidate'])->name('candidates.route')->whereNumber('id');
+    });
+
+    // IT REPAIRS: View (it_repairs.view) + Manage (it_repairs.manage)
+    Route::middleware(['role_or_permission:admin|it_repairs.view|it_repairs.manage'])->group(function () {
+        Route::get('/it-repairs', [ItRepairController::class, 'index'])->name('it-repairs.index');
+        Route::get('/it-repairs/{itRepair}', [ItRepairController::class, 'show'])->name('it-repairs.show')->whereNumber('itRepair');
+    });
+    Route::middleware(['role_or_permission:admin|it_repairs.manage'])->group(function () {
+        Route::get('/it-repairs/create', [ItRepairController::class, 'create'])->name('it-repairs.create');
+        Route::post('/it-repairs', [ItRepairController::class, 'store'])->name('it-repairs.store');
+        Route::put('/it-repairs/{itRepair}', [ItRepairController::class, 'update'])->name('it-repairs.update')->whereNumber('itRepair');
+        Route::delete('/it-repairs/{itRepair}', [ItRepairController::class, 'destroy'])->name('it-repairs.destroy')->whereNumber('itRepair');
     });
 });
 

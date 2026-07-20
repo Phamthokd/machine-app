@@ -295,6 +295,38 @@
     </div>
 </div>
 
+<!-- IT History Section -->
+@if(auth()->check() && (auth()->user()->canViewItRepairs() || auth()->user()->canManageItRepairs()) && $itRepairs->isNotEmpty())
+<div class="history-section mb-4">
+    <div class="section-title">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        🖥️ Lịch sử IT
+    </div>
+    <div class="timeline">
+        @foreach($itRepairs as $ir)
+        <div class="timeline-item {{ $ir->isResolved() ? 'done' : 'active' }}">
+            <div class="timeline-dot"></div>
+            <a href="{{ route('it-repairs.show', $ir->id) }}" class="text-decoration-none">
+                <div class="timeline-card">
+                    <div class="d-flex justify-content-between align-items-start mb-1">
+                        <span class="timeline-date">{{ $ir->created_at->format('d/m/Y H:i') }}</span>
+                        <span class="badge rounded-pill" style="font-size:0.7rem; background: {{ $ir->isResolved() ? '#dcfce7' : '#fef3c7' }}; color: {{ $ir->isResolved() ? '#166534' : '#92400e' }};">
+                            {{ $ir->statusLabel() }}
+                        </span>
+                    </div>
+                    <div class="fw-semibold text-dark" style="font-size:0.9rem;">{{ $ir->title }}</div>
+                    <div class="text-muted" style="font-size:0.8rem; margin-top:2px;">{{ $ir->issueTypeLabel() }} · {{ $ir->priorityLabel() }}</div>
+                    @if($ir->resolver)
+                    <div class="text-muted" style="font-size:0.78rem; margin-top:2px;">Xử lý bởi: {{ $ir->resolver->name }}</div>
+                    @endif
+                </div>
+            </a>
+        </div>
+        @endforeach
+    </div>
+</div>
+@endif
+
 <!-- History Timeline -->
 <div class="history-section mb-5" style="padding-bottom: 60px;">
     <div class="section-title">
@@ -507,6 +539,29 @@
                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
                         </div>
                     </button>
+                @endif
+
+                @if(auth()->check() && auth()->user()->canManageItRepairs())
+                <a href="/it-repairs/create?machine={{ $machine->ma_thiet_bi }}" class="breakdown-option-card d-flex align-items-center p-3 text-decoration-none shadow-sm transition-all" style="border-radius: 16px; border: 1.5px solid #eef2f6; background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%);">
+                    <div class="option-icon-box d-flex align-items-center justify-content-center me-3" style="width: 52px; height: 52px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 12px; color: white; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.25); flex-shrink: 0;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                            <line x1="8" y1="21" x2="16" y2="21"/>
+                            <line x1="12" y1="17" x2="12" y2="21"/>
+                        </svg>
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="option-title fw-bold text-dark" style="font-size: 1.05rem;">
+                            🖥️ Sự cố IT
+                        </div>
+                        <div class="option-desc text-muted small mt-1" style="font-size: 0.82rem; line-height: 1.3;">
+                            Báo sự cố máy tính, mạng, phần mềm, máy in...
+                        </div>
+                    </div>
+                    <div class="arrow-box ms-2 text-muted">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                    </div>
+                </a>
                 @endif
             </div>
             

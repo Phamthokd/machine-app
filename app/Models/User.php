@@ -122,6 +122,16 @@ class User extends Authenticatable
         return FeatureAccess::allows($this, 'repairs.create_bok');
     }
 
+    public function canViewItRepairs(): bool
+    {
+        return FeatureAccess::allows($this, 'it_repairs.view');
+    }
+
+    public function canManageItRepairs(): bool
+    {
+        return FeatureAccess::allows($this, 'it_repairs.manage');
+    }
+
     public function canMoveMachines(): bool
     {
         return FeatureAccess::allows($this, 'machines.move');
