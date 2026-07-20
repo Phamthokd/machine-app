@@ -63,13 +63,16 @@ class ItRepairController extends Controller
         abort_unless(auth()->user()->canManageItRepairs(), 403);
 
         $request->validate([
-            'issue_type'  => ['required', 'in:computer,network,printer,software,other'],
-            'title'       => ['required', 'string', 'max:255'],
-            'description' => ['required', 'string'],
-            'location'    => ['nullable', 'string', 'max:255'],
-            'priority'    => ['required', 'in:low,medium,high,urgent'],
-            'images'      => ['nullable', 'array'],
-            'images.*'    => ['image', 'max:10240'],
+            'issue_type'       => ['required', 'in:computer,network,printer,software,phone,other'],
+            'title'            => ['required', 'string', 'max:255'],
+            'description'      => ['required', 'string'],
+            'resolution_note'  => ['required', 'string'],
+            'location'         => ['nullable', 'string', 'max:255'],
+            'priority'         => ['required', 'in:low,medium,high,urgent'],
+            'started_at'       => ['nullable', 'date'],
+            'ended_at'         => ['nullable', 'date'],
+            'images'           => ['nullable', 'array'],
+            'images.*'         => ['image', 'max:10240'],
         ]);
 
         // Upload images
@@ -80,23 +83,31 @@ class ItRepairController extends Controller
             }
         }
 
+        // Determine status: if resolution is provided, mark as resolved immediately
+        $hasResolution = $request->filled('resolution_note');
+
         $ticket = ItRepair::create([
-            'code'        => ItRepair::generateCode(),
-            'department'  => auth()->user()->primaryManagedDepartment()
+            'code'            => ItRepair::generateCode(),
+            'department'      => auth()->user()->primaryManagedDepartment()
                 ?? auth()->user()->managed_department,
-            'reporter_id' => auth()->id(),
-            'machine_id'  => $request->filled('machine_id') ? $request->machine_id : null,
-            'issue_type'  => $request->issue_type,
-            'title'       => $request->title,
-            'description' => $request->description,
-            'location'    => $request->location,
-            'priority'    => $request->priority,
-            'status'      => 'pending',
-            'images'      => $imagePaths ?: null,
+            'reporter_id'     => auth()->id(),
+            'resolver_id'     => auth()->id(),   // IT staff who fills the form IS the resolver
+            'machine_id'      => $request->filled('machine_id') ? $request->machine_id : null,
+            'issue_type'      => $request->issue_type,
+            'title'           => $request->title,
+            'description'     => $request->description,
+            'resolution_note' => $request->resolution_note,
+            'location'        => $request->location,
+            'priority'        => $request->priority,
+            'status'          => $hasResolution ? 'resolved' : 'pending',
+            'resolved_at'     => $hasResolution ? now() : null,
+            'started_at'      => $request->filled('started_at') ? $request->started_at : null,
+            'ended_at'        => $request->filled('ended_at') ? $request->ended_at : null,
+            'images'          => $imagePaths ?: null,
         ]);
 
         return redirect("/it-repairs/{$ticket->id}")
-            ->with('success', 'Phiếu IT đã được tạo thành công! Mã phiếu: ' . $ticket->code);
+            ->with('success', 'Phiếu IT đã được ghi nhận! Mã phiếu: ' . $ticket->code);
     }
 
     // ─── Show ────────────────────────────────────────────────────────────────

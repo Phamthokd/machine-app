@@ -23,11 +23,15 @@ class ItRepair extends Model
         'resolver_id',
         'resolution_note',
         'resolved_at',
+        'started_at',
+        'ended_at',
         'images',
     ];
 
     protected $casts = [
         'resolved_at' => 'datetime',
+        'started_at'  => 'datetime',
+        'ended_at'    => 'datetime',
         'images'      => 'array',
     ];
 

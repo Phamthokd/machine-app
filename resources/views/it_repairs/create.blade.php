@@ -2,157 +2,481 @@
 @section('title', 'Tạo phiếu IT')
 
 @section('content')
+<style>
+    :root {
+        --it-primary: #4f46e5;
+        --it-primary-light: #eef2ff;
+        --bg-app: #f8fafc;
+    }
+
+    body {
+        background-color: var(--bg-app) !important;
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+
+    .machine-summary {
+        background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+        color: white;
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 16px;
+        box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+    }
+
+    .machine-summary .label {
+        color: #a5b4fc;
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        margin-bottom: 3px;
+    }
+
+    .machine-summary .value {
+        font-weight: 700;
+        font-size: 1rem;
+    }
+
+    .form-section {
+        background: white;
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 14px;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+        border: 1px solid #f1f5f9;
+    }
+
+    .section-title {
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        margin-bottom: 14px;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .section-title .icon-box {
+        width: 26px;
+        height: 26px;
+        border-radius: 7px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--it-primary-light);
+        color: var(--it-primary);
+        flex-shrink: 0;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #334155;
+        font-size: 0.88rem;
+        margin-bottom: 7px;
+    }
+
+    .form-control, .form-select {
+        border-radius: 10px;
+        padding: 11px 14px;
+        border: 1.5px solid #e2e8f0;
+        font-size: 0.95rem;
+        transition: all 0.2s;
+        background: #fafafa;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: var(--it-primary);
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        background: white;
+    }
+
+    textarea.form-control { min-height: 90px; resize: vertical; }
+
+    /* Issue Type Chips */
+    .type-chip-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+    }
+
+    .type-chip input[type="radio"] { display: none; }
+
+    .type-chip label {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        padding: 12px 6px;
+        border-radius: 12px;
+        border: 2px solid #e2e8f0;
+        background: #fafafa;
+        cursor: pointer;
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: #64748b;
+        transition: all 0.2s;
+        text-align: center;
+        min-height: 68px;
+    }
+
+    .type-chip label .chip-icon { font-size: 1.5rem; line-height: 1; }
+
+    .type-chip input[type="radio"]:checked + label {
+        border-color: var(--it-primary);
+        background: var(--it-primary-light);
+        color: var(--it-primary);
+        box-shadow: 0 2px 8px rgba(79, 70, 229, 0.2);
+    }
+
+    /* Priority Row */
+    .priority-row { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    .priority-chip input[type="radio"] { display: none; }
+
+    .priority-chip label {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        padding: 9px 14px;
+        border-radius: 99px;
+        border: 2px solid #e2e8f0;
+        background: #fafafa;
+        cursor: pointer;
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: #64748b;
+        transition: all 0.2s;
+        white-space: nowrap;
+    }
+
+    .priority-chip.low input:checked + label    { border-color: #94a3b8; background: #f1f5f9; color: #475569; }
+    .priority-chip.medium input:checked + label { border-color: #0ea5e9; background: #e0f2fe; color: #0369a1; }
+    .priority-chip.high input:checked + label   { border-color: #f59e0b; background: #fef3c7; color: #b45309; }
+    .priority-chip.urgent input:checked + label { border-color: #ef4444; background: #fee2e2; color: #b91c1c; }
+
+    /* Time row */
+    .time-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+
+    /* Photo Upload */
+    .photo-upload-area {
+        border: 2px dashed #cbd5e1;
+        border-radius: 12px;
+        padding: 18px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        background: #fafafa;
+    }
+
+    .photo-upload-area:hover { border-color: var(--it-primary); background: var(--it-primary-light); }
+
+    .photo-preview-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+
+    .photo-thumb { position: relative; width: 76px; height: 76px; }
+
+    .photo-thumb img {
+        width: 100%; height: 100%;
+        object-fit: cover;
+        border-radius: 10px;
+        border: 2px solid #e2e8f0;
+    }
+
+    .photo-thumb .remove-btn {
+        position: absolute; top: -6px; right: -6px;
+        width: 20px; height: 20px;
+        border-radius: 50%;
+        background: #ef4444;
+        color: white; border: none;
+        font-size: 12px; display: flex;
+        align-items: center; justify-content: center;
+        cursor: pointer; line-height: 1;
+    }
+
+    /* Resolve hint */
+    .resolve-hint {
+        background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+        border: 1.5px solid #86efac;
+        border-radius: 12px;
+        padding: 12px 14px;
+        margin-bottom: 14px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 0.83rem;
+        color: #166534;
+        font-weight: 500;
+    }
+
+    /* Sticky footer */
+    .sticky-footer {
+        position: fixed; bottom: 0; left: 0; right: 0;
+        background: white;
+        padding: 14px 16px;
+        border-top: 1px solid #e2e8f0;
+        z-index: 100;
+        padding-bottom: max(14px, env(safe-area-inset-bottom));
+        box-shadow: 0 -4px 12px rgba(0,0,0,0.07);
+    }
+
+    .btn-submit {
+        background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+        color: white; border: none;
+        border-radius: 12px; padding: 14px;
+        font-weight: 700; font-size: 1rem; width: 100%;
+        display: flex; align-items: center; justify-content: center;
+        gap: 8px;
+        box-shadow: 0 4px 12px rgba(79,70,229,0.35);
+        transition: all 0.2s;
+    }
+
+    .btn-submit:active { transform: scale(0.98); opacity: 0.9; }
+
+    .footer-spacer { height: 90px; }
+</style>
+
+{{-- Header --}}
 <div class="d-flex align-items-center gap-3 mb-4">
-    <a href="{{ $machine ? '/m/' . $machine->ma_thiet_bi : route('it-repairs.index') }}" class="text-decoration-none text-secondary d-flex align-items-center gap-1">
+    <a href="{{ $machine ? '/m/' . $machine->ma_thiet_bi : route('it-repairs.index') }}"
+       class="text-decoration-none text-secondary d-flex align-items-center gap-1">
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
         Quay lại
     </a>
-    <h4 class="mb-0 fw-bold">🖥️ Báo sự cố IT</h4>
+    <h4 class="mb-0 fw-bold">🖥️ Phiếu sửa chữa IT</h4>
 </div>
-
-@if($machine ?? false)
-<div class="alert border-0 rounded-3 mb-4 d-flex align-items-center gap-3" style="background:linear-gradient(135deg,#4f46e5,#6366f1);color:white;">
-    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-    <div>
-        <div class="fw-bold">{{ $machine->ma_thiet_bi }}</div>
-        <div class="opacity-85 small">{{ $machine->ten_thiet_bi }} &middot; {{ $machine->department->name ?? '—' }}</div>
-    </div>
-</div>
-@endif
 
 @if($errors->any())
-<div class="alert alert-danger border-0 rounded-3 mb-4">
-    <ul class="mb-0">@foreach($errors->all() as $e)<li>{{ $e }}</li>@endforeach</ul>
+<div class="alert alert-danger border-0 rounded-3 mb-3">
+    <ul class="mb-0 ps-3">@foreach($errors->all() as $e)<li>{{ $e }}</li>@endforeach</ul>
 </div>
 @endif
 
-<div class="card border-0 shadow-sm rounded-4" style="max-width:760px; margin:0 auto;">
-    <div class="card-body p-4">
-        <form action="{{ route('it-repairs.store') }}" method="POST" enctype="multipart/form-data">
-            @csrf
-            @if($machine ?? false)
-            <input type="hidden" name="machine_id" value="{{ $machine->id }}">
-            @endif
+{{-- Hint --}}
+<div class="resolve-hint">
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+    Bộ phận IT điền đầy đủ thông tin sự cố và nội dung xử lý — phiếu sẽ được ghi nhận là <strong class="ms-1">Đã giải quyết</strong>.
+</div>
 
-            {{-- Loại sự cố --}}
-            <div class="mb-4">
-                <label class="form-label fw-bold">Loại sự cố <span class="text-danger">*</span></label>
-                <div class="d-flex flex-wrap gap-2">
-                    @foreach([
-                        'computer' => ['💻', 'Máy tính'],
-                        'network'  => ['🌐', 'Mạng / Internet'],
-                        'printer'  => ['🖨️', 'Máy in'],
-                        'software' => ['⚙️', 'Phần mềm'],
-                        'other'    => ['❓', 'Khác'],
-                    ] as $val => [$icon, $label])
-                    <div>
-                        <input type="radio" class="btn-check" id="type_{{ $val }}" name="issue_type" value="{{ $val }}" required
-                               @checked(old('issue_type') === $val)>
-                        <label class="btn btn-outline-secondary rounded-3 px-3 py-2" for="type_{{ $val }}">
-                            {{ $icon }} {{ $label }}
-                        </label>
-                    </div>
-                    @endforeach
-                </div>
+<form action="{{ route('it-repairs.store') }}" method="POST" enctype="multipart/form-data" id="itRepairForm">
+    @csrf
+    @if($machine ?? false)
+    <input type="hidden" name="machine_id" value="{{ $machine->id }}">
+    @endif
+
+    {{-- Machine card --}}
+    @if($machine ?? false)
+    <div class="machine-summary">
+        <div class="row g-3">
+            <div class="col-5">
+                <div class="label">Mã thiết bị</div>
+                <div class="value">{{ $machine->ma_thiet_bi }}</div>
             </div>
-
-            {{-- Mức ưu tiên --}}
-            <div class="mb-4">
-                <label class="form-label fw-bold">Mức độ ưu tiên <span class="text-danger">*</span></label>
-                <div class="d-flex flex-wrap gap-2">
-                    @foreach([
-                        'low'    => ['⚪', 'Thấp',       'outline-secondary'],
-                        'medium' => ['🔵', 'Bình thường', 'outline-info'],
-                        'high'   => ['🟠', 'Cao',         'outline-warning'],
-                        'urgent' => ['🔴', 'Khẩn cấp',   'outline-danger'],
-                    ] as $val => [$icon, $label, $cls])
-                    <div>
-                        <input type="radio" class="btn-check" id="priority_{{ $val }}" name="priority" value="{{ $val }}" required
-                               @checked(old('priority', 'medium') === $val)>
-                        <label class="btn btn-{{ $cls }} rounded-3 px-3 py-2" for="priority_{{ $val }}">
-                            {{ $icon }} {{ $label }}
-                        </label>
-                    </div>
-                    @endforeach
-                </div>
+            <div class="col-7">
+                <div class="label">Bộ phận</div>
+                <div class="value">{{ $machine->department->name ?? '—' }}</div>
             </div>
-
-            {{-- Tiêu đề --}}
-            <div class="mb-3">
-                <label class="form-label fw-bold">Tiêu đề sự cố <span class="text-danger">*</span></label>
-                <input type="text" name="title" class="form-control rounded-3"
-                       value="{{ old('title') }}"
-                       placeholder="VD: Máy tính không lên nguồn, Mạng bị chậm..."
-                       required maxlength="255">
+            <div class="col-12">
+                <div class="label">Tên thiết bị</div>
+                <div class="value" style="font-size:0.95rem;">{{ $machine->ten_thiet_bi }}</div>
             </div>
-
-            {{-- Mô tả --}}
-            <div class="mb-3">
-                <label class="form-label fw-bold">Mô tả chi tiết <span class="text-danger">*</span></label>
-                <textarea name="description" class="form-control rounded-3" rows="4"
-                          placeholder="Mô tả cụ thể sự cố, triệu chứng, thời điểm xảy ra..."
-                          required>{{ old('description') }}</textarea>
-            </div>
-
-            {{-- Vị trí --}}
-            <div class="mb-3">
-                <label class="form-label fw-bold">Vị trí / Phòng</label>
-                <input type="text" name="location" class="form-control rounded-3"
-                       value="{{ old('location') }}"
-                       placeholder="VD: Tầng 3 – Phòng kế toán, Xưởng 6 Tầng 1...">
-            </div>
-
-            {{-- Ảnh đính kèm --}}
-            <div class="mb-4">
-                <label class="form-label fw-bold">Ảnh đính kèm <span class="text-muted fw-normal small">(tùy chọn)</span></label>
-                <div id="photoPreviewArea" class="d-flex flex-wrap gap-2 mb-2"></div>
-                <button type="button" id="btnAddPhoto" class="btn btn-outline-secondary rounded-3 d-flex align-items-center gap-2 py-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-                    Thêm ảnh
-                </button>
-                <div id="hiddenImagesContainer"></div>
-            </div>
-
-            <button type="submit" class="btn btn-primary w-100 py-3 fw-bold rounded-3 shadow-sm fs-6">
-                📤 Gửi phiếu IT
-            </button>
-        </form>
+        </div>
     </div>
+    @endif
+
+    {{-- SECTION 1: Loại sự cố --}}
+    <div class="form-section">
+        <div class="section-title">
+            <div class="icon-box">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            </div>
+            Loại sự cố <span class="text-danger ms-1">*</span>
+        </div>
+        <div class="type-chip-grid">
+            @foreach([
+                'computer' => ['💻', 'Máy tính'],
+                'network'  => ['🌐', 'Mạng / Internet'],
+                'printer'  => ['🖨️', 'Máy in'],
+                'software' => ['⚙️', 'Phần mềm'],
+                'phone'    => ['📱', 'Điện thoại'],
+                'other'    => ['🔧', 'Khác'],
+            ] as $val => [$icon, $label])
+            <div class="type-chip">
+                <input type="radio" id="type_{{ $val }}" name="issue_type" value="{{ $val }}" required
+                       @checked(old('issue_type') === $val)>
+                <label for="type_{{ $val }}">
+                    <span class="chip-icon">{{ $icon }}</span>
+                    {{ $label }}
+                </label>
+            </div>
+            @endforeach
+        </div>
+    </div>
+
+    {{-- SECTION 2: Sự cố & Nội dung xử lý --}}
+    <div class="form-section">
+        <div class="section-title">
+            <div class="icon-box">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </div>
+            Nội dung sự cố & Xử lý
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Sự cố <span class="text-danger">*</span></label>
+            <input type="text" name="title" class="form-control"
+                   value="{{ old('title') }}"
+                   placeholder="VD: Máy tính không lên nguồn, Mạng bị chậm, Máy in kẹt giấy..."
+                   required maxlength="255">
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Mô tả chi tiết sự cố <span class="text-danger">*</span></label>
+            <textarea name="description" class="form-control"
+                      placeholder="Mô tả triệu chứng, thời điểm xảy ra, thiết bị nào bị ảnh hưởng..."
+                      required>{{ old('description') }}</textarea>
+        </div>
+
+        <div class="mb-0">
+            <label class="form-label" style="color:#166534;">
+                🔧 Nội dung xử lý / Khắc phục <span class="text-danger">*</span>
+            </label>
+            <textarea name="resolution_note" class="form-control"
+                      style="border-color:#86efac; background:#f0fdf4;"
+                      placeholder="VD: Thay cáp mạng, cài lại driver, reset thiết bị, cài đặt phần mềm..."
+                      required>{{ old('resolution_note') }}</textarea>
+        </div>
+    </div>
+
+    {{-- SECTION 3: Thời gian xử lý --}}
+    <div class="form-section">
+        <div class="section-title">
+            <div class="icon-box">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+            Thời gian xử lý
+        </div>
+        <div class="time-row">
+            <div>
+                <label class="form-label">Bắt đầu</label>
+                <input type="datetime-local" name="started_at" class="form-control"
+                       value="{{ old('started_at', now()->format('Y-m-d\TH:i')) }}">
+            </div>
+            <div>
+                <label class="form-label">Kết thúc</label>
+                <input type="datetime-local" name="ended_at" class="form-control"
+                       value="{{ old('ended_at', now()->format('Y-m-d\TH:i')) }}">
+            </div>
+        </div>
+    </div>
+
+    {{-- SECTION 4: Vị trí & Mức độ --}}
+    <div class="form-section">
+        <div class="section-title">
+            <div class="icon-box">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            </div>
+            Vị trí & Mức độ
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Vị trí / Phòng</label>
+            <input type="text" name="location" class="form-control"
+                   value="{{ old('location') }}"
+                   placeholder="VD: Tầng 3 – Phòng kế toán, Xưởng 6 Tầng 1...">
+        </div>
+
+        <div class="mb-0">
+            <label class="form-label">Mức độ ưu tiên <span class="text-danger">*</span></label>
+            <div class="priority-row">
+                @foreach([
+                    ['low',    '⚪', 'Thấp'],
+                    ['medium', '🔵', 'Bình thường'],
+                    ['high',   '🟠', 'Cao'],
+                    ['urgent', '🔴', 'Khẩn cấp'],
+                ] as [$val, $icon, $label])
+                <div class="priority-chip {{ $val }}">
+                    <input type="radio" id="priority_{{ $val }}" name="priority" value="{{ $val }}" required
+                           @checked(old('priority', 'medium') === $val)>
+                    <label for="priority_{{ $val }}">{{ $icon }} {{ $label }}</label>
+                </div>
+                @endforeach
+            </div>
+        </div>
+    </div>
+
+    {{-- SECTION 5: Ảnh đính kèm --}}
+    <div class="form-section">
+        <div class="section-title">
+            <div class="icon-box">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            </div>
+            Ảnh đính kèm <span class="text-muted fw-normal ms-1" style="font-size:0.78rem;text-transform:none;">(tùy chọn)</span>
+        </div>
+
+        <div class="photo-upload-area" onclick="document.getElementById('photoFileInput').click()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5" class="mb-2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            <div style="color:#64748b;font-size:0.85rem;font-weight:600;">Chạm để thêm ảnh</div>
+            <div style="color:#94a3b8;font-size:0.75rem;margin-top:3px;">Hỗ trợ JPG, PNG, HEIC</div>
+        </div>
+        <input type="file" id="photoFileInput" name="images[]" accept="image/*" multiple style="display:none;">
+        <div class="photo-preview-grid" id="photoPreviewGrid"></div>
+        <div id="hiddenImagesContainer"></div>
+    </div>
+
+    <div class="footer-spacer"></div>
+</form>
+
+<div class="sticky-footer">
+    <button type="submit" form="itRepairForm" class="btn-submit">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        Ghi nhận phiếu IT
+    </button>
 </div>
 
 <script>
-document.getElementById('btnAddPhoto').addEventListener('click', function () {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.name = 'images[]';
-    input.accept = 'image/*';
-    input.multiple = true;
-    input.style.display = 'none';
-    input.addEventListener('change', function () {
-        Array.from(this.files).forEach(file => {
-            const reader = new FileReader();
-            reader.onload = e => {
-                const wrap = document.createElement('div');
-                wrap.className = 'position-relative';
-                wrap.style.cssText = 'width:80px;height:80px;';
-                const img = document.createElement('img');
-                img.src = e.target.result;
-                img.className = 'img-thumbnail w-100 h-100 object-fit-cover rounded-3';
-                const rm = document.createElement('button');
-                rm.type = 'button';
-                rm.className = 'btn btn-danger btn-sm position-absolute top-0 end-0 rounded-circle p-0 d-flex align-items-center justify-content-center';
-                rm.style.cssText = 'width:20px;height:20px;transform:translate(40%,-40%);font-size:11px;';
-                rm.innerHTML = '×';
-                rm.onclick = () => { wrap.remove(); input.remove(); };
-                wrap.appendChild(img);
-                wrap.appendChild(rm);
-                document.getElementById('photoPreviewArea').appendChild(wrap);
-            };
-            reader.readAsDataURL(file);
-        });
-        document.getElementById('hiddenImagesContainer').appendChild(input);
+const photoInput = document.getElementById('photoFileInput');
+const previewGrid = document.getElementById('photoPreviewGrid');
+const hiddenContainer = document.getElementById('hiddenImagesContainer');
+
+photoInput.addEventListener('change', function () {
+    Array.from(this.files).forEach(file => {
+        const reader = new FileReader();
+        reader.onload = e => {
+            const thumb = document.createElement('div');
+            thumb.className = 'photo-thumb';
+
+            const img = document.createElement('img');
+            img.src = e.target.result;
+
+            const rmBtn = document.createElement('button');
+            rmBtn.type = 'button';
+            rmBtn.className = 'remove-btn';
+            rmBtn.innerHTML = '×';
+            rmBtn.onclick = () => { thumb.remove(); newInput.remove(); };
+
+            thumb.appendChild(img);
+            thumb.appendChild(rmBtn);
+            previewGrid.appendChild(thumb);
+        };
+        reader.readAsDataURL(file);
+
+        const newInput = document.createElement('input');
+        newInput.type = 'file';
+        newInput.name = 'images[]';
+        newInput.style.display = 'none';
+        const dt = new DataTransfer();
+        dt.items.add(file);
+        newInput.files = dt.files;
+        hiddenContainer.appendChild(newInput);
     });
-    input.click();
+    this.value = '';
 });
 </script>
 @endsection
