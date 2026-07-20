@@ -1,173 +1,187 @@
 @extends('layouts.app-simple', ['maxWidth' => '100%'])
-@section('title', 'Phiếu IT')
+@section('title', 'Danh sách phiếu IT')
 
 @section('content')
+<div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
+    <div class="d-flex align-items-center gap-3">
+        <a href="/dashboard" class="btn btn-light rounded-circle shadow-sm p-0 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        </a>
+        <div>
+            <h4 class="mb-0 fw-bold">Danh sách phiếu IT</h4>
+            <div class="text-secondary small">Quản lý và theo dõi lịch sử sửa chữa bộ phận IT</div>
+        </div>
+    </div>
+    
+    <div class="d-flex gap-2">
+        @if(auth()->user()->canManageItRepairs())
+        <a href="{{ route('it-repairs.create') }}" class="btn btn-primary text-white shadow-sm fw-bold d-flex align-items-center gap-2 px-3 py-2" style="border-radius: 8px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Tạo phiếu mới
+        </a>
+        @endif
+    </div>
+</div>
+
 <style>
-    .stat-card { border-radius: 16px; padding: 1.25rem 1.5rem; color: white; }
-    .ticket-row:hover { background: #f8faff; }
-    .badge-priority-low      { background: #94a3b8; }
-    .badge-priority-medium   { background: #38bdf8; }
-    .badge-priority-high     { background: #f59e0b; }
-    .badge-priority-urgent   { background: #ef4444; }
-    .status-dot { width:10px; height:10px; border-radius:50%; display:inline-block; margin-right:6px; }
+    .card-modern {
+        background: #ffffff;
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        overflow: hidden;
+    }
 </style>
 
-<div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
-    <div>
-        <h4 class="fw-bold mb-0">🖥️ Phiếu IT</h4>
-        <p class="text-muted small mb-0">Quản lý sự cố và yêu cầu hỗ trợ IT</p>
-    </div>
-    @if(auth()->user()->canManageItRepairs())
-    <a href="{{ route('it-repairs.create') }}" class="btn btn-primary fw-bold d-flex align-items-center gap-2 px-4 py-2 rounded-3 shadow-sm">
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Tạo phiếu mới
-    </a>
-    @endif
+{{-- Filter Card --}}
+<div class="card-modern p-4 mb-4">
+    <form method="GET" action="{{ route('it-repairs.index') }}" class="row g-3 align-items-end">
+        <div class="col-md-3">
+            <label class="form-label fw-bold small text-muted text-uppercase mb-1" style="font-size: 0.75rem; letter-spacing: 0.05em;">LỌC THEO BỘ PHẬN</label>
+            <select name="department_id" class="form-select border-0" style="background-color: #f8fafc; border-radius: 8px;">
+                <option value="">-- Tất cả các bộ phận --</option>
+                @foreach($departments as $dept)
+                <option value="{{ $dept->id }}" @selected(request('department_id') == $dept->id)>{{ $dept->name }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label fw-bold small text-muted text-uppercase mb-1" style="font-size: 0.75rem; letter-spacing: 0.05em;">TỪ NGÀY</label>
+            <input type="date" name="start_date" class="form-control border-0" style="background-color: #f8fafc; border-radius: 8px;" value="{{ request('start_date', request('date_from')) }}">
+        </div>
+        <div class="col-md-3">
+            <label class="form-label fw-bold small text-muted text-uppercase mb-1" style="font-size: 0.75rem; letter-spacing: 0.05em;">ĐẾN NGÀY</label>
+            <input type="date" name="end_date" class="form-control border-0" style="background-color: #f8fafc; border-radius: 8px;" value="{{ request('end_date', request('date_to')) }}">
+        </div>
+        <div class="col-md-3 d-flex gap-2">
+            <button type="submit" class="btn btn-primary flex-grow-1 fw-bold py-2 shadow-sm" style="border-radius: 8px;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="me-1">
+                    <circle cx="11" cy="11" r="8" />
+                    <path d="m21 21-4.3-4.3" />
+                </svg>
+                Lọc dữ liệu
+            </button>
+            @if(request()->anyFilled(['department_id', 'start_date', 'end_date', 'date_from', 'date_to', 'status', 'issue_type']))
+            <a href="{{ route('it-repairs.index') }}" class="btn btn-outline-secondary d-flex align-items-center justify-content-center" style="width: 42px; border-radius: 8px;" title="Xóa lọc">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 6 6 18" />
+                    <path d="m6 6 12 12" />
+                </svg>
+            </a>
+            @endif
+        </div>
+    </form>
 </div>
 
-{{-- Stats --}}
-<div class="row g-3 mb-4">
-    <div class="col-6 col-md-3">
-        <div class="stat-card" style="background:linear-gradient(135deg,#f59e0b,#d97706);">
-            <div class="fs-2 fw-bold">{{ $stats['pending'] }}</div>
-            <div class="small opacity-85">Chờ xử lý</div>
-        </div>
-    </div>
-    <div class="col-6 col-md-3">
-        <div class="stat-card" style="background:linear-gradient(135deg,#3b82f6,#2563eb);">
-            <div class="fs-2 fw-bold">{{ $stats['in_progress'] }}</div>
-            <div class="small opacity-85">Đang xử lý</div>
-        </div>
-    </div>
-    <div class="col-6 col-md-3">
-        <div class="stat-card" style="background:linear-gradient(135deg,#10b981,#059669);">
-            <div class="fs-2 fw-bold">{{ $stats['resolved'] }}</div>
-            <div class="small opacity-85">Đã giải quyết</div>
-        </div>
-    </div>
-    <div class="col-6 col-md-3">
-        <div class="stat-card" style="background:linear-gradient(135deg,#6366f1,#4f46e5);">
-            <div class="fs-2 fw-bold">{{ $stats['total'] }}</div>
-            <div class="small opacity-85">Tổng phiếu</div>
-        </div>
-    </div>
-</div>
-
-{{-- Filters --}}
-<div class="card border-0 shadow-sm rounded-4 mb-4">
-    <div class="card-body p-3">
-        <form method="GET" action="{{ route('it-repairs.index') }}" class="row g-2 align-items-end">
-            <div class="col-6 col-md-2">
-                <label class="form-label small fw-semibold mb-1">Trạng thái</label>
-                <select name="status" class="form-select form-select-sm rounded-3">
-                    <option value="">Tất cả</option>
-                    <option value="pending"     @selected(request('status') === 'pending')>Chờ xử lý</option>
-                    <option value="in_progress" @selected(request('status') === 'in_progress')>Đang xử lý</option>
-                    <option value="resolved"    @selected(request('status') === 'resolved')>Đã giải quyết</option>
-                    <option value="closed"      @selected(request('status') === 'closed')>Đã đóng</option>
-                </select>
-            </div>
-            <div class="col-6 col-md-2">
-                <label class="form-label small fw-semibold mb-1">Loại sự cố</label>
-                <select name="issue_type" class="form-select form-select-sm rounded-3">
-                    <option value="">Tất cả</option>
-                    <option value="computer" @selected(request('issue_type') === 'computer')>Máy tính</option>
-                    <option value="network"  @selected(request('issue_type') === 'network')>Mạng / Internet</option>
-                    <option value="printer"  @selected(request('issue_type') === 'printer')>Máy in</option>
-                    <option value="software" @selected(request('issue_type') === 'software')>Phần mềm</option>
-                    <option value="other"    @selected(request('issue_type') === 'other')>Khác</option>
-                </select>
-            </div>
-            <div class="col-6 col-md-2">
-                <label class="form-label small fw-semibold mb-1">Mức ưu tiên</label>
-                <select name="priority" class="form-select form-select-sm rounded-3">
-                    <option value="">Tất cả</option>
-                    <option value="urgent" @selected(request('priority') === 'urgent')>🔴 Khẩn cấp</option>
-                    <option value="high"   @selected(request('priority') === 'high')>🟠 Cao</option>
-                    <option value="medium" @selected(request('priority') === 'medium')>🔵 Bình thường</option>
-                    <option value="low"    @selected(request('priority') === 'low')>⚪ Thấp</option>
-                </select>
-            </div>
-            <div class="col-6 col-md-2">
-                <label class="form-label small fw-semibold mb-1">Từ ngày</label>
-                <input type="date" name="date_from" class="form-control form-control-sm rounded-3" value="{{ request('date_from') }}">
-            </div>
-            <div class="col-6 col-md-2">
-                <label class="form-label small fw-semibold mb-1">Đến ngày</label>
-                <input type="date" name="date_to" class="form-control form-control-sm rounded-3" value="{{ request('date_to') }}">
-            </div>
-            <div class="col-6 col-md-2 d-flex gap-2">
-                <button type="submit" class="btn btn-primary btn-sm rounded-3 flex-grow-1">Lọc</button>
-                <a href="{{ route('it-repairs.index') }}" class="btn btn-outline-secondary btn-sm rounded-3">Xóa</a>
-            </div>
-        </form>
-    </div>
-</div>
-
-{{-- Table --}}
-<div class="card border-0 shadow-sm rounded-4">
+{{-- Data Table --}}
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden">
     <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
-            <thead style="background:#f8faff;">
-                <tr>
-                    <th class="px-4 py-3 fw-semibold text-muted small">Mã phiếu</th>
-                    <th class="py-3 fw-semibold text-muted small">Tiêu đề</th>
-                    <th class="py-3 fw-semibold text-muted small">Loại sự cố</th>
-                    <th class="py-3 fw-semibold text-muted small">Ưu tiên</th>
-                    <th class="py-3 fw-semibold text-muted small">Người báo</th>
-                    <th class="py-3 fw-semibold text-muted small">Trạng thái</th>
-                    <th class="py-3 fw-semibold text-muted small">Ngày tạo</th>
-                    <th class="py-3"></th>
+        <table class="table table-hover align-middle mb-0" style="min-width: 1000px; font-size: 0.9rem;">
+            <thead class="bg-light text-secondary">
+                <tr class="text-uppercase text-xs fw-bold">
+                    <th class="py-3 px-3" style="width: 60px;">STT</th>
+                    <th class="py-3 px-3" style="width: 200px;">THIẾT BỊ</th>
+                    <th class="py-3 px-3">SỰ CỐ</th>
+                    <th class="py-3 px-3">KHẮC PHỤC</th>
+                    <th class="py-3 px-3">NGƯỜI HỖ TRỢ</th>
+                    <th class="py-3 px-3" style="width: 180px;">THỜI GIAN</th>
+                    <th class="py-3 px-3" style="width: 150px;">NGƯỜI SỬA</th>
+                    <th class="py-3 px-3" style="width: 150px;">NGƯỜI TẠO</th>
                 </tr>
             </thead>
-            <tbody>
-                @forelse($tickets as $ticket)
-                <tr class="ticket-row">
-                    <td class="px-4 py-3">
-                        <span class="font-monospace text-primary fw-bold small">{{ $ticket->code }}</span>
+            <tbody class="border-top-0">
+                @forelse($tickets as $t)
+                <tr onclick="window.location='{{ route('it-repairs.show', $t->id) }}'" style="cursor: pointer;">
+                    <td class="px-3 text-secondary">{{ (($tickets->currentPage() - 1) * $tickets->perPage()) + $loop->iteration }}</td>
+                    <td class="px-3">
+                        <div class="d-flex flex-column">
+                            @if($t->machine)
+                                <span class="fw-bold text-primary">{{ $t->machine->ma_thiet_bi }}</span>
+                                <span class="text-xs text-secondary">{{ $t->machine->ten_thiet_bi }}</span>
+                                <span class="badge bg-light text-secondary mt-1 border" style="width: fit-content;">{{ $t->machine->department->name ?? $t->department ?? 'IT' }}</span>
+                            @else
+                                <span class="fw-bold text-primary">{{ $t->code }}</span>
+                                <span class="text-xs text-secondary">{{ $t->issueTypeLabel() }}</span>
+                                <span class="badge bg-light text-secondary mt-1 border" style="width: fit-content;">{{ $t->department ?? 'IT' }}</span>
+                            @endif
+                        </div>
                     </td>
-                    <td class="py-3">
-                        <div class="fw-semibold">{{ Str::limit($ticket->title, 50) }}</div>
-                        @if($ticket->location)
-                            <div class="text-muted small">📍 {{ $ticket->location }}</div>
+                    <td class="px-3">
+                        {{ $t->description ?? $t->title ?? 'N/A' }}
+                    </td>
+                    <td class="px-3">
+                        {{ $t->resolution_note ?? 'N/A' }}
+                    </td>
+                    <td class="px-3">
+                        <span class="text-muted small">—</span>
+                    </td>
+                    <td class="px-3">
+                        <div class="d-flex flex-column text-xs">
+                            <div class="d-flex justify-content-between text-secondary">
+                                <span>Begin:</span>
+                                <span class="fw-bold text-success">{{ $t->started_at ? \Carbon\Carbon::parse($t->started_at)->format('H:i d/m') : \Carbon\Carbon::parse($t->created_at)->format('H:i d/m') }}</span>
+                            </div>
+                            @if($t->started_at)
+                                @php
+                                    $cWaitTime = \Carbon\Carbon::parse($t->created_at)->diffInMinutes(\Carbon\Carbon::parse($t->started_at));
+                                @endphp
+                                <div class="text-end">
+                                    <span class="badge bg-light text-dark border" style="font-size: 0.65rem;">Đợi: {{ $cWaitTime }} phút</span>
+                                </div>
+                            @endif
+                            <div class="d-flex justify-content-between text-secondary mt-1">
+                                <span>End:</span>
+                                <span class="fw-bold text-secondary">{{ $t->ended_at ? \Carbon\Carbon::parse($t->ended_at)->format('H:i d/m') : ($t->resolved_at ? \Carbon\Carbon::parse($t->resolved_at)->format('H:i d/m') : '-') }}</span>
+                            </div>
+                            @if(($t->started_at || $t->created_at) && ($t->ended_at || $t->resolved_at))
+                                @php
+                                    $start = $t->started_at ?? $t->created_at;
+                                    $end = $t->ended_at ?? $t->resolved_at;
+                                    $cRepairTime = \Carbon\Carbon::parse($start)->diffInMinutes(\Carbon\Carbon::parse($end));
+                                @endphp
+                                <div class="text-end">
+                                    <span class="badge bg-light text-primary border" style="font-size: 0.65rem;">🛠️ {{ $cRepairTime }} phút</span>
+                                </div>
+                            @endif
+                        </div>
+                    </td>
+                    <td class="px-3">
+                        @if($t->resolver)
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="avatar-sm rounded-circle bg-light text-primary d-flex align-items-center justify-content-center fw-bold" style="width: 30px; height: 30px; font-size: 0.75rem;">
+                                    {{ mb_substr($t->resolver->name ?? 'M', 0, 1) }}
+                                </div>
+                                <span class="fw-medium text-primary">{{ $t->resolver->name }}</span>
+                            </div>
+                        @else
+                            <span class="text-muted small">—</span>
                         @endif
                     </td>
-                    <td class="py-3">
-                        <span class="badge bg-light text-dark border">{{ $ticket->issueTypeLabel() }}</span>
-                    </td>
-                    <td class="py-3">
-                        <span class="badge badge-priority-{{ $ticket->priority }} text-white">{{ $ticket->priorityLabel() }}</span>
-                    </td>
-                    <td class="py-3">
-                        <div class="small">{{ $ticket->reporter?->name ?? '—' }}</div>
-                        @if($ticket->department)
-                            <div class="text-muted" style="font-size:0.75rem;">{{ $ticket->department }}</div>
-                        @endif
-                    </td>
-                    <td class="py-3">
-                        <span class="badge bg-{{ $ticket->statusColor() }} bg-opacity-15 text-{{ $ticket->statusColor() }} border border-{{ $ticket->statusColor() }} border-opacity-25 rounded-pill px-3">
-                            <span class="status-dot bg-{{ $ticket->statusColor() }}"></span>
-                            {{ $ticket->statusLabel() }}
-                        </span>
-                    </td>
-                    <td class="py-3 text-muted small">{{ $ticket->created_at->format('d/m/Y H:i') }}</td>
-                    <td class="py-3 pe-3">
-                        <a href="{{ route('it-repairs.show', $ticket->id) }}" class="btn btn-sm btn-outline-primary rounded-3">Xem</a>
+                    <td class="px-3">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="avatar-sm rounded-circle bg-light text-secondary d-flex align-items-center justify-content-center fw-bold" style="width: 30px; height: 30px; font-size: 0.75rem;">
+                                {{ mb_substr($t->reporter->name ?? 'U', 0, 1) }}
+                            </div>
+                            <span class="fw-medium">{{ $t->reporter->name ?? 'Unknown' }}</span>
+                        </div>
                     </td>
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="8" class="text-center py-5 text-muted">
-                        <div class="fs-1 mb-2">🖥️</div>
-                        <div>Chưa có phiếu IT nào</div>
+                    <td colspan="8" class="text-center py-5 text-secondary">
+                        <div class="mb-3 opacity-50">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+                        </div>
+                        Chưa có dữ liệu phiếu IT
                     </td>
                 </tr>
                 @endforelse
             </tbody>
         </table>
     </div>
+    
     @if($tickets->hasPages())
-    <div class="card-footer bg-transparent border-0 py-3 px-4">
+    <div class="px-4 py-3 border-top bg-light-subtle">
         {{ $tickets->links() }}
     </div>
     @endif

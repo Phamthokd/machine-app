@@ -12,7 +12,7 @@ class ItRepairController extends Controller
 
     public function index(Request $request)
     {
-        $query = ItRepair::with(['reporter', 'resolver'])->latest();
+        $query = ItRepair::with(['reporter', 'resolver', 'machine.department'])->latest();
 
         if ($request->filled('status')) {
             $query->where('status', $request->status);
@@ -23,14 +23,25 @@ class ItRepairController extends Controller
         if ($request->filled('priority')) {
             $query->where('priority', $request->priority);
         }
-        if ($request->filled('date_from')) {
-            $query->whereDate('created_at', '>=', $request->date_from);
+        if ($request->filled('department_id')) {
+            $query->whereHas('machine', function ($q) use ($request) {
+                $q->where('department_id', $request->department_id);
+            });
         }
-        if ($request->filled('date_to')) {
-            $query->whereDate('created_at', '<=', $request->date_to);
+        
+        $startDate = $request->input('start_date', $request->input('date_from'));
+        if ($startDate) {
+            $query->whereDate('created_at', '>=', $startDate);
+        }
+        
+        $endDate = $request->input('end_date', $request->input('date_to'));
+        if ($endDate) {
+            $query->whereDate('created_at', '<=', $endDate);
         }
 
         $tickets = $query->paginate(20)->withQueryString();
+
+        $departments = \App\Models\Department::orderBy('name')->get();
 
         $stats = [
             'pending'     => ItRepair::where('status', 'pending')->count(),
@@ -39,7 +50,7 @@ class ItRepairController extends Controller
             'total'       => ItRepair::count(),
         ];
 
-        return view('it_repairs.index', compact('tickets', 'stats'));
+        return view('it_repairs.index', compact('tickets', 'stats', 'departments'));
     }
 
     // ─── Create ──────────────────────────────────────────────────────────────
