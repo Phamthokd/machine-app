@@ -121,14 +121,6 @@
                                 <span>Begin:</span>
                                 <span class="fw-bold text-success">{{ $t->started_at ? \Carbon\Carbon::parse($t->started_at)->format('H:i d/m') : \Carbon\Carbon::parse($t->created_at)->format('H:i d/m') }}</span>
                             </div>
-                            @if($t->started_at)
-                                @php
-                                    $cWaitTime = \Carbon\Carbon::parse($t->created_at)->diffInMinutes(\Carbon\Carbon::parse($t->started_at));
-                                @endphp
-                                <div class="text-end">
-                                    <span class="badge bg-light text-dark border" style="font-size: 0.65rem;">Đợi: {{ $cWaitTime }} phút</span>
-                                </div>
-                            @endif
                             <div class="d-flex justify-content-between text-secondary mt-1">
                                 <span>End:</span>
                                 <span class="fw-bold text-secondary">{{ $t->ended_at ? \Carbon\Carbon::parse($t->ended_at)->format('H:i d/m') : ($t->resolved_at ? \Carbon\Carbon::parse($t->resolved_at)->format('H:i d/m') : '-') }}</span>
@@ -137,9 +129,9 @@
                                 @php
                                     $start = $t->started_at ?? $t->created_at;
                                     $end = $t->ended_at ?? $t->resolved_at;
-                                    $cRepairTime = \Carbon\Carbon::parse($start)->diffInMinutes(\Carbon\Carbon::parse($end));
+                                    $cRepairTime = abs(round(\Carbon\Carbon::parse($start)->diffInMinutes(\Carbon\Carbon::parse($end))));
                                 @endphp
-                                <div class="text-end">
+                                <div class="text-end mt-1">
                                     <span class="badge bg-light text-primary border" style="font-size: 0.65rem;">🛠️ {{ $cRepairTime }} phút</span>
                                 </div>
                             @endif
