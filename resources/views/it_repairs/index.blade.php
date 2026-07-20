@@ -113,7 +113,13 @@
                         {{ $t->resolution_note ?? 'N/A' }}
                     </td>
                     <td class="px-3">
-                        <span class="text-muted small">—</span>
+                        @if($t->nguoi_ho_tro)
+                            <span class="badge bg-info-subtle text-info-emphasis rounded-pill px-3 py-2 fw-normal">
+                                🧑‍💻 {{ $t->nguoi_ho_tro }}
+                            </span>
+                        @else
+                            <span class="text-muted small">—</span>
+                        @endif
                     </td>
                     <td class="px-3">
                         <div class="d-flex flex-column text-xs">

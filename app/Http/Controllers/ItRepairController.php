@@ -70,7 +70,9 @@ class ItRepairController extends Controller
             $machine = \App\Models\Machine::where('ma_thiet_bi', $request->machine)->first();
         }
 
-        return view('it_repairs.create', compact('machine'));
+        $itStaff = \App\Models\User::where('is_active', true)->get()->filter(fn($u) => $u->canManageItRepairs());
+
+        return view('it_repairs.create', compact('machine', 'itStaff'));
     }
 
     // ─── Store ───────────────────────────────────────────────────────────────
@@ -88,6 +90,7 @@ class ItRepairController extends Controller
             'priority'         => ['nullable', 'in:low,medium,high,urgent'],
             'started_at'       => ['nullable', 'date'],
             'ended_at'         => ['nullable', 'date'],
+            'nguoi_ho_tro'     => ['nullable'],
             'images'           => ['nullable', 'array'],
             'images.*'         => ['image', 'max:10240'],
         ]);
@@ -104,12 +107,17 @@ class ItRepairController extends Controller
         $hasResolution = $request->filled('resolution_note');
         $title = $request->filled('title') ? $request->title : \Illuminate\Support\Str::limit($request->description, 50);
 
+        $nguoiHoTro = is_array($request->nguoi_ho_tro) 
+            ? implode(', ', array_filter($request->nguoi_ho_tro)) 
+            : $request->nguoi_ho_tro;
+
         $ticket = ItRepair::create([
             'code'            => ItRepair::generateCode(),
             'department'      => auth()->user()->primaryManagedDepartment()
                 ?? auth()->user()->managed_department,
             'reporter_id'     => auth()->id(),
             'resolver_id'     => auth()->id(),   // IT staff who fills the form IS the resolver
+            'nguoi_ho_tro'    => $nguoiHoTro ?: null,
             'machine_id'      => $request->filled('machine_id') ? $request->machine_id : null,
             'issue_type'      => $request->issue_type,
             'title'           => $title,

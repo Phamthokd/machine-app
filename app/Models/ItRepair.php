@@ -21,6 +21,7 @@ class ItRepair extends Model
         'priority',
         'status',
         'resolver_id',
+        'nguoi_ho_tro',
         'resolution_note',
         'resolved_at',
         'started_at',

@@ -84,6 +84,9 @@
                     @if($ticket->resolver)
                     <div class="text-muted small mt-2">— {{ $ticket->resolver->name }}</div>
                     @endif
+                    @if($ticket->nguoi_ho_tro)
+                    <div class="text-muted small mt-1">🧑‍💻 Người hỗ trợ: <strong class="text-dark">{{ $ticket->nguoi_ho_tro }}</strong></div>
+                    @endif
                 </div>
                 @endif
             </div>

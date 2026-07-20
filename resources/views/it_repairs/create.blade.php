@@ -309,7 +309,7 @@
                       required>{{ old('description') }}</textarea>
         </div>
 
-        <div class="mb-0">
+        <div class="mb-3">
             <label class="form-label" style="color:#166534;">
                 🔧 Nội dung xử lý / Khắc phục <span class="text-danger">*</span>
             </label>
@@ -317,6 +317,21 @@
                       style="border-color:#86efac; background:#f0fdf4;"
                       placeholder="VD: Thay cáp mạng, cài lại driver, reset thiết bị, cài đặt phần mềm..."
                       required>{{ old('resolution_note') }}</textarea>
+        </div>
+
+        <div class="mb-0">
+            <label class="form-label">🧑‍💻 Người hỗ trợ <span class="text-muted fw-normal">(tùy chọn)</span></label>
+            <select class="form-select" name="nguoi_ho_tro[]" multiple style="min-height: 90px; background: #fafafa;">
+                @php
+                    $selectedHelpers = (array) old('nguoi_ho_tro', []);
+                @endphp
+                @foreach($itStaff ?? [] as $staff)
+                <option value="{{ $staff->name }}" @selected(in_array($staff->name, $selectedHelpers))>
+                    {{ $staff->name }} (@if($staff->username){{ $staff->username }}@else IT @endif)
+                </option>
+                @endforeach
+            </select>
+            <div class="form-text text-muted" style="font-size: 0.75rem;">💡 Giữ phím Ctrl (hoặc Cmd trên Mac) để chọn nhiều người hỗ trợ.</div>
         </div>
     </div>
 
