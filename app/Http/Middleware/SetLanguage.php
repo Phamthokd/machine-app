@@ -13,6 +13,9 @@ class SetLanguage
     {
         if (Session::has('locale')) {
             App::setLocale(Session::get('locale'));
+        } else {
+            // Default to Vietnamese when no locale preference is set
+            App::setLocale('vi');
         }
         return $next($request);
     }

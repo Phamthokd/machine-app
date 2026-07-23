@@ -126,6 +126,31 @@
 <div class="form-wrapper">
     {{-- Header --}}
     <div class="form-header">
+        {{-- Language switcher --}}
+        <div style="position:absolute; top:12px; right:14px; display:flex; gap:6px; z-index:10;">
+            <a href="{{ route('lang.switch', 'vi') }}"
+               style="padding:4px 10px; border-radius:20px; font-size:11px; font-weight:700; text-decoration:none;
+                      background:{{ app()->getLocale()=='vi' ? 'white' : 'rgba(255,255,255,0.2)' }};
+                      color:{{ app()->getLocale()=='vi' ? '#1a3a5c' : 'white' }};
+                      border:1.5px solid {{ app()->getLocale()=='vi' ? 'white' : 'rgba(255,255,255,0.4)' }};">
+                🇻🇳 VN
+            </a>
+            <a href="{{ route('lang.switch', 'zh') }}"
+               style="padding:4px 10px; border-radius:20px; font-size:11px; font-weight:700; text-decoration:none;
+                      background:{{ app()->getLocale()=='zh' ? 'white' : 'rgba(255,255,255,0.2)' }};
+                      color:{{ app()->getLocale()=='zh' ? '#1a3a5c' : 'white' }};
+                      border:1.5px solid {{ app()->getLocale()=='zh' ? 'white' : 'rgba(255,255,255,0.4)' }};">
+                🇨🇳 CN
+            </a>
+            <a href="{{ route('lang.switch', 'en') }}"
+               style="padding:4px 10px; border-radius:20px; font-size:11px; font-weight:700; text-decoration:none;
+                      background:{{ app()->getLocale()=='en' ? 'white' : 'rgba(255,255,255,0.2)' }};
+                      color:{{ app()->getLocale()=='en' ? '#1a3a5c' : 'white' }};
+                      border:1.5px solid {{ app()->getLocale()=='en' ? 'white' : 'rgba(255,255,255,0.4)' }};">
+                🇬🇧 EN
+            </a>
+        </div>
+
         <div class="viva-logo">VIVA</div>
         <div class="company">CÔNG TY TNHH MAY MẶC VIỆT THIÊN 富华制衣产品有限公司</div>
         <h1>{{ __('messages.candidate_form_title') }}</h1>
