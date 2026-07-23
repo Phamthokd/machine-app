@@ -172,11 +172,130 @@
         <div class="info-row"><div class="info-label">{{ __('messages.expected_salary') }}</div><div class="info-value fw-bold text-success">{{ $candidate->expected_salary }}</div></div>
         @endif
 
+        {{-- ===== NHẬN XÉT CỦA QUẢN LÝ CAO CẤP ===== --}}
+        @php
+            $currentUserReview = $candidate->seniorManagers->firstWhere('id', auth()->id());
+            $isSeniorManager   = auth()->user()->hasRole('senior_manager');
+            $isAssigned        = $currentUserReview !== null;
+        @endphp
+
+        {{-- Form nhận xét: chỉ hiển thị cho senior_manager đã được chuyển đơn --}}
+        @if($isSeniorManager && $isAssigned)
+        <div class="card border-0 rounded-4 mt-4 shadow-sm overflow-hidden">
+            <div class="p-3 d-flex align-items-center gap-2" style="background:linear-gradient(135deg,#1a3a5c,#2563eb);">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                <span class="fw-bold text-white" style="font-size:.95rem;">✏️ Nhận xét của bạn</span>
+                @if($currentUserReview->pivot->reviewed_at)
+                    <span class="badge ms-auto" style="background:rgba(255,255,255,0.2);font-size:.75rem;">
+                        Đã nhận xét lúc {{ \Carbon\Carbon::parse($currentUserReview->pivot->reviewed_at)->format('H:i d/m/Y') }}
+                    </span>
+                @endif
+            </div>
+            <div class="p-4">
+                @if(session('success'))
+                <div class="alert alert-success rounded-3 mb-3 py-2" style="font-size:.88rem;">{{ session('success') }}</div>
+                @endif
+
+                {{-- Hiển thị nhận xét đã có (nếu có) --}}
+                @if($currentUserReview->pivot->review_note)
+                <div class="mb-3 p-3 rounded-3" style="background:#f8fafc;border-left:4px solid
+                    @if($currentUserReview->pivot->review_result === 'approved') #16a34a
+                    @elseif($currentUserReview->pivot->review_result === 'rejected') #dc2626
+                    @else #f59e0b @endif;">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <span class="badge rounded-pill px-3
+                            @if($currentUserReview->pivot->review_result === 'approved') bg-success
+                            @elseif($currentUserReview->pivot->review_result === 'rejected') bg-danger
+                            @else bg-warning text-dark @endif">
+                            @if($currentUserReview->pivot->review_result === 'approved') ✅ Đồng ý tuyển dụng
+                            @elseif($currentUserReview->pivot->review_result === 'rejected') ❌ Không tuyển dụng
+                            @else ⏳ Chờ xem xét @endif
+                        </span>
+                        <span class="text-muted small">Nhận xét hiện tại:</span>
+                    </div>
+                    <div style="font-size:.9rem;white-space:pre-line;">{{ $currentUserReview->pivot->review_note }}</div>
+                </div>
+                @endif
+
+                <form method="POST" action="{{ route('candidates.review', $candidate->id) }}">
+                    @csrf
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" style="font-size:.85rem;">Nội dung nhận xét <span class="text-danger">*</span></label>
+                        <textarea name="review_note" rows="4" class="form-control rounded-3" required
+                            placeholder="Nhận xét về ứng viên, năng lực, thái độ, phù hợp với vị trí..."
+                            style="font-size:.9rem;border-color:#e5e7eb;">{{ old('review_note', $currentUserReview->pivot->review_note) }}</textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" style="font-size:.85rem;">Kết quả đánh giá <span class="text-danger">*</span></label>
+                        <div class="d-flex gap-2 flex-wrap">
+                            @foreach([
+                                ['value'=>'approved','label'=>'✅ Đồng ý tuyển dụng','color'=>'#16a34a','bg'=>'#dcfce7'],
+                                ['value'=>'rejected','label'=>'❌ Không tuyển dụng','color'=>'#dc2626','bg'=>'#fee2e2'],
+                                ['value'=>'pending', 'label'=>'⏳ Chờ xem xét','color'=>'#d97706','bg'=>'#fef9c3'],
+                            ] as $opt)
+                            <label style="cursor:pointer;flex:1;min-width:130px;">
+                                <input type="radio" name="review_result" value="{{ $opt['value'] }}" class="d-none review-radio"
+                                    {{ old('review_result', $currentUserReview->pivot->review_result ?? 'pending') === $opt['value'] ? 'checked' : '' }}>
+                                <div class="text-center rounded-3 border py-2 px-2 fw-semibold review-radio-label"
+                                     style="font-size:.82rem;border-color:#e5e7eb;transition:all .15s;"
+                                     data-active-bg="{{ $opt['bg'] }}" data-active-color="{{ $opt['color'] }}" data-active-border="{{ $opt['color'] }}">
+                                    {{ $opt['label'] }}
+                                </div>
+                            </label>
+                            @endforeach
+                        </div>
+                    </div>
+                    <button type="submit" class="btn fw-bold rounded-3 px-4 py-2" style="background:linear-gradient(135deg,#1a3a5c,#2563eb);color:white;">
+                        💾 Lưu nhận xét
+                    </button>
+                </form>
+            </div>
+        </div>
+        @endif
+
+        {{-- Danh sách nhận xét của tất cả senior manager: Admin và HR xem --}}
+        @if(auth()->user()->hasAnyRole(['admin', 'hr']) && $candidate->seniorManagers->count() > 0)
+        <div class="mt-4">
+            <div class="section-badge">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                Nhận xét từ Quản lý cao cấp
+            </div>
+            @foreach($candidate->seniorManagers as $sm)
+            <div class="mb-3 rounded-3 border overflow-hidden" style="font-size:.88rem;">
+                <div class="d-flex align-items-center gap-2 px-3 py-2 bg-light border-bottom">
+                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold"
+                         style="width:30px;height:30px;font-size:.8rem;flex-shrink:0;">
+                        {{ mb_substr($sm->name, 0, 1) }}
+                    </div>
+                    <span class="fw-semibold">{{ $sm->name }}</span>
+                    @if($sm->pivot->reviewed_at)
+                        <span class="text-muted small ms-1">— {{ \Carbon\Carbon::parse($sm->pivot->reviewed_at)->format('H:i d/m/Y') }}</span>
+                        <span class="badge ms-auto
+                            @if($sm->pivot->review_result === 'approved') bg-success
+                            @elseif($sm->pivot->review_result === 'rejected') bg-danger
+                            @else bg-warning text-dark @endif">
+                            @if($sm->pivot->review_result === 'approved') ✅ Đồng ý
+                            @elseif($sm->pivot->review_result === 'rejected') ❌ Không tuyển
+                            @else ⏳ Chờ xem @endif
+                        </span>
+                    @else
+                        <span class="badge bg-secondary ms-auto">Chưa nhận xét</span>
+                    @endif
+                </div>
+                <div class="px-3 py-2" style="white-space:pre-line;min-height:40px;color:#374151;">
+                    {{ $sm->pivot->review_note ?: '—' }}
+                </div>
+            </div>
+            @endforeach
+        </div>
+        @endif
+
+        {{-- Section chuyển đơn: HR & Admin --}}
         @if(auth()->user()->hasAnyRole(['admin', 'hr']))
         <div class="card border-0 bg-light rounded-4 p-4 mt-4 shadow-sm">
             <h5 class="fw-bold mb-2">📢 Chuyển đơn ứng tuyển tới quản lý cao cấp</h5>
             <p class="text-secondary small mb-3">Chọn các Quản lý cao cấp sẽ được xem và theo dõi hồ sơ này.</p>
-            
+
             <form method="POST" action="{{ route('candidates.route', $candidate->id) }}">
                 @csrf
                 <div class="mb-3">
@@ -232,6 +351,29 @@
             });
         </script>
         @endif
+
+        {{-- Review radio styling script --}}
+        <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const radios = document.querySelectorAll('.review-radio');
+            function updateStyles() {
+                radios.forEach(r => {
+                    const lbl = r.nextElementSibling;
+                    if (r.checked) {
+                        lbl.style.background = lbl.dataset.activeBg;
+                        lbl.style.color = lbl.dataset.activeColor;
+                        lbl.style.borderColor = lbl.dataset.activeBorder;
+                    } else {
+                        lbl.style.background = '';
+                        lbl.style.color = '';
+                        lbl.style.borderColor = '#e5e7eb';
+                    }
+                });
+            }
+            radios.forEach(r => r.addEventListener('change', updateStyles));
+            updateStyles();
+        });
+        </script>
 
         @if($candidate->submitter)
         <div class="mt-4 p-3 bg-light rounded-3 small text-muted">

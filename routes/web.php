@@ -194,6 +194,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::delete('/candidates/{id}', [CandidateController::class, 'destroy'])->name('candidates.destroy')->whereNumber('id');
         Route::get('/candidates/{id}/print', [CandidateController::class, 'exportPrint'])->name('candidates.print')->whereNumber('id');
         Route::post('/candidates/{id}/route', [CandidateController::class, 'routeCandidate'])->name('candidates.route')->whereNumber('id');
+        Route::post('/candidates/{id}/review', [CandidateController::class, 'saveReview'])->name('candidates.review')->whereNumber('id');
     });
 
     // IT REPAIRS: View (it_repairs.view) + Manage (it_repairs.manage)

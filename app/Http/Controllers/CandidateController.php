@@ -147,6 +147,29 @@ class CandidateController extends Controller
         return back()->with('success', 'Đã chuyển đơn ứng tuyển thành công.');
     }
 
+    public function saveReview(Request $request, $id)
+    {
+        // Only the assigned senior_manager or admin can review
+        $user = auth()->user();
+        $candidate = Candidate::findOrFail($id);
+
+        $isAssigned = $candidate->seniorManagers->contains($user->id);
+        abort_unless($user->isAdminUser() || ($user->hasRole('senior_manager') && $isAssigned), 403);
+
+        $request->validate([
+            'review_note'   => ['required', 'string', 'max:2000'],
+            'review_result' => ['required', 'in:approved,rejected,pending'],
+        ]);
+
+        $candidate->seniorManagers()->updateExistingPivot($user->id, [
+            'review_note'   => $request->review_note,
+            'review_result' => $request->review_result,
+            'reviewed_at'   => now(),
+        ]);
+
+        return back()->with('success', '✅ Đã lưu nhận xét thành công.');
+    }
+
     // ─── Helpers ─────────────────────────────────────────────────────────────
 
     private function validateForm(Request $request): array

@@ -33,7 +33,9 @@ class Candidate extends Model
 
     public function seniorManagers()
     {
-        return $this->belongsToMany(User::class, 'candidate_senior_manager', 'candidate_id', 'user_id');
+        return $this->belongsToMany(User::class, 'candidate_senior_manager', 'candidate_id', 'user_id')
+                    ->withPivot('review_note', 'reviewed_at', 'review_result')
+                    ->withTimestamps();
     }
 
     public function getGenderLabelAttribute(): string
