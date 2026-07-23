@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code – Phiếu Phỏng Vấn VIVA</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f0f4f8;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+
+        .controls {
+            margin-bottom: 24px;
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 10px 24px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn-print { background: #1d4ed8; color: white; }
+        .btn-print:hover { background: #1e40af; }
+        .btn-download { background: #059669; color: white; }
+        .btn-download:hover { background: #047857; }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.12);
+            overflow: hidden;
+            width: 380px;
+            max-width: 100%;
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 50%, #2563eb 100%);
+            padding: 28px 24px 36px;
+            text-align: center;
+            position: relative;
+        }
+
+        .card-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 20px;
+            background: white;
+            border-radius: 20px 20px 0 0;
+        }
+
+        .logo-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            border-radius: 12px;
+            padding: 6px 18px;
+            margin-bottom: 12px;
+        }
+
+        .logo-text {
+            font-size: 22px;
+            font-weight: 800;
+            color: #1d4ed8;
+            letter-spacing: 2px;
+        }
+
+        .company-name {
+            color: rgba(255,255,255,0.92);
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            line-height: 1.5;
+            margin-bottom: 8px;
+        }
+
+        .form-title {
+            color: white;
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .form-subtitle {
+            color: rgba(255,255,255,0.75);
+            font-size: 13px;
+        }
+
+        .card-body { padding: 24px; }
+
+        .qr-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f8fafc;
+            border-radius: 16px;
+            border: 2px dashed #cbd5e1;
+            padding: 20px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        #qrcode canvas, #qrcode img {
+            border-radius: 8px;
+            display: block;
+        }
+
+        .scan-badge {
+            position: absolute;
+            top: -13px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #f97316;
+            color: white;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 14px;
+            border-radius: 20px;
+            white-space: nowrap;
+        }
+
+        .url-box {
+            background: #f1f5f9;
+            border-radius: 8px;
+            padding: 10px 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .url-icon { color: #64748b; flex-shrink: 0; }
+
+        .url-text {
+            font-size: 11px;
+            color: #475569;
+            font-family: monospace;
+            word-break: break-all;
+            line-height: 1.4;
+        }
+
+        .instructions {
+            background: #eff6ff;
+            border-radius: 12px;
+            padding: 14px 16px;
+        }
+
+        .instruction-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: #1e40af;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .instruction-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .instruction-list li {
+            font-size: 12px;
+            color: #374151;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            line-height: 1.4;
+        }
+
+        .step {
+            background: #1d4ed8;
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        .card-footer {
+            background: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+            padding: 14px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .footer-note {
+            font-size: 10px;
+            color: #94a3b8;
+            line-height: 1.5;
+        }
+
+        .privacy-badge {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: #dcfce7;
+            color: #15803d;
+            font-size: 10px;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 20px;
+            white-space: nowrap;
+        }
+
+        @media print {
+            body { background: white; padding: 0; }
+            .controls { display: none !important; }
+            .card { box-shadow: none; border: 1px solid #e2e8f0; margin: 0 auto; }
+            @page { size: A4; margin: 20mm; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="controls">
+        <button class="btn btn-print" onclick="window.print()">🖨️ In mã QR</button>
+        <button class="btn btn-download" onclick="downloadQR()">⬇️ Tải ảnh QR</button>
+    </div>
+
+    <div class="card" id="qr-card">
+        <div class="card-header">
+            <div class="logo-badge">
+                <span class="logo-text">VIVA</span>
+            </div>
+            <div class="company-name">
+                CÔNG TY TNHH MAY MẶC VIỆT THIÊN<br>富华越南衣产品有限公司
+            </div>
+            <div class="form-title">Phiếu Phỏng Vấn</div>
+            <div class="form-subtitle">面试记录 &nbsp;|&nbsp; Interview Form</div>
+        </div>
+
+        <div class="card-body">
+            <div class="qr-wrapper">
+                <div class="scan-badge">📷 QUÉT ĐỂ ĐIỀN PHIẾU</div>
+                <div id="qrcode"></div>
+            </div>
+
+            <div class="url-box">
+                <svg class="url-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                </svg>
+                <span class="url-text">https://vivagarment.com.vn/candidates/create</span>
+            </div>
+
+            <div class="instructions">
+                <div class="instruction-title">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/>
+                    </svg>
+                    Hướng dẫn sử dụng
+                </div>
+                <ul class="instruction-list">
+                    <li><span class="step">1</span><span>Mở camera điện thoại hoặc ứng dụng quét QR</span></li>
+                    <li><span class="step">2</span><span>Hướng camera vào mã QR bên trên</span></li>
+                    <li><span class="step">3</span><span>Nhấn vào đường link xuất hiện để mở form</span></li>
+                    <li><span class="step">4</span><span>Điền đầy đủ thông tin và nhấn <strong>Gửi</strong></span></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="card-footer">
+            <div class="footer-note">
+                Không cần đăng nhập<br>
+                无需登录 · No login required
+            </div>
+            <div class="privacy-badge">🔒 Bảo mật</div>
+        </div>
+    </div>
+
+    <script>
+        const formUrl = "https://vivagarment.com.vn/candidates/create";
+
+        new QRCode(document.getElementById("qrcode"), {
+            text: formUrl,
+            width: 220,
+            height: 220,
+            colorDark: "#1e3a8a",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.H
+        });
+
+        function downloadQR() {
+            setTimeout(() => {
+                const canvas = document.querySelector('#qrcode canvas');
+                if (canvas) {
+                    const link = document.createElement('a');
+                    link.download = 'QR-PhieuPhongVan-VIVA.png';
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                }
+            }, 300);
+        }
+    </script>
+
+</body>
+</html>
