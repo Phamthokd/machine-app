@@ -34,7 +34,9 @@ class Candidate extends Model
     public function seniorManagers()
     {
         return $this->belongsToMany(User::class, 'candidate_senior_manager', 'candidate_id', 'user_id')
-                    ->withPivot('review_note', 'reviewed_at', 'review_result')
+                    ->withPivot('review_note', 'reviewed_at', 'review_result',
+                                'proposed_salary', 'start_date', 'probation_period',
+                                'assigned_department', 'extra_note')
                     ->withTimestamps();
     }
 

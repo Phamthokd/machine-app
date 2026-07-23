@@ -245,6 +245,47 @@
                             @endforeach
                         </div>
                     </div>
+
+                    {{-- ===== 5 TRƯỜNG BỔ SUNG ===== --}}
+                    <hr class="my-3" style="border-color:#e5e7eb;">
+                    <div class="fw-semibold mb-3" style="font-size:.85rem;color:#1a3a5c;">📋 Thông tin tuyển dụng (nếu đồng ý)</div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" style="font-size:.85rem;">💰 Mức lương đề xuất</label>
+                            <input type="text" name="proposed_salary" class="form-control rounded-3"
+                                placeholder="VD: 5,000,000 VNĐ / tháng"
+                                style="font-size:.9rem;border-color:#e5e7eb;"
+                                value="{{ old('proposed_salary', $currentUserReview->pivot->proposed_salary) }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" style="font-size:.85rem;">📅 Ngày bắt đầu làm việc</label>
+                            <input type="date" name="start_date" class="form-control rounded-3"
+                                style="font-size:.9rem;border-color:#e5e7eb;"
+                                value="{{ old('start_date', $currentUserReview->pivot->start_date ? \Carbon\Carbon::parse($currentUserReview->pivot->start_date)->format('Y-m-d') : '') }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" style="font-size:.85rem;">⏱️ Thời gian thử việc</label>
+                            <input type="text" name="probation_period" class="form-control rounded-3"
+                                placeholder="VD: 2 tháng"
+                                style="font-size:.9rem;border-color:#e5e7eb;"
+                                value="{{ old('probation_period', $currentUserReview->pivot->probation_period) }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" style="font-size:.85rem;">🏢 Bộ phận / Vị trí phân công</label>
+                            <input type="text" name="assigned_department" class="form-control rounded-3"
+                                placeholder="VD: Phòng Kế toán / Nhân viên kinh doanh"
+                                style="font-size:.9rem;border-color:#e5e7eb;"
+                                value="{{ old('assigned_department', $currentUserReview->pivot->assigned_department) }}">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold" style="font-size:.85rem;">📝 Ghi chú bổ sung</label>
+                            <textarea name="extra_note" rows="3" class="form-control rounded-3"
+                                placeholder="Các điều kiện hoặc ghi chú thêm..."
+                                style="font-size:.9rem;border-color:#e5e7eb;">{{ old('extra_note', $currentUserReview->pivot->extra_note) }}</textarea>
+                        </div>
+                    </div>
+
                     <button type="submit" class="btn fw-bold rounded-3 px-4 py-2" style="background:linear-gradient(135deg,#1a3a5c,#2563eb);color:white;">
                         💾 Lưu nhận xét
                     </button>
@@ -282,8 +323,31 @@
                         <span class="badge bg-secondary ms-auto">Chưa nhận xét</span>
                     @endif
                 </div>
-                <div class="px-3 py-2" style="white-space:pre-line;min-height:40px;color:#374151;">
-                    {{ $sm->pivot->review_note ?: '—' }}
+                <div class="px-3 py-2" style="color:#374151;">
+                    @if($sm->pivot->review_note)
+                    <div style="white-space:pre-line;margin-bottom:.5rem;">{{ $sm->pivot->review_note }}</div>
+                    @else
+                    <span class="text-muted">—</span>
+                    @endif
+                    @if($sm->pivot->proposed_salary || $sm->pivot->start_date || $sm->pivot->probation_period || $sm->pivot->assigned_department)
+                    <div class="d-flex flex-wrap gap-2 mt-2" style="font-size:.8rem;">
+                        @if($sm->pivot->proposed_salary)
+                        <span class="badge bg-success-subtle text-success-emphasis border border-success-subtle px-2 py-1">💰 {{ $sm->pivot->proposed_salary }}</span>
+                        @endif
+                        @if($sm->pivot->start_date)
+                        <span class="badge bg-primary-subtle text-primary-emphasis border border-primary-subtle px-2 py-1">📅 {{ \Carbon\Carbon::parse($sm->pivot->start_date)->format('d/m/Y') }}</span>
+                        @endif
+                        @if($sm->pivot->probation_period)
+                        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2 py-1">⏱️ {{ $sm->pivot->probation_period }}</span>
+                        @endif
+                        @if($sm->pivot->assigned_department)
+                        <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle px-2 py-1">🏢 {{ $sm->pivot->assigned_department }}</span>
+                        @endif
+                    </div>
+                    @endif
+                    @if($sm->pivot->extra_note)
+                    <div class="mt-2 p-2 rounded-2" style="background:#f8fafc;font-size:.82rem;color:#475569;white-space:pre-line;">📝 {{ $sm->pivot->extra_note }}</div>
+                    @endif
                 </div>
             </div>
             @endforeach

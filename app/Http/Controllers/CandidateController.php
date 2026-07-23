@@ -157,14 +157,24 @@ class CandidateController extends Controller
         abort_unless($user->isAdminUser() || ($user->hasRole('senior_manager') && $isAssigned), 403);
 
         $request->validate([
-            'review_note'   => ['required', 'string', 'max:2000'],
-            'review_result' => ['required', 'in:approved,rejected,pending'],
+            'review_note'         => ['required', 'string', 'max:2000'],
+            'review_result'       => ['required', 'in:approved,rejected,pending'],
+            'proposed_salary'     => ['nullable', 'string', 'max:100'],
+            'start_date'          => ['nullable', 'date'],
+            'probation_period'    => ['nullable', 'string', 'max:100'],
+            'assigned_department' => ['nullable', 'string', 'max:255'],
+            'extra_note'          => ['nullable', 'string', 'max:2000'],
         ]);
 
         $candidate->seniorManagers()->updateExistingPivot($user->id, [
-            'review_note'   => $request->review_note,
-            'review_result' => $request->review_result,
-            'reviewed_at'   => now(),
+            'review_note'         => $request->review_note,
+            'review_result'       => $request->review_result,
+            'proposed_salary'     => $request->proposed_salary,
+            'start_date'          => $request->start_date,
+            'probation_period'    => $request->probation_period,
+            'assigned_department' => $request->assigned_department,
+            'extra_note'          => $request->extra_note,
+            'reviewed_at'         => now(),
         ]);
 
         return back()->with('success', '✅ Đã lưu nhận xét thành công.');
