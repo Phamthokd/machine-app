@@ -170,6 +170,7 @@ class UserController extends Controller
             'Kho vải',
             'Kho phụ liệu',
             'Kho tồn lỗi',
+            'Kho thành phẩm',
             'Audit',
             'Bảo vệ',
             'Nhà cắt',

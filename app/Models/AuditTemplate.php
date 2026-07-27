@@ -96,6 +96,7 @@ class AuditTemplate extends Model
             'audit' => 'Audit',
             'bảo vệ' => 'Bảo vệ',
             'kho tồn lỗi' => 'Kho tồn lỗi',
+            'kho thành phẩm' => 'Kho thành phẩm',
             'nhà cắt' => 'Nhà cắt',
             'nhà giặt' => 'Nhà giặt',
         ];
@@ -162,6 +163,7 @@ class AuditTemplate extends Model
                 'audit' => 'Audit',
                 'bảo vệ' => 'Bảo vệ',
                 'kho tồn lỗi' => 'Kho tồn lỗi',
+                'kho thành phẩm' => 'Kho thành phẩm',
                 'nhà cắt' => 'Nhà cắt',
                 'nhà giặt' => 'Nhà giặt',
             ];
