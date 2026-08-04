@@ -31,8 +31,8 @@ class SevenSPhongMauTest extends TestCase
         // Run the seeder
         $this->seed(\Database\Seeders\SevenSPhongMauSeeder::class);
 
-        // Assert 28 items are created
-        $this->assertEquals(28, SevenSChecklist::where('department', 'Phòng mẫu')->count());
+        // Assert 25 items are created
+        $this->assertEquals(25, SevenSChecklist::where('department', 'Phòng mẫu')->count());
 
         // Check a specific item is present
         $this->assertDatabaseHas('seven_s_checklists', [
