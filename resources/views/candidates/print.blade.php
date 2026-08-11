@@ -132,10 +132,12 @@
             <td colspan="3" class="value-cell">{{ $candidate->language_skills }}</td>
         </tr>
         <tr>
+            <td class="label-cell">Bộ phận ứng tuyển<br><span class="label-zh">申请部门</span></td>
+            <td class="value-cell"><strong>{{ $candidate->department_applied ?: '—' }}</strong></td>
             <td class="label-cell">Vị trí ứng tuyển<br><span class="label-zh">招聘职位</span></td>
             <td class="value-cell"><strong>{{ $candidate->position_applied }}</strong></td>
-            <td class="label-cell">Điện thoại liên hệ<br><span class="label-zh">联系电话</span></td>
-            <td colspan="3" class="value-cell">{{ $candidate->phone }}</td>
+            <td class="label-cell">Điện thoại<br><span class="label-zh">联系电话</span></td>
+            <td class="value-cell">{{ $candidate->phone }}</td>
         </tr>
         <tr>
             <td class="label-cell">Địa chỉ nhà<br><span class="label-zh">家庭地址</span></td>

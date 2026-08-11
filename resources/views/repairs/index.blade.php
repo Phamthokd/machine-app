@@ -280,10 +280,10 @@
                         </div>
                     </td>
                     <td>
-                        <div class="text-break">{{ $r->nguyen_nhan }}</div>
+                        <div class="text-break" style="white-space: pre-line;">{{ $r->nguyen_nhan }}</div>
                     </td>
                     <td>
-                        <div class="text-break">{{ $r->noi_dung_sua_chua }}</div>
+                        <div class="text-break" style="white-space: pre-line;">{{ $r->noi_dung_sua_chua }}</div>
                     </td>
                     <td>
                         <div class="d-flex flex-column small" style="white-space: nowrap;">
@@ -382,12 +382,12 @@
 
         <div class="info-row">
             <span class="info-label">{{ __('messages.repair_card_issue_label') }}</span>
-            <span class="info-value text-danger">{{ $r->nguyen_nhan }}</span>
+            <span class="info-value text-danger" style="white-space: pre-line;">{{ $r->nguyen_nhan }}</span>
         </div>
 
         <div class="info-row">
             <span class="info-label">{{ __('messages.repair_card_fix_label') }}</span>
-            <span class="info-value text-success">{{ $r->noi_dung_sua_chua }}</span>
+            <span class="info-value text-success" style="white-space: pre-line;">{{ $r->noi_dung_sua_chua }}</span>
         </div>
 
         <div class="divider"></div>

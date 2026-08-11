@@ -161,7 +161,7 @@
 
                 <div class="p-3 rounded-3" style="background:#f8fafc;border-left:3px solid #f59e0b;">
                     <div class="text-xs text-secondary fw-bold mb-1" style="font-size:0.75rem;text-transform:uppercase;">{{ __('messages.issue_label') }} / {{ __('messages.damage_reason') }}</div>
-                    <p class="mb-0" style="font-size:0.92rem;">{{ $ticket->nguyen_nhan }}</p>
+                    <p class="mb-0" style="font-size:0.92rem; white-space: pre-line;">{{ $ticket->nguyen_nhan }}</p>
                 </div>
             </div>
 

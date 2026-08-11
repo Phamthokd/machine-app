@@ -98,13 +98,13 @@
                             <span class="badge bg-light text-secondary mt-1 border" style="width: fit-content;">{{ $r->machine->department->name ?? '—' }}</span>
                         </div>
                     </td>
-                    <td class="px-3 text-wrap" style="max-width: 250px;">
+                    <td class="px-3 text-wrap" style="max-width: 250px; white-space: pre-line;">
                         {{ $r->mo_ta_loi }}
                     </td>
-                    <td class="px-3 text-wrap" style="max-width: 250px;">
+                    <td class="px-3 text-wrap" style="max-width: 250px; white-space: pre-line;">
                         {{ $r->nguyen_nhan }}
                     </td>
-                    <td class="px-3 text-wrap" style="max-width: 250px;">
+                    <td class="px-3 text-wrap" style="max-width: 250px; white-space: pre-line;">
                         {{ $r->noi_dung_sua_chua }}
                     </td>
                     <td class="px-3">

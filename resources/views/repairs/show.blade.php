@@ -154,7 +154,7 @@
                         @if($repair->type === 'bok')
                         <div class="col-12">
                             <div class="info-label text-secondary">Mô tả lỗi</div>
-                            <div class="p-3 bg-light rounded-3 mt-1">
+                            <div class="p-3 bg-light rounded-3 mt-1" style="white-space: pre-line;">
                                 {{ $repair->mo_ta_loi }}
                             </div>
                         </div>
@@ -167,7 +167,7 @@
                                     {{ __('messages.damage_reason') }}
                                 @endif
                             </div>
-                            <div class="p-3 bg-light rounded-3 mt-1">
+                            <div class="p-3 bg-light rounded-3 mt-1" style="white-space: pre-line;">
                                 {{ $repair->nguyen_nhan }}
                             </div>
                         </div>
@@ -179,7 +179,7 @@
                                     {{ __('messages.repair_measure') }}
                                 @endif
                             </div>
-                            <div class="p-3 bg-light rounded-3 mt-1">
+                            <div class="p-3 bg-light rounded-3 mt-1" style="white-space: pre-line;">
                                 {{ $repair->noi_dung_sua_chua }}
                             </div>
                         </div>

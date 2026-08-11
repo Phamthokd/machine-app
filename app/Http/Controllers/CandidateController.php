@@ -34,7 +34,7 @@ class CandidateController extends Controller
     public function index(Request $request)
     {
         $user = auth()->user();
-        $query = Candidate::latest();
+        $query = Candidate::with('seniorManagers')->latest();
 
         // Scope to assigned candidates for senior_manager
         if ($user->hasRole('senior_manager')) {
@@ -48,6 +48,7 @@ class CandidateController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('full_name', 'like', "%$search%")
                   ->orWhere('phone', 'like', "%$search%")
+                  ->orWhere('department_applied', 'like', "%$search%")
                   ->orWhere('position_applied', 'like', "%$search%");
             });
         }
@@ -99,7 +100,9 @@ class CandidateController extends Controller
             $seniorManagers = \App\Models\User::role('senior_manager')->get();
         }
 
-        return view('candidates.show', compact('candidate', 'seniorManagers'));
+        $allSeniorManagers = \App\Models\User::role('senior_manager')->get();
+
+        return view('candidates.show', compact('candidate', 'seniorManagers', 'allSeniorManagers'));
     }
 
     public function destroy($id)
@@ -156,6 +159,11 @@ class CandidateController extends Controller
         $isAssigned = $candidate->seniorManagers->contains($user->id);
         abort_unless($user->isAdminUser() || ($user->hasRole('senior_manager') && $isAssigned), 403);
 
+        $currentPivot = $candidate->seniorManagers->where('id', $user->id)->first()?->pivot;
+        if ($currentPivot && $currentPivot->is_locked) {
+            return back()->with('error', '🔒 Phiếu đánh giá này đã được duyệt và khóa, không thể chỉnh sửa.');
+        }
+
         $request->validate([
             'review_note'         => ['required', 'string', 'max:2000'],
             'review_result'       => ['required', 'in:approved,rejected,pending'],
@@ -164,7 +172,16 @@ class CandidateController extends Controller
             'probation_period'    => ['nullable', 'string', 'max:100'],
             'assigned_department' => ['nullable', 'string', 'max:255'],
             'extra_note'          => ['nullable', 'string', 'max:2000'],
+            'submit_action'       => ['nullable', 'string', 'in:save,approve'],
         ]);
+
+        $isApproveAction = $request->input('submit_action') === 'approve';
+
+        if ($isApproveAction) {
+            if (!in_array($request->review_result, ['approved', 'rejected'])) {
+                return back()->withInput()->with('error', '⚠️ Vui lòng chọn kết quả đánh giá (Đồng ý tuyển dụng hoặc Không tuyển dụng) trước khi bấm Duyệt.');
+            }
+        }
 
         $candidate->seniorManagers()->updateExistingPivot($user->id, [
             'review_note'         => $request->review_note,
@@ -174,10 +191,72 @@ class CandidateController extends Controller
             'probation_period'    => $request->probation_period,
             'assigned_department' => $request->assigned_department,
             'extra_note'          => $request->extra_note,
+            'is_locked'           => $isApproveAction ? true : false,
             'reviewed_at'         => now(),
         ]);
 
+        if ($isApproveAction) {
+            return back()->with('success', '🔒 Đã phê duyệt và khóa phiếu thành công! Phiếu này không thể chỉnh sửa thêm.');
+        }
+
         return back()->with('success', '✅ Đã lưu nhận xét thành công.');
+    }
+
+    public function unlockReview(Request $request, $id, $userId)
+    {
+        // Only admin can unlock / un-approve candidate review
+        abort_unless(auth()->user()->isAdminUser(), 403, 'Chỉ Admin mới có quyền hạ phiếu duyệt.');
+
+        $candidate = Candidate::findOrFail($id);
+
+        $candidate->seniorManagers()->updateExistingPivot($userId, [
+            'is_locked' => false,
+        ]);
+
+        return back()->with('success', '🔓 Đã hạ phiếu duyệt thành công! Quản lý hiện tại có thể chỉnh sửa lại dữ liệu.');
+    }
+
+    public function forwardReview(Request $request, $id)
+    {
+        $user = auth()->user();
+        $candidate = Candidate::findOrFail($id);
+
+        $isAssigned = $candidate->seniorManagers->contains($user->id);
+        abort_unless($user->isAdminUser() || ($user->hasRole('senior_manager') && $isAssigned), 403);
+
+        $request->validate([
+            'target_user_id' => ['required', 'integer', 'exists:users,id'],
+        ]);
+
+        if (!in_array($request->review_result, ['approved', 'rejected'])) {
+            return back()->withInput()->with('error', '⚠️ Vui lòng chọn kết quả đánh giá (Đồng ý tuyển dụng hoặc Không tuyển dụng) trước khi bấm Gửi phiếu.');
+        }
+
+        $targetUser = \App\Models\User::findOrFail($request->target_user_id);
+
+        // Save current user draft review if review_note is provided and not locked
+        $currentPivot = $candidate->seniorManagers->where('id', $user->id)->first()?->pivot;
+        if ($request->boolean('save_current_draft') && $request->filled('review_note') && (!$currentPivot || !$currentPivot->is_locked)) {
+            $candidate->seniorManagers()->updateExistingPivot($user->id, [
+                'review_note'         => $request->review_note,
+                'review_result'       => $request->review_result ?? 'pending',
+                'proposed_salary'     => $request->proposed_salary,
+                'start_date'          => $request->start_date,
+                'probation_period'    => $request->probation_period,
+                'assigned_department' => $request->assigned_department,
+                'extra_note'          => $request->extra_note,
+                'reviewed_at'         => now(),
+            ]);
+        }
+
+        // Attach target senior manager if not attached
+        if (!$candidate->seniorManagers->contains($targetUser->id)) {
+            $candidate->seniorManagers()->attach($targetUser->id, [
+                'review_result' => 'pending',
+            ]);
+        }
+
+        return back()->with('success', "📤 Đã gửi phiếu phỏng vấn tới Quản lý {$targetUser->name} thành công!");
     }
 
     // ─── Helpers ─────────────────────────────────────────────────────────────
@@ -191,6 +270,7 @@ class CandidateController extends Controller
             'id_number'            => 'nullable|string|max:20',
             'education'            => 'nullable|string|max:255',
             'language_skills'      => 'nullable|string|max:255',
+            'department_applied'   => 'nullable|string|max:255',
             'position_applied'     => 'required|string|max:255',
             'phone'                => 'required|string|max:20',
             'address'              => 'nullable|string|max:500',

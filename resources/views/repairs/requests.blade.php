@@ -58,7 +58,7 @@
                     <td class="px-3">
                         <span class="badge bg-light text-secondary border">{{ $r->machine->department->name ?? '—' }}</span>
                     </td>
-                    <td class="px-3 text-wrap" style="max-width: 300px;">
+                    <td class="px-3 text-wrap" style="max-width: 300px; white-space: pre-line;">
                         {{ $r->mo_ta_loi && $r->mo_ta_loi !== 'N/A' ? $r->mo_ta_loi : ($r->nguyen_nhan && $r->nguyen_nhan !== 'N/A' ? $r->nguyen_nhan : '—') }}
                     </td>
                     <td class="px-3">

@@ -245,6 +245,10 @@
                 </div>
 
                 <div class="col-md-6">
+                    <label class="form-label">{{ __('messages.department_applied') }} / 申请部门</label>
+                    <input type="text" name="department_applied" class="form-control" value="{{ old('department_applied') }}" placeholder="{{ __('messages.department_applied_placeholder') }}">
+                </div>
+                <div class="col-md-6">
                     <label class="form-label">{{ __('messages.position_applied') }} / 招聘职位 <span class="text-danger">*</span></label>
                     <input type="text" name="position_applied" class="form-control" value="{{ old('position_applied') }}" required>
                 </div>

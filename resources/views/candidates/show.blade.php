@@ -43,6 +43,11 @@
                 <span style="background:rgba(255,255,255,.2);border-radius:.4rem;padding:.2rem .6rem;font-size:.82rem">
                     {{ $candidate->gender === 'male' ? '♂ ' . __('messages.gender_male') : '♀ ' . __('messages.gender_female') }}
                 </span>
+                @if($candidate->department_applied)
+                <span style="background:rgba(255,255,255,.2);border-radius:.4rem;padding:.2rem .6rem;font-size:.82rem">
+                    🏢 {{ $candidate->department_applied }}
+                </span>
+                @endif
                 <span style="background:rgba(255,255,255,.2);border-radius:.4rem;padding:.2rem .6rem;font-size:.82rem">
                     {{ $candidate->position_applied }}
                 </span>
@@ -78,6 +83,8 @@
         <div class="info-row"><div class="info-label">{{ __('messages.id_number') }}</div><div class="info-value">{{ $candidate->id_number ?: '—' }}</div></div>
         <div class="info-row"><div class="info-label">{{ __('messages.phone') }}</div><div class="info-value"><a href="tel:{{ $candidate->phone }}">{{ $candidate->phone }}</a></div></div>
         <div class="info-row"><div class="info-label">{{ __('messages.address') }}</div><div class="info-value">{{ $candidate->address ?: '—' }}</div></div>
+        <div class="info-row"><div class="info-label">{{ __('messages.department_applied') }}</div><div class="info-value">{{ $candidate->department_applied ?: '—' }}</div></div>
+        <div class="info-row"><div class="info-label">{{ __('messages.position_applied') }}</div><div class="info-value">{{ $candidate->position_applied }}</div></div>
         <div class="info-row"><div class="info-label">{{ __('messages.education') }}</div><div class="info-value">{{ $candidate->education ?: '—' }}</div></div>
         <div class="info-row"><div class="info-label">{{ __('messages.language_skills') }}</div><div class="info-value">{{ $candidate->language_skills ?: '—' }}</div></div>
         <div class="info-row"><div class="info-label">{{ __('messages.bank_account') }}</div><div class="info-value">{{ $candidate->bank_account ?: '—' }}</div></div>
@@ -217,11 +224,32 @@
                 </div>
                 @endif
 
-                <form method="POST" action="{{ route('candidates.review', $candidate->id) }}">
+                @php
+                    $isLocked = (bool) ($currentUserReview->pivot->is_locked ?? false);
+                @endphp
+
+                @if($isLocked)
+                <div class="alert alert-primary rounded-3 mb-3 d-flex align-items-center justify-content-between flex-wrap gap-2" style="font-size:.88rem; background:#eff6ff; color:#1e40af; border-color:#bfdbfe;">
+                    <div class="d-flex align-items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                        <div><strong>Phiếu đánh giá đã được duyệt & khóa.</strong> Phiếu này hiện tại chỉ có thể xem, không thể chỉnh sửa.</div>
+                    </div>
+                    @if(auth()->user()->isAdminUser())
+                    <form action="{{ route('candidates.unlock_review', ['id' => $candidate->id, 'userId' => $currentUserReview->id]) }}" method="POST" onsubmit="return confirm('Bạn có chắc chắn muốn HẠ PHIẾU DUYỆT (Hủy duyệt) để mở khóa cho chủ quản sửa lại dữ liệu?')">
+                        @csrf
+                        <button type="submit" class="btn btn-sm btn-warning fw-bold rounded-2 text-dark d-flex align-items-center gap-1">
+                            🔓 Hạ phiếu duyệt (Mở khóa)
+                        </button>
+                    </form>
+                    @endif
+                </div>
+                @endif
+
+                <form method="POST" action="{{ route('candidates.review', $candidate->id) }}" id="reviewForm">
                     @csrf
                     <div class="mb-3">
                         <label class="form-label fw-semibold" style="font-size:.85rem;">Nội dung nhận xét <span class="text-danger">*</span></label>
-                        <textarea name="review_note" rows="4" class="form-control rounded-3" required
+                        <textarea name="review_note" rows="4" class="form-control rounded-3" required {{ $isLocked ? 'disabled' : '' }}
                             placeholder="Nhận xét về ứng viên, năng lực, thái độ, phù hợp với vị trí..."
                             style="font-size:.9rem;border-color:#e5e7eb;">{{ old('review_note', $currentUserReview->pivot->review_note) }}</textarea>
                     </div>
@@ -233,8 +261,8 @@
                                 ['value'=>'rejected','label'=>'❌ Không tuyển dụng','color'=>'#dc2626','bg'=>'#fee2e2'],
                                 ['value'=>'pending', 'label'=>'⏳ Chờ xem xét','color'=>'#d97706','bg'=>'#fef9c3'],
                             ] as $opt)
-                            <label style="cursor:pointer;flex:1;min-width:130px;">
-                                <input type="radio" name="review_result" value="{{ $opt['value'] }}" class="d-none review-radio"
+                            <label style="cursor:{{ $isLocked ? 'default' : 'pointer' }};flex:1;min-width:130px;">
+                                <input type="radio" name="review_result" value="{{ $opt['value'] }}" class="d-none review-radio" {{ $isLocked ? 'disabled' : '' }}
                                     {{ old('review_result', $currentUserReview->pivot->review_result ?? 'pending') === $opt['value'] ? 'checked' : '' }}>
                                 <div class="text-center rounded-3 border py-2 px-2 fw-semibold review-radio-label"
                                      style="font-size:.82rem;border-color:#e5e7eb;transition:all .15s;"
@@ -253,42 +281,73 @@
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
                             <label class="form-label fw-semibold" style="font-size:.85rem;">💰 Mức lương đề xuất</label>
-                            <input type="text" name="proposed_salary" class="form-control rounded-3"
+                            <input type="text" name="proposed_salary" class="form-control rounded-3" {{ $isLocked ? 'disabled' : '' }}
                                 placeholder="VD: 5,000,000 VNĐ / tháng"
                                 style="font-size:.9rem;border-color:#e5e7eb;"
                                 value="{{ old('proposed_salary', $currentUserReview->pivot->proposed_salary) }}">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold" style="font-size:.85rem;">📅 Ngày bắt đầu làm việc</label>
-                            <input type="date" name="start_date" class="form-control rounded-3"
+                            <input type="date" name="start_date" class="form-control rounded-3" {{ $isLocked ? 'disabled' : '' }}
                                 style="font-size:.9rem;border-color:#e5e7eb;"
                                 value="{{ old('start_date', $currentUserReview->pivot->start_date ? \Carbon\Carbon::parse($currentUserReview->pivot->start_date)->format('Y-m-d') : '') }}">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold" style="font-size:.85rem;">⏱️ Thời gian thử việc</label>
-                            <input type="text" name="probation_period" class="form-control rounded-3"
+                            <input type="text" name="probation_period" class="form-control rounded-3" {{ $isLocked ? 'disabled' : '' }}
                                 placeholder="VD: 2 tháng"
                                 style="font-size:.9rem;border-color:#e5e7eb;"
                                 value="{{ old('probation_period', $currentUserReview->pivot->probation_period) }}">
                         </div>
+                        @php
+                            $defaultAssignedDept = $candidate->department_applied;
+                            if ($candidate->position_applied) {
+                                if ($defaultAssignedDept) {
+                                    if (mb_strtolower(trim($defaultAssignedDept)) !== mb_strtolower(trim($candidate->position_applied))) {
+                                        $defaultAssignedDept .= ' - ' . $candidate->position_applied;
+                                    }
+                                } else {
+                                    $defaultAssignedDept = $candidate->position_applied;
+                                }
+                            }
+                        @endphp
                         <div class="col-md-6">
                             <label class="form-label fw-semibold" style="font-size:.85rem;">🏢 Bộ phận / Vị trí phân công</label>
-                            <input type="text" name="assigned_department" class="form-control rounded-3"
+                            <input type="text" name="assigned_department" class="form-control rounded-3" {{ $isLocked ? 'disabled' : '' }}
                                 placeholder="VD: Phòng Kế toán / Nhân viên kinh doanh"
                                 style="font-size:.9rem;border-color:#e5e7eb;"
-                                value="{{ old('assigned_department', $currentUserReview->pivot->assigned_department) }}">
+                                value="{{ old('assigned_department', $currentUserReview->pivot->assigned_department ?: $defaultAssignedDept) }}">
                         </div>
                         <div class="col-12">
                             <label class="form-label fw-semibold" style="font-size:.85rem;">📝 Ghi chú bổ sung</label>
-                            <textarea name="extra_note" rows="3" class="form-control rounded-3"
+                            <textarea name="extra_note" rows="3" class="form-control rounded-3" {{ $isLocked ? 'disabled' : '' }}
                                 placeholder="Các điều kiện hoặc ghi chú thêm..."
                                 style="font-size:.9rem;border-color:#e5e7eb;">{{ old('extra_note', $currentUserReview->pivot->extra_note) }}</textarea>
                         </div>
                     </div>
 
-                    <button type="submit" class="btn fw-bold rounded-3 px-4 py-2" style="background:linear-gradient(135deg,#1a3a5c,#2563eb);color:white;">
-                        💾 Lưu nhận xét
-                    </button>
+                    @if(!$isLocked)
+                    <div class="d-flex gap-2 flex-wrap mt-3">
+                        <button type="submit" name="submit_action" value="save" class="btn fw-bold rounded-3 px-4 py-2" style="background:linear-gradient(135deg,#1a3a5c,#2563eb);color:white;">
+                            💾 Lưu nhận xét
+                        </button>
+                        <button type="button" id="btnForwardReview" class="btn btn-primary fw-bold rounded-3 px-4 py-2" data-bs-toggle="modal" data-bs-target="#forwardReviewModal">
+                            📤 Gửi phiếu
+                        </button>
+                        <button type="submit" id="btnApproveReview" name="submit_action" value="approve" class="btn btn-success fw-bold rounded-3 px-4 py-2" onclick="return confirm('Bạn có chắc chắn muốn PHÊ DUYỆT và KHÓA phiếu này? Sau khi duyệt sẽ không thể chỉnh sửa lại.')">
+                            ✅ Duyệt
+                        </button>
+                    </div>
+                    @else
+                    <div class="d-flex gap-2 flex-wrap align-items-center mt-3">
+                        <span class="badge bg-success rounded-3 px-3 py-2" style="font-size:.9rem;">
+                            🔒 Đã duyệt & Khóa phiếu (Chỉ xem)
+                        </span>
+                        <button type="button" class="btn btn-primary btn-sm fw-bold rounded-3 px-3 py-2" data-bs-toggle="modal" data-bs-target="#forwardReviewModal">
+                            📤 Gửi phiếu cho quản lý khác
+                        </button>
+                    </div>
+                    @endif
                 </form>
             </div>
         </div>
@@ -319,6 +378,17 @@
                             @elseif($sm->pivot->review_result === 'rejected') ❌ Không tuyển
                             @else ⏳ Chờ xem @endif
                         </span>
+                        @if($sm->pivot->is_locked)
+                            <span class="badge bg-dark ms-1">🔒 Đã khóa</span>
+                            @if(auth()->user()->isAdminUser())
+                            <form action="{{ route('candidates.unlock_review', ['id' => $candidate->id, 'userId' => $sm->id]) }}" method="POST" class="d-inline ms-1" onsubmit="return confirm('Bạn có chắc chắn muốn HẠ PHIẾU DUYỆT của {{ $sm->name }} để mở khóa cho chủ quản sửa lại dữ liệu?')">
+                                @csrf
+                                <button type="submit" class="btn btn-xs btn-outline-warning text-dark border-warning fw-semibold rounded-2 py-0 px-2" style="font-size:.75rem;">
+                                    🔓 Hạ phiếu duyệt
+                                </button>
+                            </form>
+                            @endif
+                        @endif
                     @else
                         <span class="badge bg-secondary ms-auto">Chưa nhận xét</span>
                     @endif
@@ -416,14 +486,19 @@
         </script>
         @endif
 
-        {{-- Review radio styling script --}}
+        {{-- Review radio styling and button enable/disable script --}}
         <script>
         document.addEventListener('DOMContentLoaded', function () {
             const radios = document.querySelectorAll('.review-radio');
+            const btnForward = document.getElementById('btnForwardReview');
+            const btnApprove = document.getElementById('btnApproveReview');
+
             function updateStyles() {
+                let selectedVal = 'pending';
                 radios.forEach(r => {
                     const lbl = r.nextElementSibling;
                     if (r.checked) {
+                        selectedVal = r.value;
                         lbl.style.background = lbl.dataset.activeBg;
                         lbl.style.color = lbl.dataset.activeColor;
                         lbl.style.borderColor = lbl.dataset.activeBorder;
@@ -433,7 +508,27 @@
                         lbl.style.borderColor = '#e5e7eb';
                     }
                 });
+
+                const isDecisionMade = (selectedVal === 'approved' || selectedVal === 'rejected');
+
+                [btnForward, btnApprove].forEach(btn => {
+                    if (!btn) return;
+                    if (isDecisionMade) {
+                        btn.disabled = false;
+                        btn.style.opacity = '1';
+                        btn.style.cursor = 'pointer';
+                        btn.style.pointerEvents = 'auto';
+                        btn.removeAttribute('title');
+                    } else {
+                        btn.disabled = true;
+                        btn.style.opacity = '0.45';
+                        btn.style.cursor = 'not-allowed';
+                        btn.style.pointerEvents = 'none';
+                        btn.setAttribute('title', 'Vui lòng chọn Đồng ý tuyển dụng hoặc Không tuyển dụng để mở nút');
+                    }
+                });
             }
+
             radios.forEach(r => r.addEventListener('change', updateStyles));
             updateStyles();
         });
@@ -448,6 +543,80 @@
             {{ __('messages.submitted_by_candidate') }} — {{ $candidate->created_at->format('H:i d/m/Y') }}
         </div>
         @endif
+
+        {{-- Modal Gửi phiếu phỏng vấn tới Quản lý cao cấp khác --}}
+        <div class="modal fade" id="forwardReviewModal" tabindex="-1" aria-labelledby="forwardReviewModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content rounded-4 border-0 shadow">
+                    <div class="modal-header border-bottom-0 pb-0">
+                        <h5 class="modal-title fw-bold" id="forwardReviewModalLabel">📤 Gửi phiếu đánh giá tới Quản lý cao cấp</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form method="POST" action="{{ route('candidates.forward_review', $candidate->id) }}" id="forwardForm">
+                        @csrf
+                        <div class="modal-body py-3">
+                            <p class="text-secondary small mb-3">Phiếu phỏng vấn của ứng viên <strong>{{ $candidate->full_name }}</strong> sẽ được gửi bổ sung tới cán bộ quản lý được chọn dưới đây để tiếp tục xem xét & phê duyệt.</p>
+                            
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold" style="font-size:.85rem;">Chọn Quản lý cao cấp nhận phiếu <span class="text-danger">*</span></label>
+                                <select name="target_user_id" class="form-select rounded-3" required style="font-size:.9rem;">
+                                    <option value="">-- Chọn cán bộ quản lý --</option>
+                                    @foreach($allSeniorManagers as $smUser)
+                                        @if($smUser->id !== auth()->id())
+                                        <option value="{{ $smUser->id }}" {{ $candidate->seniorManagers->contains($smUser->id) ? 'disabled' : '' }}>
+                                            {{ $smUser->name }} ({{ $smUser->email }}) {{ $candidate->seniorManagers->contains($smUser->id) ? '— [Đã có trong danh sách]' : '' }}
+                                        </option>
+                                        @endif
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            @if(!$isLocked)
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" name="save_current_draft" value="1" id="saveDraftCheck" checked>
+                                <label class="form-check-label small text-muted" for="saveDraftCheck">
+                                    Đồng thời lưu lại nhận xét hiện tại của bạn trước khi gửi
+                                </label>
+                            </div>
+                            @endif
+                        </div>
+                        <div class="modal-footer border-top-0 pt-0">
+                            <button type="button" class="btn btn-light rounded-3 fw-semibold" data-bs-dismiss="modal">Hủy</button>
+                            <button type="submit" class="btn btn-primary fw-bold rounded-3 px-4">📤 Gửi phiếu</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <script>
+        document.getElementById('forwardReviewModal')?.addEventListener('show.bs.modal', function () {
+            const mainForm = document.getElementById('reviewForm');
+            const modalForm = document.getElementById('forwardForm');
+            if (mainForm && modalForm) {
+                ['review_note', 'proposed_salary', 'start_date', 'probation_period', 'assigned_department', 'extra_note'].forEach(field => {
+                    const mainInput = mainForm.querySelector(`[name="${field}"]`);
+                    let hiddenInput = modalForm.querySelector(`input[name="${field}"]`);
+                    if (!hiddenInput) {
+                        hiddenInput = document.createElement('input');
+                        hiddenInput.type = 'hidden';
+                        hiddenInput.name = field;
+                        modalForm.appendChild(hiddenInput);
+                    }
+                    hiddenInput.value = mainInput ? mainInput.value : '';
+                });
+                const checkedRadio = mainForm.querySelector('input[name="review_result"]:checked');
+                let hiddenResult = modalForm.querySelector('input[name="review_result"]');
+                if (!hiddenResult) {
+                    hiddenResult = document.createElement('input');
+                    hiddenResult.type = 'hidden';
+                    hiddenResult.name = 'review_result';
+                    modalForm.appendChild(hiddenResult);
+                }
+                hiddenResult.value = checkedRadio ? checkedRadio.value : 'pending';
+            }
+        });
+        </script>
     </div>
 </div>
 @endsection

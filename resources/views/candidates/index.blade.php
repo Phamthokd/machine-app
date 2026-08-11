@@ -4,15 +4,37 @@
 @section('content')
 <style>
     .candidate-card {
-        background: white;
         border-radius: 1rem;
-        border: 1px solid #f1f5f9;
         transition: all 0.2s;
     }
-    .candidate-card:hover {
-        border-color: #cbd5e1;
-        box-shadow: 0 4px 12px rgba(0,0,0,.06);
+    /* Chờ xem xét: Màu trắng */
+    .status-card-pending {
+        background: #ffffff !important;
+        border: 1.5px solid #e2e8f0 !important;
     }
+    .status-card-pending:hover {
+        border-color: #cbd5e1 !important;
+        box-shadow: 0 4px 14px rgba(0,0,0,.06);
+    }
+    /* Không đồng ý tuyển: Màu đỏ hồng */
+    .status-card-rejected {
+        background: #fff1f2 !important;
+        border: 1.5px solid #fecdd3 !important;
+    }
+    .status-card-rejected:hover {
+        border-color: #fda4af !important;
+        box-shadow: 0 4px 14px rgba(244,63,94,.12);
+    }
+    /* Đồng ý tuyển: Màu xanh lá */
+    .status-card-approved {
+        background: #f0fdf4 !important;
+        border: 1.5px solid #bbf7d0 !important;
+    }
+    .status-card-approved:hover {
+        border-color: #86efac !important;
+        box-shadow: 0 4px 14px rgba(34,197,94,.12);
+    }
+
     .avatar-circle {
         width: 44px; height: 44px; border-radius: 50%;
         background: linear-gradient(135deg, #4f46e5, #2563eb);
@@ -24,6 +46,10 @@
     .badge-pos { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; font-size: .75rem; border-radius: .4rem; padding: .2rem .55rem; font-weight: 600; }
     .badge-gender-m { background: #eff6ff; color: #1e40af; }
     .badge-gender-f { background: #fdf2f8; color: #9d174d; }
+
+    .badge-status-pending { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; font-size: .75rem; border-radius: .4rem; padding: .2rem .55rem; font-weight: 600; }
+    .badge-status-rejected { background: #ffe4e6; color: #9f1239; border: 1px solid #fca5a5; font-size: .75rem; border-radius: .4rem; padding: .2rem .55rem; font-weight: 600; }
+    .badge-status-approved { background: #dcfce7; color: #14532d; border: 1px solid #86efac; font-size: .75rem; border-radius: .4rem; padding: .2rem .55rem; font-weight: 600; }
 </style>
 
 <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
@@ -60,7 +86,10 @@
 </form>
 
 @forelse($candidates as $c)
-<div class="candidate-card p-3 mb-3 d-flex align-items-center gap-3">
+@php
+    $status = $c->overall_review_status; // 'pending', 'approved', 'rejected'
+@endphp
+<div class="candidate-card status-card-{{ $status }} p-3 mb-3 d-flex align-items-center gap-3">
     {{-- Avatar --}}
     <div class="avatar-circle">
         @if($c->photo_path)
@@ -76,8 +105,18 @@
             <span class="badge {{ $c->gender === 'male' ? 'badge-gender-m' : 'badge-gender-f' }}">
                 {{ $c->gender === 'male' ? '♂ ' . __('messages.gender_male') : '♀ ' . __('messages.gender_female') }}
             </span>
+            @if($status === 'approved')
+            <span class="badge badge-status-approved">✅ {{ __('messages.candidate_status_approved') }}</span>
+            @elseif($status === 'rejected')
+            <span class="badge badge-status-rejected">❌ {{ __('messages.candidate_status_rejected') }}</span>
+            @else
+            <span class="badge badge-status-pending">⏳ {{ __('messages.candidate_status_pending') }}</span>
+            @endif
         </div>
         <div class="d-flex flex-wrap gap-2 mt-1">
+            @if($c->department_applied)
+            <span class="badge bg-light text-secondary border">🏢 {{ $c->department_applied }}</span>
+            @endif
             <span class="badge-pos">{{ $c->position_applied }}</span>
             <span class="text-muted small">📞 {{ $c->phone }}</span>
             @if($c->dob)

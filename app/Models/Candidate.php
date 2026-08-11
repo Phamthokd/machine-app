@@ -11,7 +11,7 @@ class Candidate extends Model
 
     protected $fillable = [
         'full_name', 'gender', 'dob', 'id_number',
-        'education', 'language_skills', 'position_applied',
+        'education', 'language_skills', 'department_applied', 'position_applied',
         'phone', 'address', 'bank_account', 'photo_path',
         'marital_status', 'children_dob', 'referral_source',
         'referral_name', 'referral_department', 'referral_relation',
@@ -36,7 +36,7 @@ class Candidate extends Model
         return $this->belongsToMany(User::class, 'candidate_senior_manager', 'candidate_id', 'user_id')
                     ->withPivot('review_note', 'reviewed_at', 'review_result',
                                 'proposed_salary', 'start_date', 'probation_period',
-                                'assigned_department', 'extra_note')
+                                'assigned_department', 'extra_note', 'is_locked')
                     ->withTimestamps();
     }
 
@@ -52,5 +52,23 @@ class Candidate extends Model
             'divorced' => __('messages.marital_divorced'),
             default    => __('messages.marital_single'),
         };
+    }
+
+    public function getOverallReviewStatusAttribute(): string
+    {
+        $managers = $this->seniorManagers;
+        if ($managers->isEmpty()) {
+            return 'pending';
+        }
+
+        if ($managers->contains(fn($u) => $u->pivot->review_result === 'approved')) {
+            return 'approved';
+        }
+
+        if ($managers->contains(fn($u) => $u->pivot->review_result === 'rejected')) {
+            return 'rejected';
+        }
+
+        return 'pending';
     }
 }
