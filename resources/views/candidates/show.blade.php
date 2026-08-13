@@ -184,6 +184,7 @@
             $currentUserReview = $candidate->seniorManagers->firstWhere('id', auth()->id());
             $isSeniorManager   = auth()->user()->hasRole('senior_manager');
             $isAssigned        = $currentUserReview !== null;
+            $isLocked          = (bool) ($currentUserReview?->pivot?->is_locked ?? false);
         @endphp
 
         {{-- Form nhận xét: chỉ hiển thị cho senior_manager đã được chuyển đơn --}}
@@ -223,10 +224,6 @@
                     <div style="font-size:.9rem;white-space:pre-line;">{{ $currentUserReview->pivot->review_note }}</div>
                 </div>
                 @endif
-
-                @php
-                    $isLocked = (bool) ($currentUserReview->pivot->is_locked ?? false);
-                @endphp
 
                 @if($isLocked)
                 <div class="alert alert-primary rounded-3 mb-3 d-flex align-items-center justify-content-between flex-wrap gap-2" style="font-size:.88rem; background:#eff6ff; color:#1e40af; border-color:#bfdbfe;">
