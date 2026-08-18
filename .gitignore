@@ -26,6 +26,3 @@ node_modules/
 
 dist/
 build/
-
-# Local chatbot controller
-app/Http/Controllers/ChatbotController.php
