@@ -185,11 +185,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::delete('/audits/{audit}', [\App\Http\Controllers\AuditController::class, 'destroy'])->name('audits.destroy');
     });
 
-    // CANDIDATES: Admin + Senior Manager + HR can manage, create, delete
-    Route::middleware(['role_or_permission:admin|senior_manager|hr'])->group(function () {
+    // CANDIDATES: Admin + Senior Manager + HR + candidates.create
+    Route::middleware(['role_or_permission:admin|senior_manager|hr|candidates.create'])->group(function () {
         Route::get('/candidates', [CandidateController::class, 'index'])->name('candidates.index');
         Route::get('/candidates/create', [CandidateController::class, 'create'])->name('candidates.create');
         Route::post('/candidates', [CandidateController::class, 'store'])->name('candidates.store');
+        Route::get('/candidates/{id}/edit', [CandidateController::class, 'edit'])->name('candidates.edit')->whereNumber('id');
+        Route::put('/candidates/{id}', [CandidateController::class, 'update'])->name('candidates.update')->whereNumber('id');
         Route::get('/candidates/{id}', [CandidateController::class, 'show'])->name('candidates.show')->whereNumber('id');
         Route::delete('/candidates/{id}', [CandidateController::class, 'destroy'])->name('candidates.destroy')->whereNumber('id');
         Route::get('/candidates/{id}/print', [CandidateController::class, 'exportPrint'])->name('candidates.print')->whereNumber('id');

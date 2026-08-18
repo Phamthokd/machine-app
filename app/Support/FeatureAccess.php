@@ -38,6 +38,7 @@ class FeatureAccess
             'machines.import_csv' => $user->hasAnyRole(['admin', 'warehouse']) || $user->can('machines.import_csv'),
             'users.manage' => $user->hasRole('admin') || $user->can('users.manage'),
             'users.view' => $user->hasRole('admin') || $user->hasRole('warehouse') || $user->can('users.view'),
+            'candidates.create' => $user->hasAnyRole(['admin', 'senior_manager', 'hr']) || $user->can('candidates.create'),
             default => $user->can($feature),
         };
     }

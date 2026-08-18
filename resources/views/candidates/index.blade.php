@@ -58,12 +58,23 @@
         <p class="text-muted small mb-0">{{ __('messages.candidates_subtitle') }}</p>
     </div>
     <div class="d-flex gap-2 flex-wrap">
+        <a href="/qr-phong-van.html" target="_blank" class="btn btn-outline-primary rounded-3 fw-bold px-3 d-flex align-items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            🖨️ In Mã QR Tuyển Dụng
+        </a>
         <a href="{{ route('candidates.create') }}" class="btn btn-primary rounded-3 fw-bold px-4 d-flex align-items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             {{ __('messages.candidate_add') }}
         </a>
     </div>
 </div>
+
+@if(!auth()->user()->hasAnyRole(['admin', 'hr', 'senior_manager']))
+    <div class="alert alert-info border-0 rounded-3 shadow-sm d-flex align-items-center gap-2 mb-4">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        <span>⏱️ Tài khoản được cấp quyền chỉ xem được các phiếu phỏng vấn được tạo trong vòng 1 tiếng gần nhất.</span>
+    </div>
+@endif
 
 {{-- Filter --}}
 <form method="GET" class="card border-0 shadow-sm rounded-3 p-3 mb-4">
@@ -128,9 +139,18 @@
     <div class="text-end flex-shrink-0">
         <div class="text-muted small mb-2">{{ $c->created_at->format('d/m/Y') }}</div>
         <div class="d-flex gap-1 justify-content-end">
-            <a href="{{ route('candidates.show', $c->id) }}" class="btn btn-sm btn-outline-primary rounded-2 px-2">
+            <a href="{{ route('candidates.show', $c->id) }}" class="btn btn-sm btn-outline-primary rounded-2 px-2" title="Xem chi tiết">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
             </a>
+            @php
+                $canEditCard = auth()->user()->hasAnyRole(['admin', 'hr']) ||
+                    ($c->seniorManagers->isEmpty() && $c->created_at >= now()->subMinutes(30));
+            @endphp
+            @if($canEditCard)
+            <a href="{{ route('candidates.edit', $c->id) }}" class="btn btn-sm btn-outline-warning text-dark border-warning rounded-2 px-2" title="Chỉnh sửa">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </a>
+            @endif
             <a href="{{ route('candidates.print', $c->id) }}" target="_blank" class="btn btn-sm btn-outline-success rounded-2 px-2">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
             </a>

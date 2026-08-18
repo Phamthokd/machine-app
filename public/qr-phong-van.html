@@ -272,7 +272,7 @@
                     <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
                     <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
                 </svg>
-                <span class="url-text">https://vivagarment.com.vn/candidates/create</span>
+                <span class="url-text" id="urlDisplay"></span>
             </div>
 
             <div class="instructions">
@@ -301,7 +301,9 @@
     </div>
 
     <script>
-        const formUrl = "https://vivagarment.com.vn/candidates/create";
+        const formUrl = window.location.origin + "/apply";
+        const urlDisplayEl = document.getElementById("urlDisplay");
+        if (urlDisplayEl) urlDisplayEl.textContent = formUrl;
 
         new QRCode(document.getElementById("qrcode"), {
             text: formUrl,

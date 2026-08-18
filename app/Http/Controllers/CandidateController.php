@@ -43,6 +43,11 @@ class CandidateController extends Controller
             });
         }
 
+        // Non-management accounts (e.g. accounts with candidates.create permission) can only view candidates created within the last 1 hour
+        if (!$user->hasAnyRole(['admin', 'hr', 'senior_manager'])) {
+            $query->where('created_at', '>=', now()->subHours(1));
+        }
+
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
@@ -78,25 +83,83 @@ class CandidateController extends Controller
         $this->handlePhotoUpload($request, $validated);
         $this->handleWorkExperiences($request, $validated);
 
-        Candidate::create($validated);
+        $candidate = Candidate::create($validated);
 
-        return redirect()->route('candidates.index')
+        return redirect()->route('candidates.show', $candidate->id)
             ->with('success', __('messages.candidate_submit_success'));
+    }
+
+    public function edit($id)
+    {
+        $candidate = Candidate::with('seniorManagers')->findOrFail($id);
+        $user = auth()->user();
+
+        // Non-admins cannot edit if candidate has already been routed to senior manager(s)
+        if ($candidate->seniorManagers->count() > 0 && !$user->isAdminUser()) {
+            abort(403, 'Phiếu ứng tuyển này đã được HR chuyển tới Quản lý cấp cao, không thể chỉnh sửa.');
+        }
+
+        // Non-management accounts can only edit candidates created within the last 30 minutes
+        if (!$user->hasAnyRole(['admin', 'hr', 'senior_manager'])) {
+            if ($candidate->created_at < now()->subMinutes(30)) {
+                abort(403, 'Phiếu phỏng vấn này đã tạo quá 30 phút, bạn không thể chỉnh sửa nữa.');
+            }
+        }
+
+        return view('candidates.apply', [
+            'isAdmin'   => true,
+            'isEdit'    => true,
+            'candidate' => $candidate,
+        ]);
+    }
+
+    public function update(Request $request, $id)
+    {
+        $candidate = Candidate::with('seniorManagers')->findOrFail($id);
+        $user = auth()->user();
+
+        if ($candidate->seniorManagers->count() > 0 && !$user->isAdminUser()) {
+            abort(403, 'Phiếu ứng tuyển này đã được HR chuyển tới Quản lý cấp cao, không thể chỉnh sửa.');
+        }
+
+        if (!$user->hasAnyRole(['admin', 'hr', 'senior_manager'])) {
+            if ($candidate->created_at < now()->subMinutes(30)) {
+                abort(403, 'Phiếu phỏng vấn này đã tạo quá 30 phút, bạn không thể chỉnh sửa nữa.');
+            }
+        }
+
+        $validated = $this->validateForm($request);
+
+        $this->handlePhotoUpload($request, $validated);
+        $this->handleWorkExperiences($request, $validated);
+
+        $candidate->update($validated);
+
+        return redirect()->route('candidates.show', $candidate->id)
+            ->with('success', 'Đã cập nhật thông tin phiếu ứng tuyển thành công.');
     }
 
     public function show($id)
     {
         $candidate = Candidate::with('seniorManagers')->findOrFail($id);
+        $user = auth()->user();
+
+        // Non-management accounts can only access candidates created within the last 1 hour
+        if (!$user->hasAnyRole(['admin', 'hr', 'senior_manager'])) {
+            if ($candidate->created_at < now()->subHours(1)) {
+                abort(403, 'Phiếu phỏng vấn này đã tạo quá 1 tiếng, tài khoản của bạn không thể xem lại.');
+            }
+        }
 
         // Access control for senior manager
-        if (auth()->user()->hasRole('senior_manager')) {
-            if (!$candidate->seniorManagers->contains(auth()->id())) {
+        if ($user->hasRole('senior_manager')) {
+            if (!$candidate->seniorManagers->contains($user->id)) {
                 abort(403, 'Bạn không được phép truy cập hồ sơ này.');
             }
         }
 
         $seniorManagers = [];
-        if (auth()->user()->hasAnyRole(['admin', 'hr'])) {
+        if ($user->hasAnyRole(['admin', 'hr'])) {
             $seniorManagers = \App\Models\User::role('senior_manager')->get();
         }
 
@@ -108,6 +171,13 @@ class CandidateController extends Controller
     public function destroy($id)
     {
         $candidate = Candidate::findOrFail($id);
+        $user = auth()->user();
+
+        if (!$user->hasAnyRole(['admin', 'hr', 'senior_manager'])) {
+            if ($candidate->created_at < now()->subHours(1)) {
+                abort(403, 'Phiếu phỏng vấn này đã tạo quá 1 tiếng, tài khoản của bạn không thể xóa.');
+            }
+        }
 
         if ($candidate->photo_path) {
             $physicalPath = str_replace('storage/', '', ltrim($candidate->photo_path, '/'));
@@ -123,10 +193,17 @@ class CandidateController extends Controller
     public function exportPrint($id)
     {
         $candidate = Candidate::with('seniorManagers')->findOrFail($id);
+        $user = auth()->user();
+
+        if (!$user->hasAnyRole(['admin', 'hr', 'senior_manager'])) {
+            if ($candidate->created_at < now()->subHours(1)) {
+                abort(403, 'Phiếu phỏng vấn này đã tạo quá 1 tiếng, tài khoản của bạn không thể in.');
+            }
+        }
 
         // Access control for senior manager
-        if (auth()->user()->hasRole('senior_manager')) {
-            if (!$candidate->seniorManagers->contains(auth()->id())) {
+        if ($user->hasRole('senior_manager')) {
+            if (!$candidate->seniorManagers->contains($user->id)) {
                 abort(403, 'Bạn không được phép in hồ sơ này.');
             }
         }
@@ -267,12 +344,12 @@ class CandidateController extends Controller
             'full_name'            => 'required|string|max:255',
             'gender'               => 'required|in:male,female',
             'dob'                  => 'nullable|date',
-            'id_number'            => 'nullable|string|max:20',
+            'id_number'            => 'nullable|string|regex:/^[0-9]+$/|max:12',
             'education'            => 'nullable|string|max:255',
             'language_skills'      => 'nullable|string|max:255',
             'department_applied'   => 'nullable|string|max:255',
             'position_applied'     => 'required|string|max:255',
-            'phone'                => 'required|string|max:20',
+            'phone'                => 'required|string|regex:/^[0-9]+$/|max:10',
             'address'              => 'nullable|string|max:500',
             'bank_account'         => 'nullable|string|max:50',
             'photo'                => 'nullable|image|max:5120',
@@ -287,8 +364,15 @@ class CandidateController extends Controller
             'emergency_name'       => 'nullable|string|max:255',
             'emergency_address'    => 'nullable|string|max:500',
             'emergency_relation'   => 'nullable|string|max:100',
-            'emergency_phone'      => 'nullable|string|max:20',
+            'emergency_phone'      => 'nullable|string|regex:/^[0-9]+$/|max:10',
             'expected_salary'      => 'nullable|string|max:50',
+        ], [
+            'id_number.regex'       => 'Số CCCD chỉ được nhập ký tự số.',
+            'id_number.max'         => 'Số CCCD tối đa 12 ký tự.',
+            'phone.regex'           => 'Số điện thoại chỉ được nhập ký tự số.',
+            'phone.max'             => 'Số điện thoại tối đa 10 ký tự.',
+            'emergency_phone.regex' => 'Số điện thoại khẩn cấp chỉ được nhập ký tự số.',
+            'emergency_phone.max'   => 'Số điện thoại khẩn cấp tối đa 10 ký tự.',
         ]);
     }
 

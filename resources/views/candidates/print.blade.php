@@ -172,7 +172,7 @@
         {{-- Referral Source --}}
         @php
             $sources = $candidate->referral_source ?? [];
-            $srcLabels = ['zalo'=>'Zalo','facebook'=>'Facebook','web'=>'Web tuyển dụng','banner'=>'Bảng zôn/Băng rôn','internal'=>'Người trong công ty giới thiệu','phone'=>'Điện thoại'];
+            $srcLabels = ['zalo'=>'Zalo','facebook'=>'Facebook','tiktok'=>'TikTok','web'=>'Web tuyển dụng','banner'=>'Bảng zôn/Băng rôn','internal'=>'Người trong công ty giới thiệu','phone'=>'Điện thoại','other'=>'Khác'];
         @endphp
         <tr>
             <td class="label-cell">Được biết về tin tuyển dụng ở đâu?<br><span class="label-zh">招聘信息获得途径</span></td>

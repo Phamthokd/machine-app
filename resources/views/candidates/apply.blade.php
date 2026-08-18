@@ -124,6 +124,16 @@
 <body>
 
 <div class="form-wrapper">
+    @if(isset($isAdmin) && $isAdmin)
+    <div class="p-3 bg-light border-bottom d-flex align-items-center justify-content-between">
+        <a href="{{ isset($candidate) ? route('candidates.show', $candidate->id) : route('candidates.index') }}" class="btn btn-sm btn-outline-secondary rounded-3 fw-bold d-flex align-items-center gap-1">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
+            {{ __('messages.back') }}
+        </a>
+        <span class="fw-bold text-secondary small">{{ isset($isEdit) && $isEdit ? 'Chỉnh sửa phiếu ứng tuyển' : 'Tạo phiếu ứng tuyển mới' }}</span>
+    </div>
+    @endif
+
     {{-- Header --}}
     <div class="form-header">
         {{-- Language switcher --}}
@@ -153,7 +163,7 @@
 
         <div class="viva-logo">VIVA</div>
         <div class="company">CÔNG TY TNHH MAY MẶC VIỆT THIÊN 富华制衣产品有限公司</div>
-        <h1>{{ __('messages.candidate_form_title') }}</h1>
+        <h1>{{ isset($isEdit) && $isEdit ? 'Chỉnh sửa ' . __('messages.candidate_form_title') : __('messages.candidate_form_title') }}</h1>
         <div class="subtitle">应征登记表</div>
     </div>
 
@@ -181,9 +191,12 @@
         </div>
 
         <form method="POST"
-              action="{{ isset($isAdmin) && $isAdmin ? route('candidates.store') : route('candidates.store_public') }}"
+              action="{{ isset($isEdit) && $isEdit ? route('candidates.update', $candidate->id) : (isset($isAdmin) && $isAdmin ? route('candidates.store') : route('candidates.store_public')) }}"
               enctype="multipart/form-data" id="candidateForm">
             @csrf
+            @if(isset($isEdit) && $isEdit)
+                @method('PUT')
+            @endif
 
             {{-- === THÔNG TIN CÁ NHÂN === --}}
             <div class="section-title">
@@ -194,17 +207,17 @@
             <div class="row g-3">
                 <div class="col-md-6">
                     <label class="form-label">{{ __('messages.full_name') }} / 姓名 <span class="text-danger">*</span></label>
-                    <input type="text" name="full_name" class="form-control" value="{{ old('full_name') }}" required>
+                    <input type="text" name="full_name" class="form-control" value="{{ old('full_name', $candidate->full_name ?? '') }}" required>
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">{{ __('messages.gender') }} / 性别 <span class="text-danger">*</span></label>
                     <div class="d-flex gap-2 mt-1">
                         <label class="check-card flex-grow-1">
-                            <input type="radio" name="gender" value="male" {{ old('gender','male') === 'male' ? 'checked' : '' }} required>
+                            <input type="radio" name="gender" value="male" {{ old('gender', $candidate->gender ?? 'male') === 'male' ? 'checked' : '' }} required>
                             {{ __('messages.gender_male') }} 男
                         </label>
                         <label class="check-card flex-grow-1">
-                            <input type="radio" name="gender" value="female" {{ old('gender') === 'female' ? 'checked' : '' }}>
+                            <input type="radio" name="gender" value="female" {{ old('gender', $candidate->gender ?? '') === 'female' ? 'checked' : '' }}>
                             {{ __('messages.gender_female') }} 女
                         </label>
                     </div>
@@ -213,8 +226,8 @@
                     {{-- Photo --}}
                     <label class="form-label">{{ __('messages.candidate_photo') }} / 照片</label>
                     <div class="photo-upload-area" id="photoArea" onclick="document.getElementById('photoInput').click()">
-                        <img id="photoPreview" class="photo-preview d-none" src="" alt="preview">
-                        <div id="photoPlaceholder">
+                        <img id="photoPreview" class="photo-preview {{ isset($candidate) && $candidate->photo_path ? '' : 'd-none' }}" src="{{ isset($candidate) && $candidate->photo_path ? asset($candidate->photo_path) : '' }}" alt="preview">
+                        <div id="photoPlaceholder" class="{{ isset($candidate) && $candidate->photo_path ? 'd-none' : '' }}">
                             <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
                             <div style="font-size:.75rem;color:#9ca3af;margin-top:.4rem">{{ __('messages.click_to_upload') }}</div>
                         </div>
@@ -224,42 +237,42 @@
 
                 <div class="col-md-4">
                     <label class="form-label">{{ __('messages.dob') }} / 出生日期</label>
-                    <input type="date" name="dob" class="form-control" value="{{ old('dob') }}">
+                    <input type="date" name="dob" class="form-control" value="{{ old('dob', isset($candidate) && $candidate->dob ? $candidate->dob->format('Y-m-d') : '') }}">
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">{{ __('messages.id_number') }} / 身份证号码</label>
-                    <input type="text" name="id_number" class="form-control" value="{{ old('id_number') }}" placeholder="012345678910">
+                    <input type="text" inputmode="numeric" pattern="[0-9]*" name="id_number" class="form-control" value="{{ old('id_number', $candidate->id_number ?? '') }}" placeholder="012345678910" maxlength="12" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,12)">
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">{{ __('messages.phone') }} / 联系电话 <span class="text-danger">*</span></label>
-                    <input type="tel" name="phone" class="form-control" value="{{ old('phone') }}" required>
+                    <input type="tel" inputmode="numeric" pattern="[0-9]*" name="phone" class="form-control" value="{{ old('phone', $candidate->phone ?? '') }}" placeholder="0912345678" maxlength="10" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,10)" required>
                 </div>
 
                 <div class="col-md-6">
                     <label class="form-label">{{ __('messages.education') }} / 文化程度</label>
-                    <input type="text" name="education" class="form-control" value="{{ old('education') }}" placeholder="{{ __('messages.education_placeholder') }}">
+                    <input type="text" name="education" class="form-control" value="{{ old('education', $candidate->education ?? '') }}" placeholder="{{ __('messages.education_placeholder') }}">
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">{{ __('messages.language_skills') }} / 语言能力</label>
-                    <input type="text" name="language_skills" class="form-control" value="{{ old('language_skills') }}" placeholder="{{ __('messages.language_skills_placeholder') }}">
+                    <input type="text" name="language_skills" class="form-control" value="{{ old('language_skills', $candidate->language_skills ?? '') }}" placeholder="{{ __('messages.language_skills_placeholder') }}">
                 </div>
 
                 <div class="col-md-6">
                     <label class="form-label">{{ __('messages.department_applied') }} / 申请部门</label>
-                    <input type="text" name="department_applied" class="form-control" value="{{ old('department_applied') }}" placeholder="{{ __('messages.department_applied_placeholder') }}">
+                    <input type="text" name="department_applied" class="form-control" value="{{ old('department_applied', $candidate->department_applied ?? '') }}" placeholder="{{ __('messages.department_applied_placeholder') }}">
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">{{ __('messages.position_applied') }} / 招聘职位 <span class="text-danger">*</span></label>
-                    <input type="text" name="position_applied" class="form-control" value="{{ old('position_applied') }}" required>
+                    <input type="text" name="position_applied" class="form-control" value="{{ old('position_applied', $candidate->position_applied ?? '') }}" required>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">{{ __('messages.bank_account') }} / 银行账户 (Vietinbank)</label>
-                    <input type="text" name="bank_account" class="form-control" value="{{ old('bank_account') }}">
+                    <input type="text" name="bank_account" class="form-control" value="{{ old('bank_account', $candidate->bank_account ?? '') }}">
                 </div>
 
                 <div class="col-12">
                     <label class="form-label">{{ __('messages.address') }} / 家庭地址</label>
-                    <input type="text" name="address" class="form-control" value="{{ old('address') }}">
+                    <input type="text" name="address" class="form-control" value="{{ old('address', $candidate->address ?? '') }}">
                 </div>
             </div>
 
@@ -271,15 +284,15 @@
 
             <div class="d-flex flex-wrap gap-2 mb-3">
                 <label class="check-card">
-                    <input type="radio" name="marital_status" value="married" {{ old('marital_status') === 'married' ? 'checked' : '' }}>
+                    <input type="radio" name="marital_status" value="married" {{ old('marital_status', $candidate->marital_status ?? '') === 'married' ? 'checked' : '' }}>
                     {{ __('messages.marital_married') }} 已婚
                 </label>
                 <label class="check-card">
-                    <input type="radio" name="marital_status" value="single" {{ old('marital_status','single') === 'single' ? 'checked' : '' }}>
+                    <input type="radio" name="marital_status" value="single" {{ old('marital_status', $candidate->marital_status ?? 'single') === 'single' ? 'checked' : '' }}>
                     {{ __('messages.marital_single') }} 未婚
                 </label>
                 <label class="check-card">
-                    <input type="radio" name="marital_status" value="divorced" {{ old('marital_status') === 'divorced' ? 'checked' : '' }}>
+                    <input type="radio" name="marital_status" value="divorced" {{ old('marital_status', $candidate->marital_status ?? '') === 'divorced' ? 'checked' : '' }}>
                     {{ __('messages.marital_divorced') }} 离婚
                 </label>
             </div>
@@ -291,7 +304,7 @@
                     <input type="text" name="children_dob[{{ $i }}]"
                            class="form-control"
                            placeholder="{{ __('messages.child_n', ['n' => $i+1]) }}: {{ __('messages.birth_year') }}"
-                           value="{{ old("children_dob.$i") }}"
+                           value="{{ old("children_dob.$i", $candidate->children_dob[$i] ?? '') }}"
                            maxlength="4">
                 </div>
                 @endfor
@@ -307,12 +320,14 @@
                 $sources = [
                     'zalo'     => 'Zalo',
                     'facebook' => 'Facebook',
+                    'tiktok'   => __('messages.ref_tiktok'),
                     'web'      => __('messages.ref_web'),
                     'banner'   => __('messages.ref_banner'),
                     'internal' => __('messages.ref_internal'),
                     'phone'    => __('messages.ref_phone'),
+                    'other'    => __('messages.ref_other'),
                 ];
-                $oldSources = old('referral_source', []);
+                $oldSources = old('referral_source', $candidate->referral_source ?? []);
             @endphp
 
             <div class="d-flex flex-wrap gap-2 mb-3">
@@ -334,15 +349,15 @@
             <div class="row g-3">
                 <div class="col-md-4">
                     <label class="form-label">{{ __('messages.full_name') }} / 姓名</label>
-                    <input type="text" name="referral_name" class="form-control" value="{{ old('referral_name') }}">
+                    <input type="text" name="referral_name" class="form-control" value="{{ old('referral_name', $candidate->referral_name ?? '') }}">
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">{{ __('messages.department') }} / 工作部门</label>
-                    <input type="text" name="referral_department" class="form-control" value="{{ old('referral_department') }}">
+                    <input type="text" name="referral_department" class="form-control" value="{{ old('referral_department', $candidate->referral_department ?? '') }}">
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">{{ __('messages.relation') }} / 关系</label>
-                    <input type="text" name="referral_relation" class="form-control" value="{{ old('referral_relation') }}">
+                    <input type="text" name="referral_relation" class="form-control" value="{{ old('referral_relation', $candidate->referral_relation ?? '') }}">
                 </div>
             </div>
 
@@ -355,19 +370,19 @@
             <div class="row g-3">
                 <div class="col-md-4">
                     <label class="form-label">{{ __('messages.full_name') }} / 姓名</label>
-                    <input type="text" name="emergency_name" class="form-control" value="{{ old('emergency_name') }}">
+                    <input type="text" name="emergency_name" class="form-control" value="{{ old('emergency_name', $candidate->emergency_name ?? '') }}">
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">{{ __('messages.relation') }} / 关系</label>
-                    <input type="text" name="emergency_relation" class="form-control" value="{{ old('emergency_relation') }}">
+                    <input type="text" name="emergency_relation" class="form-control" value="{{ old('emergency_relation', $candidate->emergency_relation ?? '') }}">
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">{{ __('messages.phone') }} / 电话</label>
-                    <input type="tel" name="emergency_phone" class="form-control" value="{{ old('emergency_phone') }}">
+                    <input type="tel" inputmode="numeric" pattern="[0-9]*" name="emergency_phone" class="form-control" value="{{ old('emergency_phone', $candidate->emergency_phone ?? '') }}" placeholder="0912345678" maxlength="10" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,10)">
                 </div>
                 <div class="col-12">
                     <label class="form-label">{{ __('messages.address') }} / 地址</label>
-                    <input type="text" name="emergency_address" class="form-control" value="{{ old('emergency_address') }}">
+                    <input type="text" name="emergency_address" class="form-control" value="{{ old('emergency_address', $candidate->emergency_address ?? '') }}">
                 </div>
             </div>
 
@@ -377,36 +392,42 @@
                 {{ __('messages.work_experience') }} / 工作经历
             </div>
 
+            @php
+                $existingWorkExps = old('work_experiences', isset($candidate) && !empty($candidate->work_experiences) ? $candidate->work_experiences : [[]]);
+            @endphp
+
             <div id="expContainer">
-                <div class="exp-row" data-index="0">
+                @foreach($existingWorkExps as $idx => $exp)
+                <div class="exp-row" data-index="{{ $idx }}">
                     <button type="button" class="remove-exp" onclick="removeExp(this)" title="Xóa">✕</button>
                     <div class="row g-2">
                         <div class="col-md-3">
                             <label class="form-label" style="font-size:.75rem">{{ __('messages.work_start') }} / 开始日期</label>
-                            <input type="text" name="work_experiences[0][start_date]" class="form-control form-control-sm" placeholder="MM/YYYY">
+                            <input type="text" name="work_experiences[{{ $idx }}][start_date]" class="form-control form-control-sm" placeholder="MM/YYYY" value="{{ $exp['start_date'] ?? '' }}">
                         </div>
                         <div class="col-md-3">
                             <label class="form-label" style="font-size:.75rem">{{ __('messages.work_end') }} / 结束日期</label>
-                            <input type="text" name="work_experiences[0][end_date]" class="form-control form-control-sm" placeholder="MM/YYYY">
+                            <input type="text" name="work_experiences[{{ $idx }}][end_date]" class="form-control form-control-sm" placeholder="MM/YYYY" value="{{ $exp['end_date'] ?? '' }}">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label" style="font-size:.75rem">{{ __('messages.company') }} / 公司</label>
-                            <input type="text" name="work_experiences[0][company]" class="form-control form-control-sm">
+                            <input type="text" name="work_experiences[{{ $idx }}][company]" class="form-control form-control-sm" value="{{ $exp['company'] ?? '' }}">
                         </div>
                         <div class="col-md-4">
                             <label class="form-label" style="font-size:.75rem">{{ __('messages.position') }} / 职位</label>
-                            <input type="text" name="work_experiences[0][position]" class="form-control form-control-sm">
+                            <input type="text" name="work_experiences[{{ $idx }}][position]" class="form-control form-control-sm" value="{{ $exp['position'] ?? '' }}">
                         </div>
                         <div class="col-md-3">
                             <label class="form-label" style="font-size:.75rem">{{ __('messages.salary_month') }} / 薪资/月</label>
-                            <input type="text" name="work_experiences[0][salary]" class="form-control form-control-sm">
+                            <input type="text" name="work_experiences[{{ $idx }}][salary]" class="form-control form-control-sm" value="{{ $exp['salary'] ?? '' }}">
                         </div>
                         <div class="col-md-5">
                             <label class="form-label" style="font-size:.75rem">{{ __('messages.reason_leaving') }} / 离职原因</label>
-                            <input type="text" name="work_experiences[0][reason_leaving]" class="form-control form-control-sm">
+                            <input type="text" name="work_experiences[{{ $idx }}][reason_leaving]" class="form-control form-control-sm" value="{{ $exp['reason_leaving'] ?? '' }}">
                         </div>
                     </div>
                 </div>
+                @endforeach
             </div>
 
             <button type="button" class="btn-add-row mt-2 mb-3" onclick="addExpRow()">
@@ -421,7 +442,7 @@
             </div>
 
             <div class="col-md-5">
-                <input type="text" name="expected_salary" class="form-control" value="{{ old('expected_salary') }}" placeholder="VD: 8,000,000">
+                <input type="text" name="expected_salary" class="form-control" value="{{ old('expected_salary', $candidate->expected_salary ?? '') }}" placeholder="VD: 8,000,000">
             </div>
 
             {{-- === CAM KẾT === --}}
@@ -432,7 +453,7 @@
 
             <div class="mt-4">
                 <button type="submit" class="btn-submit">
-                    {{ __('messages.candidate_submit_btn') }}
+                    {{ isset($isEdit) && $isEdit ? '💾 ' . __('messages.save') : __('messages.candidate_submit_btn') }}
                 </button>
             </div>
         </form>
@@ -455,7 +476,7 @@
     });
 
     // Work experience rows
-    let expIndex = 1;
+    let expIndex = {{ count($existingWorkExps) }};
 
     function addExpRow() {
         const container = document.getElementById('expContainer');

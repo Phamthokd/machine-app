@@ -1028,6 +1028,7 @@ return [
     'p_seven_s_access' => '7S Inspection',
     'p_users_view' => 'View User List',
     'p_users_manage' => 'Create, Edit, Delete Users',
+    'p_candidates_create' => 'Create Job Application',
 
     // Flash messages
     'user_created_success' => 'User created successfully.',
@@ -1592,6 +1593,8 @@ return [
     'ref_banner'              => 'Banner / Flyer',
     'ref_internal'            => 'Internal Referral',
     'ref_phone'               => 'Phone Call',
+    'ref_tiktok'              => 'TikTok',
+    'ref_other'               => 'Other',
     'referral_info'           => 'Referrer Info',
     'department'              => 'Department',
     'relation'                => 'Relation',

@@ -1028,6 +1028,7 @@ return [
     'p_seven_s_access' => '7S 检查',
     'p_users_view' => '查看用户列表',
     'p_users_manage' => '创建、编辑、删除用户',
+    'p_candidates_create' => '创建应聘申请表',
 
     // Flash messages
     'user_created_success' => '用户创建成功。',
@@ -1592,6 +1593,8 @@ return [
     'ref_banner'              => '横幅 / 广告牌',
     'ref_internal'            => '内部推荐',
     'ref_phone'               => '电话联系',
+    'ref_tiktok'              => 'TikTok / 抖音',
+    'ref_other'               => '其他',
     'referral_info'           => '推荐人信息',
     'department'              => '工作部门',
     'relation'                => '关系',

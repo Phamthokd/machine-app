@@ -37,4 +37,11 @@ return [
             'users.manage' => 'messages.p_users_manage',
         ],
     ],
+    [
+        'group' => 'messages.candidates',
+        'items' => [
+            'candidates.create' => 'messages.p_candidates_create',
+        ],
+    ],
 ];
+

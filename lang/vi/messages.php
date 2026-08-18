@@ -1006,6 +1006,7 @@ return [
     'p_seven_s_access' => 'Kiểm tra 7S',
     'p_users_view' => 'Xem danh sách người dùng',
     'p_users_manage' => 'Tạo, sửa, xóa người dùng',
+    'p_candidates_create' => 'Tạo phiếu ứng tuyển',
 
     // Flash messages
     'user_created_success' => 'Tạo người dùng thành công',
@@ -1549,6 +1550,8 @@ return [
     'ref_banner'              => 'Bảng zôn / Băng rôn',
     'ref_internal'            => 'Giới thiệu nội bộ',
     'ref_phone'               => 'Điện thoại',
+    'ref_tiktok'              => 'TikTok',
+    'ref_other'               => 'Khác',
     'referral_info'           => 'Người giới thiệu',
     'department'              => 'Bộ phận',
     'relation'                => 'Quan hệ',
