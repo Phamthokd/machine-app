@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Log;
 
 class ChatbotController extends Controller
 {
-    public function chatB(Request $request)
+    public function chatBBB(Request $request)
     {
         $request->validate([
             'message'        => 'required|string|max:2000',
