@@ -12,6 +12,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\EnvironmentReportController;
 use App\Http\Controllers\CandidateController;
 use App\Http\Controllers\ItRepairController;
+use App\Http\Controllers\ChatbotController;
 
 /*
 |--------------------------------------------------------------------------
@@ -212,6 +213,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('/it-repairs/{itRepair}', [ItRepairController::class, 'update'])->name('it-repairs.update')->whereNumber('itRepair');
         Route::delete('/it-repairs/{itRepair}', [ItRepairController::class, 'destroy'])->name('it-repairs.destroy')->whereNumber('itRepair');
     });
+
+    Route::post('/chatbot', [ChatbotController::class, 'chat'])->name('chatbot.chat');
 });
 
 require __DIR__ . '/auth.php';

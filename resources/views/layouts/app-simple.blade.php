@@ -309,7 +309,7 @@
   @stack('scripts')
 
   {{-- ===== VIVA ASSISTANT CHATBOT ===== --}}
-  @if(auth()->check() && (app()->environment('local') || env('SHOW_CHATBOT', false)))
+  @if(auth()->check())
   <style>
     /* Floating button */
     #chatbot-fab {
