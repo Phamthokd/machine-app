@@ -309,7 +309,8 @@
   @stack('scripts')
 
   {{-- ===== VIVA ASSISTANT CHATBOT ===== --}}
-  @if(auth()->check())
+  {{-- Chatbot tạm thời bị tắt. Bật lại bằng cách đổi @if(false) thành @if(auth()->check()) --}}
+  @if(false)
   <style>
     /* Floating button */
     #chatbot-fab {
