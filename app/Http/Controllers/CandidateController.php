@@ -184,6 +184,11 @@ class CandidateController extends Controller
             Storage::disk('public')->delete($physicalPath);
         }
 
+        if ($candidate->hr_photo_path) {
+            $physicalPath = str_replace('storage/', '', ltrim($candidate->hr_photo_path, '/'));
+            Storage::disk('public')->delete($physicalPath);
+        }
+
         $candidate->delete();
 
         return redirect()->route('candidates.index')
@@ -218,13 +223,38 @@ class CandidateController extends Controller
         $candidate = Candidate::findOrFail($id);
 
         $request->validate([
-            'senior_manager_ids' => ['nullable', 'array'],
+            'senior_manager_ids'   => ['nullable', 'array'],
             'senior_manager_ids.*' => ['integer', 'exists:users,id'],
+            'hr_notes'             => ['nullable', 'string', 'max:5000'],
+            'hr_photo'             => ['nullable', 'image', 'max:10240'],
+            'remove_hr_photo'      => ['nullable', 'boolean'],
         ]);
 
+        $updateData = [
+            'hr_notes' => $request->input('hr_notes'),
+        ];
+
+        if ($request->boolean('remove_hr_photo') && $candidate->hr_photo_path) {
+            $physicalPath = str_replace('storage/', '', ltrim($candidate->hr_photo_path, '/'));
+            Storage::disk('public')->delete($physicalPath);
+            $updateData['hr_photo_path'] = null;
+        }
+
+        if ($request->hasFile('hr_photo')) {
+            if ($candidate->hr_photo_path) {
+                $physicalPath = str_replace('storage/', '', ltrim($candidate->hr_photo_path, '/'));
+                Storage::disk('public')->delete($physicalPath);
+            }
+            $file = $request->file('hr_photo');
+            $filename = now()->format('Y-m-d-His-') . uniqid() . '.' . $file->extension();
+            $path = $file->storeAs('candidates/hr', $filename, 'public');
+            $updateData['hr_photo_path'] = 'storage/' . ltrim($path, '/');
+        }
+
+        $candidate->update($updateData);
         $candidate->seniorManagers()->sync($request->input('senior_manager_ids', []));
 
-        return back()->with('success', 'Đã chuyển đơn ứng tuyển thành công.');
+        return back()->with('success', 'Đã lưu nhận xét và chuyển đơn ứng tuyển thành công.');
     }
 
     public function saveReview(Request $request, $id)

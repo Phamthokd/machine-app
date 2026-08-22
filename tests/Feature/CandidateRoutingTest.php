@@ -261,5 +261,61 @@ class CandidateRoutingTest extends TestCase
         ]);
         $responseValid->assertSessionHasNoErrors();
     }
+
+    public function test_hr_can_add_optional_notes_and_photo_when_routing_candidate()
+    {
+        \Illuminate\Support\Facades\Storage::fake('public');
+
+        $hr = User::factory()->create();
+        $hr->assignRole('hr');
+
+        $manager = User::factory()->create();
+        $manager->assignRole('senior_manager');
+
+        $candidate = Candidate::create([
+            'full_name' => 'Candidate for HR Review',
+            'gender' => 'female',
+            'phone' => '0912345678',
+            'position_applied' => 'QA Inspector',
+        ]);
+
+        $this->actingAs($hr);
+
+        $fakePhoto = \Illuminate\Http\UploadedFile::fake()->image('hr_assessment.jpg');
+
+        $response = $this->post("/candidates/{$candidate->id}/route", [
+            'senior_manager_ids' => [$manager->id],
+            'hr_notes' => 'Ứng viên có kỹ năng giao tiếp tốt, tác phong chuyên nghiệp, phù hợp với QA.',
+            'hr_photo' => $fakePhoto,
+        ]);
+
+        $response->assertRedirect();
+        $candidate->refresh();
+
+        $this->assertEquals('Ứng viên có kỹ năng giao tiếp tốt, tác phong chuyên nghiệp, phù hợp với QA.', $candidate->hr_notes);
+        $this->assertNotNull($candidate->hr_photo_path);
+
+        $storedPath = str_replace('storage/', '', $candidate->hr_photo_path);
+        \Illuminate\Support\Facades\Storage::disk('public')->assertExists($storedPath);
+
+        // Check manager can view the HR review note
+        $this->actingAs($manager);
+        $showResponse = $this->get("/candidates/{$candidate->id}");
+        $showResponse->assertStatus(200);
+        $showResponse->assertSee('Ứng viên có kỹ năng giao tiếp tốt, tác phong chuyên nghiệp, phù hợp với QA.');
+
+        // Test HR can remove the photo
+        $this->actingAs($hr);
+        $this->post("/candidates/{$candidate->id}/route", [
+            'senior_manager_ids' => [$manager->id],
+            'hr_notes' => 'Cập nhật nhận xét: đã hoàn thành bài test.',
+            'remove_hr_photo' => '1',
+        ]);
+
+        $candidate->refresh();
+        $this->assertEquals('Cập nhật nhận xét: đã hoàn thành bài test.', $candidate->hr_notes);
+        $this->assertNull($candidate->hr_photo_path);
+        \Illuminate\Support\Facades\Storage::disk('public')->assertMissing($storedPath);
+    }
 }
 

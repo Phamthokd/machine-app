@@ -17,6 +17,7 @@ class Candidate extends Model
         'referral_name', 'referral_department', 'referral_relation',
         'emergency_name', 'emergency_address', 'emergency_relation', 'emergency_phone',
         'work_experiences', 'expected_salary', 'submitted_by',
+        'hr_notes', 'hr_photo_path',
     ];
 
     protected $casts = [

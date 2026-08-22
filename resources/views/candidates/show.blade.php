@@ -191,6 +191,31 @@
         <div class="info-row"><div class="info-label">{{ __('messages.expected_salary') }}</div><div class="info-value fw-bold text-success">{{ $candidate->expected_salary }}</div></div>
         @endif
 
+        {{-- ===== NHẬN XÉT CỦA BỘ PHẬN NHÂN SỰ (HR) ===== --}}
+        @if($candidate->hr_notes || $candidate->hr_photo_path)
+        <div class="card border-0 rounded-4 mt-4 shadow-sm overflow-hidden" style="background:#fff; border: 1px solid #d1fae5 !important;">
+            <div class="p-3 d-flex align-items-center gap-2" style="background:linear-gradient(135deg,#059669,#10b981);">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                <span class="fw-bold text-white" style="font-size:.95rem;">💬 {{ __('messages.candidate_hr_review_heading') }}</span>
+            </div>
+            <div class="p-4" style="background:#f0fdf4;">
+                @if($candidate->hr_notes)
+                <div class="mb-3" style="font-size:.95rem;color:#064e3b;white-space:pre-line;line-height:1.6;">{{ $candidate->hr_notes }}</div>
+                @endif
+
+                @if($candidate->hr_photo_path)
+                <div class="mt-2">
+                    <div class="text-muted small fw-semibold mb-2">📷 {{ __('messages.candidate_hr_photo_attached') }}</div>
+                    <a href="{{ asset($candidate->hr_photo_path) }}" target="_blank" class="d-inline-block rounded-3 overflow-hidden border shadow-sm" style="max-width:320px;transition:transform .2s;">
+                        <img src="{{ asset($candidate->hr_photo_path) }}" alt="{{ __('messages.candidate_hr_photo_label') }}" class="img-fluid rounded-3" style="max-height:240px;object-fit:cover;">
+                    </a>
+                    <div class="text-muted small mt-1"><em>{{ __('messages.candidate_hr_photo_click_view') }}</em></div>
+                </div>
+                @endif
+            </div>
+        </div>
+        @endif
+
         {{-- ===== NHẬN XÉT CỦA QUẢN LÝ CAO CẤP ===== --}}
         @php
             $currentUserReview = $candidate->seniorManagers->firstWhere('id', auth()->id());
@@ -436,15 +461,16 @@
         {{-- Section chuyển đơn: HR & Admin --}}
         @if(auth()->user()->hasAnyRole(['admin', 'hr']))
         <div class="card border-0 bg-light rounded-4 p-4 mt-4 shadow-sm">
-            <h5 class="fw-bold mb-2">📢 Chuyển đơn ứng tuyển tới quản lý cao cấp</h5>
-            <p class="text-secondary small mb-3">Chọn các Quản lý cao cấp sẽ được xem và theo dõi hồ sơ này.</p>
+            <h5 class="fw-bold mb-2">📢 {{ __('messages.candidate_forward_title') }}</h5>
+            <p class="text-secondary small mb-3">{{ __('messages.candidate_forward_desc') }}</p>
 
-            <form method="POST" action="{{ route('candidates.route', $candidate->id) }}">
+            <form method="POST" action="{{ route('candidates.route', $candidate->id) }}" enctype="multipart/form-data">
                 @csrf
                 <div class="mb-3">
+                    <label class="form-label fw-semibold" style="font-size:.88rem;">{{ __('messages.candidate_forward_target_label') }}</label>
                     <div class="dropdown w-100">
                         <button class="btn btn-white bg-white border w-100 text-start d-flex justify-content-between align-items-center dropdown-toggle py-3 px-3 rounded-3" type="button" id="seniorManagerDropdown" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
-                            <span id="selectedManagersLabel">Chọn quản lý cao cấp...</span>
+                            <span id="selectedManagersLabel">{{ __('messages.candidate_forward_select_placeholder') }}</span>
                         </button>
                         <div class="dropdown-menu p-3 w-100 shadow-sm border-0 rounded-3 mt-1" aria-labelledby="seniorManagerDropdown" style="max-height: 250px; overflow-y: auto; min-width: 250px;">
                             @forelse($seniorManagers as $sm)
@@ -456,17 +482,46 @@
                                 </label>
                             </div>
                             @empty
-                            <div class="text-muted small py-1">Không tìm thấy Quản lý cao cấp nào trong hệ thống.</div>
+                            <div class="text-muted small py-1">{{ __('messages.candidate_forward_no_managers') }}</div>
                             @endforelse
                         </div>
                     </div>
                 </div>
 
-                @if($seniorManagers->count() > 0)
+                {{-- Nhận xét của HR --}}
+                <div class="mb-3">
+                    <label class="form-label fw-semibold" style="font-size:.88rem;">💬 {{ __('messages.candidate_hr_notes_title') }} <span class="text-muted fw-normal">{{ __('messages.optional_label') }}</span></label>
+                    <textarea name="hr_notes" rows="3" class="form-control rounded-3 bg-white"
+                        placeholder="{{ __('messages.candidate_hr_notes_placeholder') }}"
+                        style="font-size:.9rem;border-color:#d1d5db;">{{ old('hr_notes', $candidate->hr_notes) }}</textarea>
+                </div>
+
+                {{-- Đính kèm ảnh của HR --}}
+                <div class="mb-3">
+                    <label class="form-label fw-semibold" style="font-size:.88rem;">📷 {{ __('messages.candidate_hr_photo_label') }} <span class="text-muted fw-normal">({{ __('messages.candidate_hr_photo_hint') }})</span></label>
+                    @if($candidate->hr_photo_path)
+                    <div class="mb-2 p-2 bg-white rounded-3 border d-flex align-items-center gap-3">
+                        <a href="{{ asset($candidate->hr_photo_path) }}" target="_blank">
+                            <img src="{{ asset($candidate->hr_photo_path) }}" alt="{{ __('messages.candidate_hr_photo_current') }}" style="width:55px;height:55px;object-fit:cover;border-radius:6px;">
+                        </a>
+                        <div class="flex-grow-1">
+                            <div class="small fw-semibold text-dark">{{ __('messages.candidate_hr_photo_current') }}</div>
+                            <div class="form-check mt-1">
+                                <input class="form-check-input" type="checkbox" name="remove_hr_photo" value="1" id="remove_hr_photo">
+                                <label class="form-check-label text-danger small fw-medium" for="remove_hr_photo">
+                                    🗑️ {{ __('messages.candidate_hr_photo_delete') }}
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
+                    <input type="file" name="hr_photo" class="form-control rounded-3 bg-white" accept="image/*" style="font-size:.88rem;border-color:#d1d5db;">
+                    <div class="form-text text-muted" style="font-size:.78rem;">{{ __('messages.candidate_hr_photo_formats') }}</div>
+                </div>
+
                 <button type="submit" class="btn btn-primary rounded-3 fw-bold px-4 py-2 mt-2">
-                    💾 Cập nhật chuyển đơn
+                    💾 {{ __('messages.candidate_forward_submit_btn') }}
                 </button>
-                @endif
             </form>
         </div>
 
@@ -474,6 +529,8 @@
             document.addEventListener("DOMContentLoaded", function() {
                 const checkboxes = document.querySelectorAll('.sm-checkbox');
                 const label = document.getElementById('selectedManagersLabel');
+                const selectedPrefix = "{{ __('messages.candidate_forward_selected_prefix') }}";
+                const placeholderText = "{{ __('messages.candidate_forward_select_placeholder') }}";
 
                 function updateLabel() {
                     const selectedNames = [];
@@ -483,9 +540,9 @@
                         }
                     });
                     if (selectedNames.length > 0) {
-                        label.textContent = "Đã chọn: " + selectedNames.join(', ');
+                        label.textContent = selectedPrefix + selectedNames.join(', ');
                     } else {
-                        label.textContent = "Chọn quản lý cao cấp...";
+                        label.textContent = placeholderText;
                     }
                 }
 
