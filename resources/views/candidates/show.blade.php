@@ -216,10 +216,10 @@
         </div>
         @endif
 
-        {{-- ===== NHẬN XÉT CỦA QUẢN LÝ CAO CẤP ===== --}}
+        {{-- ===== NHẬN XÉT CỦA QUẢN LÝ CAO CẤP / CHỦ QUẢN ===== --}}
         @php
             $currentUserReview = $candidate->seniorManagers->firstWhere('id', auth()->id());
-            $isSeniorManager   = auth()->user()->hasRole('senior_manager');
+            $isSeniorManager   = auth()->user()->hasAnyRole(['senior_manager', 'supervisor']);
             $isAssigned        = $currentUserReview !== null;
             $isLocked          = (bool) ($currentUserReview?->pivot?->is_locked ?? false);
         @endphp
@@ -479,6 +479,11 @@
                                     <input class="form-check-input sm-checkbox" type="checkbox" name="senior_manager_ids[]" value="{{ $sm->id }}" data-name="{{ $sm->name }}"
                                         @checked($candidate->seniorManagers->contains($sm->id))>
                                     <span class="fw-medium text-dark">{{ $sm->name }}</span>
+                                    @if($sm->hasRole('supervisor'))
+                                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle" style="font-size:.7rem;">{{ __('messages.role_supervisor') ?? 'Chủ quản' }}</span>
+                                    @elseif($sm->hasRole('senior_manager'))
+                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle" style="font-size:.7rem;">{{ __('messages.role_senior_manager') ?? 'Quản lý cao cấp' }}</span>
+                                    @endif
                                 </label>
                             </div>
                             @empty

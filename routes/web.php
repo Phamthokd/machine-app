@@ -186,8 +186,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::delete('/audits/{audit}', [\App\Http\Controllers\AuditController::class, 'destroy'])->name('audits.destroy');
     });
 
-    // CANDIDATES: Admin + Senior Manager + HR + candidates.create
-    Route::middleware(['role_or_permission:admin|senior_manager|hr|candidates.create'])->group(function () {
+    // CANDIDATES: Admin + Senior Manager + Supervisor + HR + candidates.create
+    Route::middleware(['role_or_permission:admin|senior_manager|supervisor|hr|candidates.create'])->group(function () {
         Route::get('/candidates', [CandidateController::class, 'index'])->name('candidates.index');
         Route::get('/candidates/create', [CandidateController::class, 'create'])->name('candidates.create');
         Route::post('/candidates', [CandidateController::class, 'store'])->name('candidates.store');

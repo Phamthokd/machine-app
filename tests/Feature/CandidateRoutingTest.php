@@ -317,5 +317,70 @@ class CandidateRoutingTest extends TestCase
         $this->assertNull($candidate->hr_photo_path);
         \Illuminate\Support\Facades\Storage::disk('public')->assertMissing($storedPath);
     }
+
+    public function test_supervisor_can_access_candidates_and_only_view_assigned_candidates()
+    {
+        $hr = User::factory()->create();
+        $hr->assignRole('hr');
+
+        $supervisor1 = User::factory()->create();
+        $supervisor1->assignRole('supervisor');
+
+        $supervisor2 = User::factory()->create();
+        $supervisor2->assignRole('supervisor');
+
+        $candidate = Candidate::create([
+            'full_name' => 'Candidate for Supervisor Review',
+            'gender' => 'male',
+            'phone' => '0933445566',
+            'position_applied' => 'Sewing Supervisor',
+        ]);
+
+        // 1. Supervisor cannot view candidates before being routed to them
+        $this->actingAs($supervisor1);
+        $resIndex = $this->get('/candidates');
+        $resIndex->assertStatus(200);
+        $resIndex->assertDontSee('Candidate for Supervisor Review');
+
+        $resShow = $this->get("/candidates/{$candidate->id}");
+        $resShow->assertStatus(403);
+
+        // 2. HR routes candidate to supervisor 1
+        $this->actingAs($hr);
+        $routeRes = $this->post("/candidates/{$candidate->id}/route", [
+            'senior_manager_ids' => [$supervisor1->id],
+        ]);
+        $routeRes->assertRedirect();
+        $this->assertTrue($candidate->fresh()->seniorManagers->contains($supervisor1->id));
+
+        // 3. Supervisor 1 can now view and review
+        $this->actingAs($supervisor1);
+        $resIndexAssigned = $this->get('/candidates');
+        $resIndexAssigned->assertStatus(200);
+        $resIndexAssigned->assertSee('Candidate for Supervisor Review');
+
+        $resShowAssigned = $this->get("/candidates/{$candidate->id}");
+        $resShowAssigned->assertStatus(200);
+        $resShowAssigned->assertSee('Candidate for Supervisor Review');
+
+        // Supervisor 1 submits review
+        $reviewRes = $this->post("/candidates/{$candidate->id}/review", [
+            'review_note' => 'Chủ quản đánh giá: tay nghề tốt, đồng ý tiếp nhận.',
+            'review_result' => 'approved',
+            'proposed_salary' => '8,000,000 VNĐ',
+            'assigned_department' => 'Xưởng may 1',
+        ]);
+        $reviewRes->assertRedirect();
+        $this->assertEquals('approved', $candidate->fresh()->overall_review_status);
+
+        // Supervisor 2 still cannot see the candidate
+        $this->actingAs($supervisor2);
+        $resIndex2 = $this->get('/candidates');
+        $resIndex2->assertStatus(200);
+        $resIndex2->assertDontSee('Candidate for Supervisor Review');
+
+        $resShow2 = $this->get("/candidates/{$candidate->id}");
+        $resShow2->assertStatus(403);
+    }
 }
 

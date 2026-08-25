@@ -36,15 +36,15 @@ class CandidateController extends Controller
         $user = auth()->user();
         $query = Candidate::with('seniorManagers')->latest();
 
-        // Scope to assigned candidates for senior_manager
-        if ($user->hasRole('senior_manager')) {
+        // Scope to assigned candidates for senior_manager and supervisor
+        if ($user->hasAnyRole(['senior_manager', 'supervisor'])) {
             $query->whereHas('seniorManagers', function ($q) use ($user) {
                 $q->where('users.id', $user->id);
             });
         }
 
         // Non-management accounts (e.g. accounts with candidates.create permission) can only view candidates created within the last 1 hour
-        if (!$user->hasAnyRole(['admin', 'hr', 'senior_manager'])) {
+        if (!$user->hasAnyRole(['admin', 'hr', 'senior_manager', 'supervisor'])) {
             $query->where('created_at', '>=', now()->subHours(1));
         }
 
@@ -100,7 +100,7 @@ class CandidateController extends Controller
         }
 
         // Non-management accounts can only edit candidates created within the last 30 minutes
-        if (!$user->hasAnyRole(['admin', 'hr', 'senior_manager'])) {
+        if (!$user->hasAnyRole(['admin', 'hr', 'senior_manager', 'supervisor'])) {
             if ($candidate->created_at < now()->subMinutes(30)) {
                 abort(403, 'Phiếu phỏng vấn này đã tạo quá 30 phút, bạn không thể chỉnh sửa nữa.');
             }
@@ -122,7 +122,7 @@ class CandidateController extends Controller
             abort(403, 'Phiếu ứng tuyển này đã được HR chuyển tới Quản lý cấp cao, không thể chỉnh sửa.');
         }
 
-        if (!$user->hasAnyRole(['admin', 'hr', 'senior_manager'])) {
+        if (!$user->hasAnyRole(['admin', 'hr', 'senior_manager', 'supervisor'])) {
             if ($candidate->created_at < now()->subMinutes(30)) {
                 abort(403, 'Phiếu phỏng vấn này đã tạo quá 30 phút, bạn không thể chỉnh sửa nữa.');
             }
@@ -145,14 +145,14 @@ class CandidateController extends Controller
         $user = auth()->user();
 
         // Non-management accounts can only access candidates created within the last 1 hour
-        if (!$user->hasAnyRole(['admin', 'hr', 'senior_manager'])) {
+        if (!$user->hasAnyRole(['admin', 'hr', 'senior_manager', 'supervisor'])) {
             if ($candidate->created_at < now()->subHours(1)) {
                 abort(403, 'Phiếu phỏng vấn này đã tạo quá 1 tiếng, tài khoản của bạn không thể xem lại.');
             }
         }
 
-        // Access control for senior manager
-        if ($user->hasRole('senior_manager')) {
+        // Access control for senior manager & supervisor: only see assigned candidate forms
+        if ($user->hasAnyRole(['senior_manager', 'supervisor'])) {
             if (!$candidate->seniorManagers->contains($user->id)) {
                 abort(403, 'Bạn không được phép truy cập hồ sơ này.');
             }
@@ -160,10 +160,10 @@ class CandidateController extends Controller
 
         $seniorManagers = [];
         if ($user->hasAnyRole(['admin', 'hr'])) {
-            $seniorManagers = \App\Models\User::role('senior_manager')->get();
+            $seniorManagers = \App\Models\User::role(['senior_manager', 'supervisor'])->get();
         }
 
-        $allSeniorManagers = \App\Models\User::role('senior_manager')->get();
+        $allSeniorManagers = \App\Models\User::role(['senior_manager', 'supervisor'])->get();
 
         return view('candidates.show', compact('candidate', 'seniorManagers', 'allSeniorManagers'));
     }
@@ -173,7 +173,7 @@ class CandidateController extends Controller
         $candidate = Candidate::findOrFail($id);
         $user = auth()->user();
 
-        if (!$user->hasAnyRole(['admin', 'hr', 'senior_manager'])) {
+        if (!$user->hasAnyRole(['admin', 'hr', 'senior_manager', 'supervisor'])) {
             if ($candidate->created_at < now()->subHours(1)) {
                 abort(403, 'Phiếu phỏng vấn này đã tạo quá 1 tiếng, tài khoản của bạn không thể xóa.');
             }
@@ -200,14 +200,14 @@ class CandidateController extends Controller
         $candidate = Candidate::with('seniorManagers')->findOrFail($id);
         $user = auth()->user();
 
-        if (!$user->hasAnyRole(['admin', 'hr', 'senior_manager'])) {
+        if (!$user->hasAnyRole(['admin', 'hr', 'senior_manager', 'supervisor'])) {
             if ($candidate->created_at < now()->subHours(1)) {
                 abort(403, 'Phiếu phỏng vấn này đã tạo quá 1 tiếng, tài khoản của bạn không thể in.');
             }
         }
 
-        // Access control for senior manager
-        if ($user->hasRole('senior_manager')) {
+        // Access control for senior manager & supervisor
+        if ($user->hasAnyRole(['senior_manager', 'supervisor'])) {
             if (!$candidate->seniorManagers->contains($user->id)) {
                 abort(403, 'Bạn không được phép in hồ sơ này.');
             }
@@ -259,12 +259,12 @@ class CandidateController extends Controller
 
     public function saveReview(Request $request, $id)
     {
-        // Only the assigned senior_manager or admin can review
+        // Only the assigned senior_manager, supervisor or admin can review
         $user = auth()->user();
         $candidate = Candidate::findOrFail($id);
 
         $isAssigned = $candidate->seniorManagers->contains($user->id);
-        abort_unless($user->isAdminUser() || ($user->hasRole('senior_manager') && $isAssigned), 403);
+        abort_unless($user->isAdminUser() || ($user->hasAnyRole(['senior_manager', 'supervisor']) && $isAssigned), 403);
 
         $currentPivot = $candidate->seniorManagers->where('id', $user->id)->first()?->pivot;
         if ($currentPivot && $currentPivot->is_locked) {
@@ -329,7 +329,7 @@ class CandidateController extends Controller
         $candidate = Candidate::findOrFail($id);
 
         $isAssigned = $candidate->seniorManagers->contains($user->id);
-        abort_unless($user->isAdminUser() || ($user->hasRole('senior_manager') && $isAssigned), 403);
+        abort_unless($user->isAdminUser() || ($user->hasAnyRole(['senior_manager', 'supervisor']) && $isAssigned), 403);
 
         $request->validate([
             'target_user_id' => ['required', 'integer', 'exists:users,id'],
