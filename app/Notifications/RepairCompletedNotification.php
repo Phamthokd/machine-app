@@ -22,8 +22,12 @@ class RepairCompletedNotification extends Notification
         return [
             'repair_id'  => $this->ticket->id,
             'event_key'  => 'repair_completed_needs_evaluation',
-            'title'      => 'Phiếu sửa hoàn thành – Cần đánh giá',
-            'message'    => "Phiếu #{$this->ticket->code} – {$this->ticket->machine->ma_thiet_bi} đã sửa xong. Vui lòng đánh giá chất lượng sửa chữa.",
+            'title'      => 'messages.notif_repair_completed_title',
+            'message'    => 'messages.notif_repair_completed_message',
+            'params'     => [
+                'code'   => $this->ticket->code,
+                'device' => $this->ticket->machine->ma_thiet_bi ?? '',
+            ],
             'url'        => "/repairs/{$this->ticket->id}/evaluate",
         ];
     }

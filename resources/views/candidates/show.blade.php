@@ -224,15 +224,15 @@
             $isLocked          = (bool) ($currentUserReview?->pivot?->is_locked ?? false);
         @endphp
 
-        {{-- Form nhận xét: chỉ hiển thị cho senior_manager đã được chuyển đơn --}}
+        {{-- Form nhận xét: chỉ hiển thị cho senior_manager / supervisor đã được chuyển đơn --}}
         @if($isSeniorManager && $isAssigned)
         <div class="card border-0 rounded-4 mt-4 shadow-sm overflow-hidden">
             <div class="p-3 d-flex align-items-center gap-2" style="background:linear-gradient(135deg,#1a3a5c,#2563eb);">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                <span class="fw-bold text-white" style="font-size:.95rem;">✏️ Nhận xét của bạn</span>
+                <span class="fw-bold text-white" style="font-size:.95rem;">✏️ {{ __('messages.your_review_heading') }}</span>
                 @if($currentUserReview->pivot->reviewed_at)
                     <span class="badge ms-auto" style="background:rgba(255,255,255,0.2);font-size:.75rem;">
-                        Đã nhận xét lúc {{ \Carbon\Carbon::parse($currentUserReview->pivot->reviewed_at)->format('H:i d/m/Y') }}
+                        {{ __('messages.reviewed_at_time', ['time' => \Carbon\Carbon::parse($currentUserReview->pivot->reviewed_at)->format('H:i d/m/Y')]) }}
                     </span>
                 @endif
             </div>
@@ -252,11 +252,11 @@
                             @if($currentUserReview->pivot->review_result === 'approved') bg-success
                             @elseif($currentUserReview->pivot->review_result === 'rejected') bg-danger
                             @else bg-warning text-dark @endif">
-                            @if($currentUserReview->pivot->review_result === 'approved') ✅ Đồng ý tuyển dụng
-                            @elseif($currentUserReview->pivot->review_result === 'rejected') ❌ Không tuyển dụng
-                            @else ⏳ Chờ xem xét @endif
+                            @if($currentUserReview->pivot->review_result === 'approved') ✅ {{ __('messages.candidate_status_approved') }}
+                            @elseif($currentUserReview->pivot->review_result === 'rejected') ❌ {{ __('messages.candidate_status_rejected') }}
+                            @else ⏳ {{ __('messages.candidate_status_pending') }} @endif
                         </span>
-                        <span class="text-muted small">Nhận xét hiện tại:</span>
+                        <span class="text-muted small">{{ __('messages.current_review_label') }}</span>
                     </div>
                     <div style="font-size:.9rem;white-space:pre-line;">{{ $currentUserReview->pivot->review_note }}</div>
                 </div>
@@ -266,13 +266,13 @@
                 <div class="alert alert-primary rounded-3 mb-3 d-flex align-items-center justify-content-between flex-wrap gap-2" style="font-size:.88rem; background:#eff6ff; color:#1e40af; border-color:#bfdbfe;">
                     <div class="d-flex align-items-center gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                        <div><strong>Phiếu đánh giá đã được duyệt & khóa.</strong> Phiếu này hiện tại chỉ có thể xem, không thể chỉnh sửa.</div>
+                        <div><strong>{{ __('messages.review_locked_banner') }}</strong></div>
                     </div>
                     @if(auth()->user()->isAdminUser())
-                    <form action="{{ route('candidates.unlock_review', ['id' => $candidate->id, 'userId' => $currentUserReview->id]) }}" method="POST" onsubmit="return confirm('Bạn có chắc chắn muốn HẠ PHIẾU DUYỆT (Hủy duyệt) để mở khóa cho chủ quản sửa lại dữ liệu?')">
+                    <form action="{{ route('candidates.unlock_review', ['id' => $candidate->id, 'userId' => $currentUserReview->id]) }}" method="POST" onsubmit="return confirm('{{ __('messages.confirm_unlock_review') }}')">
                         @csrf
                         <button type="submit" class="btn btn-sm btn-warning fw-bold rounded-2 text-dark d-flex align-items-center gap-1">
-                            🔓 Hạ phiếu duyệt (Mở khóa)
+                            🔓 {{ __('messages.unlock_review_btn') }}
                         </button>
                     </form>
                     @endif
@@ -282,18 +282,18 @@
                 <form method="POST" action="{{ route('candidates.review', $candidate->id) }}" id="reviewForm">
                     @csrf
                     <div class="mb-3">
-                        <label class="form-label fw-semibold" style="font-size:.85rem;">Nội dung nhận xét <span class="text-danger">*</span></label>
+                        <label class="form-label fw-semibold" style="font-size:.85rem;">{{ __('messages.review_notes_label') }} <span class="text-danger">*</span></label>
                         <textarea name="review_note" rows="4" class="form-control rounded-3" required {{ $isLocked ? 'disabled' : '' }}
-                            placeholder="Nhận xét về ứng viên, năng lực, thái độ, phù hợp với vị trí..."
+                            placeholder="{{ __('messages.review_notes_placeholder') }}"
                             style="font-size:.9rem;border-color:#e5e7eb;">{{ old('review_note', $currentUserReview->pivot->review_note) }}</textarea>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-semibold" style="font-size:.85rem;">Kết quả đánh giá <span class="text-danger">*</span></label>
+                        <label class="form-label fw-semibold" style="font-size:.85rem;">{{ __('messages.evaluation_result_label') }} <span class="text-danger">*</span></label>
                         <div class="d-flex gap-2 flex-wrap">
                             @foreach([
-                                ['value'=>'approved','label'=>'✅ Đồng ý tuyển dụng','color'=>'#16a34a','bg'=>'#dcfce7'],
-                                ['value'=>'rejected','label'=>'❌ Không tuyển dụng','color'=>'#dc2626','bg'=>'#fee2e2'],
-                                ['value'=>'pending', 'label'=>'⏳ Chờ xem xét','color'=>'#d97706','bg'=>'#fef9c3'],
+                                ['value'=>'approved','label'=>'✅ ' . __('messages.candidate_status_approved'),'color'=>'#16a34a','bg'=>'#dcfce7'],
+                                ['value'=>'rejected','label'=>'❌ ' . __('messages.candidate_status_rejected'),'color'=>'#dc2626','bg'=>'#fee2e2'],
+                                ['value'=>'pending', 'label'=>'⏳ ' . __('messages.candidate_status_pending'),'color'=>'#d97706','bg'=>'#fef9c3'],
                             ] as $opt)
                             <label style="cursor:{{ $isLocked ? 'default' : 'pointer' }};flex:1;min-width:130px;">
                                 <input type="radio" name="review_result" value="{{ $opt['value'] }}" class="d-none review-radio" {{ $isLocked ? 'disabled' : '' }}
@@ -310,28 +310,53 @@
 
                     {{-- ===== 5 TRƯỜNG BỔ SUNG ===== --}}
                     <hr class="my-3" style="border-color:#e5e7eb;">
-                    <div class="fw-semibold mb-3" style="font-size:.85rem;color:#1a3a5c;">📋 Thông tin tuyển dụng (nếu đồng ý)</div>
+                    <div class="fw-semibold mb-3" style="font-size:.85rem;color:#1a3a5c;">📋 {{ __('messages.hiring_info_title') }}</div>
 
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold" style="font-size:.85rem;">💰 Mức lương đề xuất</label>
+                            <label class="form-label fw-semibold" style="font-size:.85rem;">💰 {{ __('messages.proposed_salary_label') }}</label>
                             <input type="text" name="proposed_salary" class="form-control rounded-3" {{ $isLocked ? 'disabled' : '' }}
-                                placeholder="VD: 5,000,000 VNĐ / tháng"
+                                placeholder="{{ __('messages.proposed_salary_placeholder') }}"
                                 style="font-size:.9rem;border-color:#e5e7eb;"
                                 value="{{ old('proposed_salary', $currentUserReview->pivot->proposed_salary) }}">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold" style="font-size:.85rem;">📅 Ngày bắt đầu làm việc</label>
+                            <label class="form-label fw-semibold" style="font-size:.85rem;">📅 {{ __('messages.start_date_label') }}</label>
                             <input type="date" name="start_date" class="form-control rounded-3" {{ $isLocked ? 'disabled' : '' }}
                                 style="font-size:.9rem;border-color:#e5e7eb;"
                                 value="{{ old('start_date', $currentUserReview->pivot->start_date ? \Carbon\Carbon::parse($currentUserReview->pivot->start_date)->format('Y-m-d') : '') }}">
                         </div>
+                        @php
+                            $currentProbation = old('probation_period', $currentUserReview->pivot->probation_period);
+                            $standardDays = [0, 3, 6, 30, 60, 180];
+                            $standardProbations = array_map(fn($d) => $d . ' ngày', $standardDays);
+                            $isCustomProbation = !empty($currentProbation) && !in_array($currentProbation, $standardProbations);
+                        @endphp
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold" style="font-size:.85rem;">⏱️ Thời gian thử việc</label>
-                            <input type="text" name="probation_period" class="form-control rounded-3" {{ $isLocked ? 'disabled' : '' }}
-                                placeholder="VD: 2 tháng"
-                                style="font-size:.9rem;border-color:#e5e7eb;"
-                                value="{{ old('probation_period', $currentUserReview->pivot->probation_period) }}">
+                            <label class="form-label fw-semibold" style="font-size:.85rem;">⏱️ {{ __('messages.probation_period_label') }}</label>
+                            <div class="row g-2">
+                                <div class="col-{{ $isCustomProbation ? '6' : '12' }}" id="probationSelectCol">
+                                    <select id="probationSelect" class="form-select rounded-3" {{ $isLocked ? 'disabled' : '' }} style="font-size:.9rem;border-color:#e5e7eb;">
+                                        <option value="">-- {{ __('messages.probation_select_placeholder') }} --</option>
+                                        @foreach($standardDays as $d)
+                                            @php
+                                                $optVal = $d . ' ngày';
+                                                $optLabel = __('messages.days_count', ['count' => $d]);
+                                                $isSelected = ($currentProbation === $optVal || $currentProbation === ($d . '天') || $currentProbation === ($d . ' days') || $currentProbation === (string)$d);
+                                            @endphp
+                                            <option value="{{ $optVal }}" {{ $isSelected ? 'selected' : '' }}>{{ $optLabel }}</option>
+                                        @endforeach
+                                        <option value="__other__" {{ $isCustomProbation ? 'selected' : '' }}>{{ __('messages.probation_other') }}</option>
+                                    </select>
+                                </div>
+                                <div class="col-6" id="probationCustomCol" style="{{ $isCustomProbation ? '' : 'display:none;' }}">
+                                    <input type="text" id="probationCustomInput" class="form-control rounded-3" {{ $isLocked ? 'disabled' : '' }}
+                                        placeholder="{{ __('messages.probation_custom_placeholder') }}"
+                                        style="font-size:.9rem;border-color:#e5e7eb;"
+                                        value="{{ $isCustomProbation ? $currentProbation : '' }}">
+                                </div>
+                            </div>
+                            <input type="hidden" name="probation_period" id="probationFinalInput" value="{{ $currentProbation }}">
                         </div>
                         @php
                             $defaultAssignedDept = $candidate->department_applied;
@@ -346,16 +371,16 @@
                             }
                         @endphp
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold" style="font-size:.85rem;">🏢 Bộ phận / Vị trí phân công</label>
+                            <label class="form-label fw-semibold" style="font-size:.85rem;">🏢 {{ __('messages.assigned_department_label') }}</label>
                             <input type="text" name="assigned_department" class="form-control rounded-3" {{ $isLocked ? 'disabled' : '' }}
-                                placeholder="VD: Phòng Kế toán / Nhân viên kinh doanh"
+                                placeholder="{{ __('messages.assigned_department_placeholder') }}"
                                 style="font-size:.9rem;border-color:#e5e7eb;"
                                 value="{{ old('assigned_department', $currentUserReview->pivot->assigned_department ?: $defaultAssignedDept) }}">
                         </div>
                         <div class="col-12">
-                            <label class="form-label fw-semibold" style="font-size:.85rem;">📝 Ghi chú bổ sung</label>
+                            <label class="form-label fw-semibold" style="font-size:.85rem;">📝 {{ __('messages.extra_note_label') }}</label>
                             <textarea name="extra_note" rows="3" class="form-control rounded-3" {{ $isLocked ? 'disabled' : '' }}
-                                placeholder="Các điều kiện hoặc ghi chú thêm..."
+                                placeholder="{{ __('messages.extra_note_placeholder') }}"
                                 style="font-size:.9rem;border-color:#e5e7eb;">{{ old('extra_note', $currentUserReview->pivot->extra_note) }}</textarea>
                         </div>
                     </div>
@@ -363,22 +388,22 @@
                     @if(!$isLocked)
                     <div class="d-flex gap-2 flex-wrap mt-3">
                         <button type="submit" name="submit_action" value="save" class="btn fw-bold rounded-3 px-4 py-2" style="background:linear-gradient(135deg,#1a3a5c,#2563eb);color:white;">
-                            💾 Lưu nhận xét
+                            💾 {{ __('messages.save_review_btn') }}
                         </button>
                         <button type="button" id="btnForwardReview" class="btn btn-primary fw-bold rounded-3 px-4 py-2" data-bs-toggle="modal" data-bs-target="#forwardReviewModal">
-                            📤 Gửi phiếu
+                            📤 {{ __('messages.forward_review_btn') }}
                         </button>
-                        <button type="submit" id="btnApproveReview" name="submit_action" value="approve" class="btn btn-success fw-bold rounded-3 px-4 py-2" onclick="return confirm('Bạn có chắc chắn muốn PHÊ DUYỆT và KHÓA phiếu này? Sau khi duyệt sẽ không thể chỉnh sửa lại.')">
-                            ✅ Duyệt
+                        <button type="submit" id="btnApproveReview" name="submit_action" value="approve" class="btn btn-success fw-bold rounded-3 px-4 py-2" onclick="return confirm('{{ __('messages.confirm_approve_review') }}')">
+                            ✅ {{ __('messages.approve_review_btn') }}
                         </button>
                     </div>
                     @else
                     <div class="d-flex gap-2 flex-wrap align-items-center mt-3">
                         <span class="badge bg-success rounded-3 px-3 py-2" style="font-size:.9rem;">
-                            🔒 Đã duyệt & Khóa phiếu (Chỉ xem)
+                            🔒 {{ __('messages.locked_review_badge') }}
                         </span>
                         <button type="button" class="btn btn-primary btn-sm fw-bold rounded-3 px-3 py-2" data-bs-toggle="modal" data-bs-target="#forwardReviewModal">
-                            📤 Gửi phiếu cho quản lý khác
+                            📤 {{ __('messages.forward_to_other_manager_btn') }}
                         </button>
                     </div>
                     @endif
@@ -392,7 +417,7 @@
         <div class="mt-4">
             <div class="section-badge">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                Nhận xét từ Quản lý cao cấp
+                {{ __('messages.senior_manager_reviews_title') }}
             </div>
             @foreach($candidate->seniorManagers as $sm)
             <div class="mb-3 rounded-3 border overflow-hidden" style="font-size:.88rem;">
@@ -408,23 +433,23 @@
                             @if($sm->pivot->review_result === 'approved') bg-success
                             @elseif($sm->pivot->review_result === 'rejected') bg-danger
                             @else bg-warning text-dark @endif">
-                            @if($sm->pivot->review_result === 'approved') ✅ Đồng ý
-                            @elseif($sm->pivot->review_result === 'rejected') ❌ Không tuyển
-                            @else ⏳ Chờ xem @endif
+                            @if($sm->pivot->review_result === 'approved') ✅ {{ __('messages.candidate_status_approved') }}
+                            @elseif($sm->pivot->review_result === 'rejected') ❌ {{ __('messages.candidate_status_rejected') }}
+                            @else ⏳ {{ __('messages.candidate_status_pending') }} @endif
                         </span>
                         @if($sm->pivot->is_locked)
-                            <span class="badge bg-dark ms-1">🔒 Đã khóa</span>
+                            <span class="badge bg-dark ms-1">🔒 {{ __('messages.locked_badge') }}</span>
                             @if(auth()->user()->isAdminUser())
-                            <form action="{{ route('candidates.unlock_review', ['id' => $candidate->id, 'userId' => $sm->id]) }}" method="POST" class="d-inline ms-1" onsubmit="return confirm('Bạn có chắc chắn muốn HẠ PHIẾU DUYỆT của {{ $sm->name }} để mở khóa cho chủ quản sửa lại dữ liệu?')">
+                            <form action="{{ route('candidates.unlock_review', ['id' => $candidate->id, 'userId' => $sm->id]) }}" method="POST" class="d-inline ms-1" onsubmit="return confirm('{{ __('messages.confirm_unlock_review') }}')">
                                 @csrf
                                 <button type="submit" class="btn btn-xs btn-outline-warning text-dark border-warning fw-semibold rounded-2 py-0 px-2" style="font-size:.75rem;">
-                                    🔓 Hạ phiếu duyệt
+                                    🔓 {{ __('messages.unlock_review_short_btn') }}
                                 </button>
                             </form>
                             @endif
                         @endif
                     @else
-                        <span class="badge bg-secondary ms-auto">Chưa nhận xét</span>
+                        <span class="badge bg-secondary ms-auto">{{ __('messages.not_reviewed_yet') }}</span>
                     @endif
                 </div>
                 <div class="px-3 py-2" style="color:#374151;">
@@ -595,13 +620,49 @@
                         btn.style.opacity = '0.45';
                         btn.style.cursor = 'not-allowed';
                         btn.style.pointerEvents = 'none';
-                        btn.setAttribute('title', 'Vui lòng chọn Đồng ý tuyển dụng hoặc Không tuyển dụng để mở nút');
+                        btn.setAttribute('title', "{{ __('messages.decision_required_hint') }}");
                     }
                 });
             }
 
             radios.forEach(r => r.addEventListener('change', updateStyles));
             updateStyles();
+
+            // Probation Period option / custom toggle handler
+            const probationSelect = document.getElementById('probationSelect');
+            const probationCustomCol = document.getElementById('probationCustomCol');
+            const probationSelectCol = document.getElementById('probationSelectCol');
+            const probationCustomInput = document.getElementById('probationCustomInput');
+            const probationFinalInput = document.getElementById('probationFinalInput');
+
+            function updateProbation() {
+                if (!probationSelect || !probationFinalInput) return;
+                if (probationSelect.value === '__other__') {
+                    if (probationSelectCol) probationSelectCol.className = 'col-6';
+                    if (probationCustomCol) probationCustomCol.style.display = '';
+                    probationFinalInput.value = probationCustomInput ? probationCustomInput.value.trim() : '';
+                } else {
+                    if (probationSelectCol) probationSelectCol.className = 'col-12';
+                    if (probationCustomCol) probationCustomCol.style.display = 'none';
+                    probationFinalInput.value = probationSelect.value;
+                }
+            }
+
+            if (probationSelect) {
+                probationSelect.addEventListener('change', function() {
+                    updateProbation();
+                    if (probationSelect.value === '__other__' && probationCustomInput) {
+                        probationCustomInput.focus();
+                    }
+                });
+            }
+            if (probationCustomInput) {
+                probationCustomInput.addEventListener('input', function() {
+                    if (probationSelect && probationSelect.value === '__other__') {
+                        probationFinalInput.value = probationCustomInput.value.trim();
+                    }
+                });
+            }
         });
         </script>
 
@@ -620,22 +681,22 @@
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content rounded-4 border-0 shadow">
                     <div class="modal-header border-bottom-0 pb-0">
-                        <h5 class="modal-title fw-bold" id="forwardReviewModalLabel">📤 Gửi phiếu đánh giá tới Quản lý cao cấp</h5>
+                        <h5 class="modal-title fw-bold" id="forwardReviewModalLabel">📤 {{ __('messages.modal_forward_title') }}</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <form method="POST" action="{{ route('candidates.forward_review', $candidate->id) }}" id="forwardForm">
                         @csrf
                         <div class="modal-body py-3">
-                            <p class="text-secondary small mb-3">Phiếu phỏng vấn của ứng viên <strong>{{ $candidate->full_name }}</strong> sẽ được gửi bổ sung tới cán bộ quản lý được chọn dưới đây để tiếp tục xem xét & phê duyệt.</p>
+                            <p class="text-secondary small mb-3">{{ __('messages.modal_forward_desc', ['name' => $candidate->full_name]) }}</p>
                             
                             <div class="mb-3">
-                                <label class="form-label fw-semibold" style="font-size:.85rem;">Chọn Quản lý cao cấp nhận phiếu <span class="text-danger">*</span></label>
+                                <label class="form-label fw-semibold" style="font-size:.85rem;">{{ __('messages.modal_forward_target_label') }} <span class="text-danger">*</span></label>
                                 <select name="target_user_id" class="form-select rounded-3" required style="font-size:.9rem;">
-                                    <option value="">-- Chọn cán bộ quản lý --</option>
+                                    <option value="">{{ __('messages.modal_forward_select_placeholder') }}</option>
                                     @foreach($allSeniorManagers as $smUser)
                                         @if($smUser->id !== auth()->id())
                                         <option value="{{ $smUser->id }}" {{ $candidate->seniorManagers->contains($smUser->id) ? 'disabled' : '' }}>
-                                            {{ $smUser->name }} ({{ $smUser->email }}) {{ $candidate->seniorManagers->contains($smUser->id) ? '— [Đã có trong danh sách]' : '' }}
+                                            {{ $smUser->name }} ({{ $smUser->hasRole('supervisor') ? __('messages.role_supervisor') : __('messages.role_senior_manager') }}) {{ $candidate->seniorManagers->contains($smUser->id) ? '— ' . __('messages.modal_forward_already_assigned') : '' }}
                                         </option>
                                         @endif
                                     @endforeach
@@ -646,14 +707,14 @@
                             <div class="form-check mb-2">
                                 <input class="form-check-input" type="checkbox" name="save_current_draft" value="1" id="saveDraftCheck" checked>
                                 <label class="form-check-label small text-muted" for="saveDraftCheck">
-                                    Đồng thời lưu lại nhận xét hiện tại của bạn trước khi gửi
+                                    {{ __('messages.modal_forward_save_draft_label') }}
                                 </label>
                             </div>
                             @endif
                         </div>
                         <div class="modal-footer border-top-0 pt-0">
-                            <button type="button" class="btn btn-light rounded-3 fw-semibold" data-bs-dismiss="modal">Hủy</button>
-                            <button type="submit" class="btn btn-primary fw-bold rounded-3 px-4">📤 Gửi phiếu</button>
+                            <button type="button" class="btn btn-light rounded-3 fw-semibold" data-bs-dismiss="modal">{{ __('messages.cancel') }}</button>
+                            <button type="submit" class="btn btn-primary fw-bold rounded-3 px-4">📤 {{ __('messages.modal_forward_submit_btn') }}</button>
                         </div>
                     </form>
                 </div>
