@@ -59,17 +59,39 @@ class Candidate extends Model
     {
         $managers = $this->seniorManagers;
         if ($managers->isEmpty()) {
-            return 'pending';
+            return 'new';
         }
 
-        if ($managers->contains(fn($u) => $u->pivot->review_result === 'approved')) {
-            return 'approved';
+        $approvedManager = $managers->first(fn($u) => $u->pivot->review_result === 'approved');
+        if ($approvedManager) {
+            return $approvedManager->pivot->is_locked ? 'approved_locked' : 'approved_draft';
         }
 
-        if ($managers->contains(fn($u) => $u->pivot->review_result === 'rejected')) {
-            return 'rejected';
+        $rejectedManager = $managers->first(fn($u) => $u->pivot->review_result === 'rejected');
+        if ($rejectedManager) {
+            return $rejectedManager->pivot->is_locked ? 'rejected_locked' : 'rejected_draft';
         }
 
-        return 'pending';
+        if ($managers->count() > 1) {
+            return 'forwarded';
+        }
+
+        return 'routed';
+    }
+
+    public function getStatusLabelAttribute(): string
+    {
+        return match ($this->overall_review_status) {
+            'new'             => __('messages.candidate_status_new'),
+            'routed'          => __('messages.candidate_status_routed'),
+            'forwarded'       => __('messages.candidate_status_forwarded'),
+            'approved_locked' => __('messages.candidate_status_approved_locked'),
+            'approved_draft'  => __('messages.candidate_status_approved_draft'),
+            'rejected_locked' => __('messages.candidate_status_rejected_locked'),
+            'rejected_draft'  => __('messages.candidate_status_rejected_draft'),
+            'approved'        => __('messages.candidate_status_approved'),
+            'rejected'        => __('messages.candidate_status_rejected'),
+            default           => __('messages.candidate_status_new'),
+        };
     }
 }

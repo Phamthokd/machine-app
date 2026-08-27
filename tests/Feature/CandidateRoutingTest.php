@@ -363,15 +363,27 @@ class CandidateRoutingTest extends TestCase
         $resShowAssigned->assertStatus(200);
         $resShowAssigned->assertSee('Candidate for Supervisor Review');
 
-        // Supervisor 1 submits review
+        // Supervisor 1 submits review draft
         $reviewRes = $this->post("/candidates/{$candidate->id}/review", [
             'review_note' => 'Chủ quản đánh giá: tay nghề tốt, đồng ý tiếp nhận.',
             'review_result' => 'approved',
             'proposed_salary' => '8,000,000 VNĐ',
             'assigned_department' => 'Xưởng may 1',
+            'submit_action' => 'save',
         ]);
         $reviewRes->assertRedirect();
-        $this->assertEquals('approved', $candidate->fresh()->overall_review_status);
+        $this->assertEquals('approved_draft', $candidate->fresh()->overall_review_status);
+
+        // Supervisor 1 officially approves and locks
+        $approveRes = $this->post("/candidates/{$candidate->id}/review", [
+            'review_note' => 'Chủ quản đánh giá: tay nghề tốt, đồng ý tiếp nhận.',
+            'review_result' => 'approved',
+            'proposed_salary' => '8,000,000 VNĐ',
+            'assigned_department' => 'Xưởng may 1',
+            'submit_action' => 'approve',
+        ]);
+        $approveRes->assertRedirect();
+        $this->assertEquals('approved_locked', $candidate->fresh()->overall_review_status);
 
         // Supervisor 2 still cannot see the candidate
         $this->actingAs($supervisor2);
@@ -381,6 +393,130 @@ class CandidateRoutingTest extends TestCase
 
         $resShow2 = $this->get("/candidates/{$candidate->id}");
         $resShow2->assertStatus(403);
+    }
+
+    public function test_candidate_statuses_and_status_filtering()
+    {
+        $hr = User::factory()->create();
+        $hr->assignRole('hr');
+
+        $manager1 = User::factory()->create(['name' => 'Manager One']);
+        $manager1->assignRole('senior_manager');
+
+        $manager2 = User::factory()->create(['name' => 'Manager Two']);
+        $manager2->assignRole('senior_manager');
+
+        // 1. New candidate
+        $cNew = Candidate::create([
+            'full_name' => 'Candidate New',
+            'gender' => 'male',
+            'phone' => '0911000001',
+            'position_applied' => 'Dev',
+        ]);
+        $this->assertEquals('new', $cNew->overall_review_status);
+
+        // 2. Routed candidate (assigned to 1 manager, pending decision)
+        $cRouted = Candidate::create([
+            'full_name' => 'Candidate Routed',
+            'gender' => 'female',
+            'phone' => '0911000002',
+            'position_applied' => 'QA',
+        ]);
+        $cRouted->seniorManagers()->attach($manager1->id, ['review_result' => 'pending']);
+        $this->assertEquals('routed', $cRouted->fresh()->overall_review_status);
+
+        // 3. Forwarded candidate (assigned to 2 managers, pending decision)
+        $cForwarded = Candidate::create([
+            'full_name' => 'Candidate Forwarded',
+            'gender' => 'female',
+            'phone' => '0911000003',
+            'position_applied' => 'QC',
+        ]);
+        $cForwarded->seniorManagers()->attach([
+            $manager1->id => ['review_result' => 'pending'],
+            $manager2->id => ['review_result' => 'pending'],
+        ]);
+        $this->assertEquals('forwarded', $cForwarded->fresh()->overall_review_status);
+
+        // 4. Approved Locked candidate
+        $cApprovedLocked = Candidate::create([
+            'full_name' => 'Candidate Approved Locked',
+            'gender' => 'male',
+            'phone' => '0911000004',
+            'position_applied' => 'Accountant',
+        ]);
+        $cApprovedLocked->seniorManagers()->attach($manager1->id, ['review_result' => 'approved', 'is_locked' => true]);
+        $this->assertEquals('approved_locked', $cApprovedLocked->fresh()->overall_review_status);
+
+        // 5. Approved Draft candidate
+        $cApprovedDraft = Candidate::create([
+            'full_name' => 'Candidate Approved Draft',
+            'gender' => 'male',
+            'phone' => '0911000005',
+            'position_applied' => 'Staff',
+        ]);
+        $cApprovedDraft->seniorManagers()->attach($manager1->id, ['review_result' => 'approved', 'is_locked' => false]);
+        $this->assertEquals('approved_draft', $cApprovedDraft->fresh()->overall_review_status);
+
+        // 6. Rejected Locked candidate
+        $cRejectedLocked = Candidate::create([
+            'full_name' => 'Candidate Rejected Locked',
+            'gender' => 'male',
+            'phone' => '0911000006',
+            'position_applied' => 'Security',
+        ]);
+        $cRejectedLocked->seniorManagers()->attach($manager1->id, ['review_result' => 'rejected', 'is_locked' => true]);
+        $this->assertEquals('rejected_locked', $cRejectedLocked->fresh()->overall_review_status);
+
+        // 7. Rejected Draft candidate
+        $cRejectedDraft = Candidate::create([
+            'full_name' => 'Candidate Rejected Draft',
+            'gender' => 'male',
+            'phone' => '0911000007',
+            'position_applied' => 'Worker',
+        ]);
+        $cRejectedDraft->seniorManagers()->attach($manager1->id, ['review_result' => 'rejected', 'is_locked' => false]);
+        $this->assertEquals('rejected_draft', $cRejectedDraft->fresh()->overall_review_status);
+
+        // Test filtering by status on index
+        $this->actingAs($hr);
+
+        // Filter: new
+        $resNew = $this->get('/candidates?status=new');
+        $resNew->assertSee('Candidate New');
+        $resNew->assertDontSee('Candidate Routed');
+        $resNew->assertDontSee('Candidate Approved Locked');
+
+        // Filter: routed
+        $resRouted = $this->get('/candidates?status=routed');
+        $resRouted->assertSee('Candidate Routed');
+        $resRouted->assertDontSee('Candidate New');
+        $resRouted->assertDontSee('Candidate Forwarded');
+
+        // Filter: forwarded
+        $resForwarded = $this->get('/candidates?status=forwarded');
+        $resForwarded->assertSee('Candidate Forwarded');
+        $resForwarded->assertDontSee('Candidate Routed');
+
+        // Filter: approved_locked
+        $resAppLocked = $this->get('/candidates?status=approved_locked');
+        $resAppLocked->assertSee('Candidate Approved Locked');
+        $resAppLocked->assertDontSee('Candidate Approved Draft');
+
+        // Filter: approved_draft
+        $resAppDraft = $this->get('/candidates?status=approved_draft');
+        $resAppDraft->assertSee('Candidate Approved Draft');
+        $resAppDraft->assertDontSee('Candidate Approved Locked');
+
+        // Filter: rejected_locked
+        $resRejLocked = $this->get('/candidates?status=rejected_locked');
+        $resRejLocked->assertSee('Candidate Rejected Locked');
+        $resRejLocked->assertDontSee('Candidate Rejected Draft');
+
+        // Filter: rejected_draft
+        $resRejDraft = $this->get('/candidates?status=rejected_draft');
+        $resRejDraft->assertSee('Candidate Rejected Draft');
+        $resRejDraft->assertDontSee('Candidate Rejected Locked');
     }
 }
 

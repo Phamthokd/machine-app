@@ -52,6 +52,24 @@
                     {{ $candidate->position_applied }}
                 </span>
                 <span style="opacity:.7;font-size:.82rem">{{ $candidate->created_at->format('d/m/Y H:i') }}</span>
+                @php
+                    $overallStatus = $candidate->overall_review_status;
+                @endphp
+                @if($overallStatus === 'approved_locked')
+                    <span class="badge" style="background:#16a34a;color:#fff;border-radius:.4rem;padding:.25rem .65rem;font-size:.82rem;font-weight:700;">✅ {{ __('messages.candidate_status_approved_locked') }}</span>
+                @elseif($overallStatus === 'approved_draft')
+                    <span class="badge" style="background:#22c55e;color:#fff;border-radius:.4rem;padding:.25rem .65rem;font-size:.82rem;font-weight:700;border: 1px dashed rgba(255,255,255,.8);">📝 {{ __('messages.candidate_status_approved_draft') }}</span>
+                @elseif($overallStatus === 'rejected_locked')
+                    <span class="badge" style="background:#dc2626;color:#fff;border-radius:.4rem;padding:.25rem .65rem;font-size:.82rem;font-weight:700;">❌ {{ __('messages.candidate_status_rejected_locked') }}</span>
+                @elseif($overallStatus === 'rejected_draft')
+                    <span class="badge" style="background:#ef4444;color:#fff;border-radius:.4rem;padding:.25rem .65rem;font-size:.82rem;font-weight:700;border: 1px dashed rgba(255,255,255,.8);">📝 {{ __('messages.candidate_status_rejected_draft') }}</span>
+                @elseif($overallStatus === 'forwarded')
+                    <span class="badge" style="background:#3b82f6;color:#fff;border-radius:.4rem;padding:.25rem .65rem;font-size:.82rem;font-weight:700;">📤 {{ __('messages.candidate_status_forwarded') }}</span>
+                @elseif($overallStatus === 'routed')
+                    <span class="badge" style="background:#f59e0b;color:#fff;border-radius:.4rem;padding:.25rem .65rem;font-size:.82rem;font-weight:700;">⏳ {{ __('messages.candidate_status_routed') }}</span>
+                @else
+                    <span class="badge" style="background:#0284c7;color:#fff;border-radius:.4rem;padding:.25rem .65rem;font-size:.82rem;font-weight:700;">🆕 {{ __('messages.candidate_status_new') }}</span>
+                @endif
             </div>
         </div>
         <div class="ms-auto d-flex flex-column gap-2">

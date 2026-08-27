@@ -65,6 +65,63 @@ class CandidateController extends Controller
             $query->whereDate('created_at', '<=', $request->end_date);
         }
 
+        if ($request->filled('status')) {
+            $status = $request->status;
+            if ($status === 'new') {
+                $query->whereDoesntHave('seniorManagers');
+            } elseif ($status === 'approved_locked') {
+                $query->whereHas('seniorManagers', function ($q) {
+                    $q->where('candidate_senior_manager.review_result', 'approved')
+                      ->where('candidate_senior_manager.is_locked', true);
+                });
+            } elseif ($status === 'approved_draft') {
+                $query->whereHas('seniorManagers', function ($q) {
+                    $q->where('candidate_senior_manager.review_result', 'approved')
+                      ->where(function ($sub) {
+                          $sub->whereNull('candidate_senior_manager.is_locked')
+                              ->orWhere('candidate_senior_manager.is_locked', false);
+                      });
+                });
+            } elseif ($status === 'approved') {
+                $query->whereHas('seniorManagers', function ($q) {
+                    $q->where('candidate_senior_manager.review_result', 'approved');
+                });
+            } elseif ($status === 'rejected_locked') {
+                $query->whereHas('seniorManagers', function ($q) {
+                    $q->where('candidate_senior_manager.review_result', 'rejected')
+                      ->where('candidate_senior_manager.is_locked', true);
+                })->whereDoesntHave('seniorManagers', function ($q) {
+                    $q->where('candidate_senior_manager.review_result', 'approved');
+                });
+            } elseif ($status === 'rejected_draft') {
+                $query->whereHas('seniorManagers', function ($q) {
+                    $q->where('candidate_senior_manager.review_result', 'rejected')
+                      ->where(function ($sub) {
+                          $sub->whereNull('candidate_senior_manager.is_locked')
+                              ->orWhere('candidate_senior_manager.is_locked', false);
+                      });
+                })->whereDoesntHave('seniorManagers', function ($q) {
+                    $q->where('candidate_senior_manager.review_result', 'approved');
+                });
+            } elseif ($status === 'rejected') {
+                $query->whereHas('seniorManagers', function ($q) {
+                    $q->where('candidate_senior_manager.review_result', 'rejected');
+                })->whereDoesntHave('seniorManagers', function ($q) {
+                    $q->where('candidate_senior_manager.review_result', 'approved');
+                });
+            } elseif ($status === 'routed') {
+                $query->has('seniorManagers', '=', 1)
+                      ->whereDoesntHave('seniorManagers', function ($q) {
+                          $q->whereIn('candidate_senior_manager.review_result', ['approved', 'rejected']);
+                      });
+            } elseif ($status === 'forwarded') {
+                $query->has('seniorManagers', '>', 1)
+                      ->whereDoesntHave('seniorManagers', function ($q) {
+                          $q->whereIn('candidate_senior_manager.review_result', ['approved', 'rejected']);
+                      });
+            }
+        }
+
         $candidates = $query->paginate(20)->withQueryString();
 
         return view('candidates.index', compact('candidates'));

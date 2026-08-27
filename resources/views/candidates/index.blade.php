@@ -7,32 +7,69 @@
         border-radius: 1rem;
         transition: all 0.2s;
     }
-    /* Chờ xem xét: Màu trắng */
-    .status-card-pending {
-        background: #ffffff !important;
-        border: 1.5px solid #e2e8f0 !important;
+    /* Mới nộp: Màu xanh lam nhạt */
+    .status-card-new {
+        background: #f0f9ff !important;
+        border: 1.5px solid #bae6fd !important;
     }
-    .status-card-pending:hover {
-        border-color: #cbd5e1 !important;
-        box-shadow: 0 4px 14px rgba(0,0,0,.06);
+    .status-card-new:hover {
+        border-color: #7dd3fc !important;
+        box-shadow: 0 4px 14px rgba(14,165,233,.12);
     }
-    /* Không đồng ý tuyển: Màu đỏ hồng */
-    .status-card-rejected {
+    /* Đã chuyển Quản lý: Màu vàng nhạt */
+    .status-card-routed {
+        background: #fffbeb !important;
+        border: 1.5px solid #fde68a !important;
+    }
+    .status-card-routed:hover {
+        border-color: #fcd34d !important;
+        box-shadow: 0 4px 14px rgba(245,158,11,.12);
+    }
+    /* Đã chuyển tiếp: Màu xanh dương */
+    .status-card-forwarded {
+        background: #eff6ff !important;
+        border: 1.5px solid #bfdbfe !important;
+    }
+    .status-card-forwarded:hover {
+        border-color: #93c5fd !important;
+        box-shadow: 0 4px 14px rgba(59,130,246,.12);
+    }
+    /* Không đồng ý tuyển (Đã duyệt): Màu đỏ hồng */
+    .status-card-rejected, .status-card-rejected_locked {
         background: #fff1f2 !important;
         border: 1.5px solid #fecdd3 !important;
     }
-    .status-card-rejected:hover {
+    .status-card-rejected:hover, .status-card-rejected_locked:hover {
         border-color: #fda4af !important;
         box-shadow: 0 4px 14px rgba(244,63,94,.12);
     }
-    /* Đồng ý tuyển: Màu xanh lá */
-    .status-card-approved {
+    /* Không đồng ý tuyển (Chưa duyệt - Bản nháp): Viền đứt nét đỏ */
+    .status-card-rejected_draft {
+        background: #fffafa !important;
+        border: 1.5px dashed #fca5a5 !important;
+    }
+    .status-card-rejected_draft:hover {
+        border-color: #f87171 !important;
+        box-shadow: 0 4px 14px rgba(244,63,94,.08);
+    }
+
+    /* Đồng ý tuyển (Đã duyệt): Màu xanh lá */
+    .status-card-approved, .status-card-approved_locked {
         background: #f0fdf4 !important;
         border: 1.5px solid #bbf7d0 !important;
     }
-    .status-card-approved:hover {
+    .status-card-approved:hover, .status-card-approved_locked:hover {
         border-color: #86efac !important;
         box-shadow: 0 4px 14px rgba(34,197,94,.12);
+    }
+    /* Đồng ý tuyển (Chưa duyệt - Bản nháp): Viền đứt nét xanh */
+    .status-card-approved_draft {
+        background: #fbfdfb !important;
+        border: 1.5px dashed #86efac !important;
+    }
+    .status-card-approved_draft:hover {
+        border-color: #4ade80 !important;
+        box-shadow: 0 4px 14px rgba(34,197,94,.08);
     }
 
     .avatar-circle {
@@ -47,9 +84,13 @@
     .badge-gender-m { background: #eff6ff; color: #1e40af; }
     .badge-gender-f { background: #fdf2f8; color: #9d174d; }
 
-    .badge-status-pending { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; font-size: .75rem; border-radius: .4rem; padding: .2rem .55rem; font-weight: 600; }
-    .badge-status-rejected { background: #ffe4e6; color: #9f1239; border: 1px solid #fca5a5; font-size: .75rem; border-radius: .4rem; padding: .2rem .55rem; font-weight: 600; }
-    .badge-status-approved { background: #dcfce7; color: #14532d; border: 1px solid #86efac; font-size: .75rem; border-radius: .4rem; padding: .2rem .55rem; font-weight: 600; }
+    .badge-status-new { background: #e0f2fe; color: #0369a1; border: 1px solid #7dd3fc; font-size: .75rem; border-radius: .4rem; padding: .2rem .55rem; font-weight: 600; }
+    .badge-status-routed { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; font-size: .75rem; border-radius: .4rem; padding: .2rem .55rem; font-weight: 600; }
+    .badge-status-forwarded { background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; font-size: .75rem; border-radius: .4rem; padding: .2rem .55rem; font-weight: 600; }
+    .badge-status-rejected-locked { background: #ffe4e6; color: #9f1239; border: 1.5px solid #f87171; font-size: .75rem; border-radius: .4rem; padding: .2rem .55rem; font-weight: 700; }
+    .badge-status-rejected-draft { background: #fff1f2; color: #be123c; border: 1px dashed #fca5a5; font-size: .75rem; border-radius: .4rem; padding: .2rem .55rem; font-weight: 600; }
+    .badge-status-approved-locked { background: #dcfce7; color: #14532d; border: 1.5px solid #4ade80; font-size: .75rem; border-radius: .4rem; padding: .2rem .55rem; font-weight: 700; }
+    .badge-status-approved-draft { background: #f0fdf4; color: #15803d; border: 1px dashed #86efac; font-size: .75rem; border-radius: .4rem; padding: .2rem .55rem; font-weight: 600; }
 </style>
 
 <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
@@ -79,17 +120,29 @@
 {{-- Filter --}}
 <form method="GET" class="card border-0 shadow-sm rounded-3 p-3 mb-4">
     <div class="row g-2 align-items-end">
-        <div class="col-md-5">
+        <div class="col-md-4">
             <input type="text" name="search" class="form-control rounded-3" placeholder="{{ __('messages.search_name_phone_position') }}" value="{{ request('search') }}">
         </div>
         <div class="col-md-3">
+            <select name="status" class="form-select rounded-3">
+                <option value="">-- {{ __('messages.all_statuses') }} --</option>
+                <option value="new" {{ request('status') === 'new' ? 'selected' : '' }}>🆕 {{ __('messages.candidate_status_new') }}</option>
+                <option value="routed" {{ request('status') === 'routed' ? 'selected' : '' }}>⏳ {{ __('messages.candidate_status_routed') }}</option>
+                <option value="forwarded" {{ request('status') === 'forwarded' ? 'selected' : '' }}>📤 {{ __('messages.candidate_status_forwarded') }}</option>
+                <option value="approved_locked" {{ request('status') === 'approved_locked' ? 'selected' : '' }}>✅ {{ __('messages.candidate_status_approved_locked') }}</option>
+                <option value="approved_draft" {{ request('status') === 'approved_draft' ? 'selected' : '' }}>📝 {{ __('messages.candidate_status_approved_draft') }}</option>
+                <option value="rejected_locked" {{ request('status') === 'rejected_locked' ? 'selected' : '' }}>❌ {{ __('messages.candidate_status_rejected_locked') }}</option>
+                <option value="rejected_draft" {{ request('status') === 'rejected_draft' ? 'selected' : '' }}>📝 {{ __('messages.candidate_status_rejected_draft') }}</option>
+            </select>
+        </div>
+        <div class="col-md-2">
             <input type="date" name="start_date" class="form-control rounded-3" value="{{ request('start_date') }}">
         </div>
-        <div class="col-md-3">
+        <div class="col-md-2">
             <input type="date" name="end_date" class="form-control rounded-3" value="{{ request('end_date') }}">
         </div>
         <div class="col-md-1">
-            <button type="submit" class="btn btn-primary w-100 rounded-3">
+            <button type="submit" class="btn btn-primary w-100 rounded-3" title="{{ __('messages.search') ?? 'Tìm kiếm' }}">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
             </button>
         </div>
@@ -98,7 +151,7 @@
 
 @forelse($candidates as $c)
 @php
-    $status = $c->overall_review_status; // 'pending', 'approved', 'rejected'
+    $status = $c->overall_review_status; // 'new', 'routed', 'forwarded', 'approved_locked', 'approved_draft', 'rejected_locked', 'rejected_draft'
 @endphp
 <div class="candidate-card status-card-{{ $status }} p-3 mb-3 d-flex align-items-center gap-3">
     {{-- Avatar --}}
@@ -116,12 +169,26 @@
             <span class="badge {{ $c->gender === 'male' ? 'badge-gender-m' : 'badge-gender-f' }}">
                 {{ $c->gender === 'male' ? '♂ ' . __('messages.gender_male') : '♀ ' . __('messages.gender_female') }}
             </span>
-            @if($status === 'approved')
-            <span class="badge badge-status-approved">✅ {{ __('messages.candidate_status_approved') }}</span>
-            @elseif($status === 'rejected')
-            <span class="badge badge-status-rejected">❌ {{ __('messages.candidate_status_rejected') }}</span>
+            @if($status === 'approved_locked')
+                <span class="badge badge-status-approved-locked">✅ {{ __('messages.candidate_status_approved_locked') }}</span>
+            @elseif($status === 'approved_draft')
+                <span class="badge badge-status-approved-draft">📝 {{ __('messages.candidate_status_approved_draft') }}</span>
+            @elseif($status === 'rejected_locked')
+                <span class="badge badge-status-rejected-locked">❌ {{ __('messages.candidate_status_rejected_locked') }}</span>
+            @elseif($status === 'rejected_draft')
+                <span class="badge badge-status-rejected-draft">📝 {{ __('messages.candidate_status_rejected_draft') }}</span>
+            @elseif($status === 'forwarded')
+                <span class="badge badge-status-forwarded">📤 {{ __('messages.candidate_status_forwarded') }}</span>
+            @elseif($status === 'routed')
+                <span class="badge badge-status-routed">⏳ {{ __('messages.candidate_status_routed') }}</span>
             @else
-            <span class="badge badge-status-pending">⏳ {{ __('messages.candidate_status_pending') }}</span>
+                <span class="badge badge-status-new">🆕 {{ __('messages.candidate_status_new') }}</span>
+            @endif
+
+            @if($c->seniorManagers->isNotEmpty() && in_array($status, ['routed', 'forwarded', 'approved_draft', 'rejected_draft']))
+                <span class="text-secondary small fw-medium" style="font-size:.78rem;">
+                    ({{ __('messages.reviewing_by') }} {{ $c->seniorManagers->pluck('name')->join(', ') }})
+                </span>
             @endif
         </div>
         <div class="d-flex flex-wrap gap-2 mt-1">
