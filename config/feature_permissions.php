@@ -43,5 +43,11 @@ return [
             'candidates.create' => 'messages.p_candidates_create',
         ],
     ],
+    [
+        'group' => 'messages.visitor_tickets',
+        'items' => [
+            'visitors.create' => 'messages.p_visitors_create',
+        ],
+    ],
 ];
 

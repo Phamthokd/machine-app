@@ -111,5 +111,9 @@
     "Thiết bị PCCC có được kiểm tra đầy đủ không?": "消防設備是否有進行完整的檢查？",
     "Máy móc có đầy đủ SOP, cảnh báo bằng Tiếng việt không? SOP, cảnh báo có bị mờ rách không?": "機器是否備有完整的標準作業程序（SOP）及越南語警示？SOP與警示是否有模糊或破損？",
     "Hàng hóa, nguyên phụ liệu có để gần tủ điện, công tắc điện không? (tối thiểu 0,5m)": "普品、原輔料是否放置在靠近電箱或電源開關處？（至少保持0.5公尺距離）",
-    "Các tủ điện có cảnh báo nguy hiểm điện giật không? Có thảm cách điện không?": "各電箱是否有電擊危險警告標示？是否有配置絕緣墊？"
+    "Các tủ điện có cảnh báo nguy hiểm điện giật không? Có thảm cách điện không?": "各電箱是否有電擊危險警告標示？是否有配置絕緣墊？",
+    "messages.role_security": "保安",
+    "messages.visitor_tickets": "访客登记单",
+    "messages.p_visitors_create": "创建和查看访客登记单",
+    "messages.p_visitors_security": "保安：更新进出时间、关闭登记单"
 }

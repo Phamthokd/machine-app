@@ -39,6 +39,8 @@ class FeatureAccess
             'users.manage' => $user->hasRole('admin') || $user->can('users.manage'),
             'users.view' => $user->hasRole('admin') || $user->hasRole('warehouse') || $user->can('users.view'),
             'candidates.create' => $user->hasAnyRole(['admin', 'senior_manager', 'supervisor', 'hr']) || $user->can('candidates.create'),
+            'visitors.create'   => $user->hasRole('admin') || $user->can('visitors.create'),
+            'visitors.security' => $user->hasAnyRole(['admin', 'security']) || $user->can('visitors.security'),
             default => $user->can($feature),
         };
     }

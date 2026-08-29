@@ -114,5 +114,9 @@
     "Thiết bị PCCC có được kiểm tra đầy đủ không?": "Is firefighting equipment fully inspected?",
     "Máy móc có đầy đủ SOP, cảnh báo bằng Tiếng việt không? SOP, cảnh báo có bị mờ rách không?": "Do machines have complete SOPs and warning signs in Vietnamese? Are any SOPs or warnings faded or torn?",
     "Hàng hóa, nguyên phụ liệu có để gần tủ điện, công tắc điện không? (tối thiểu 0,5m)": "Are goods or materials placed near electrical cabinets or switches? (Minimum distance: 0.5 m)",
-    "Các tủ điện có cảnh báo nguy hiểm điện giật không? Có thảm cách điện không?": "Do electrical cabinets have electric shock warning signs? Are insulating mats provided?"
+    "Các tủ điện có cảnh báo nguy hiểm điện giật không? Có thảm cách điện không?": "Do electrical cabinets have electric shock warning signs? Are insulating mats provided?",
+    "messages.role_security": "Security Guard",
+    "messages.visitor_tickets": "Visitor Registration",
+    "messages.p_visitors_create": "Create & View visitor registration tickets",
+    "messages.p_visitors_security": "Security: update check-in/out times, close tickets"
 }

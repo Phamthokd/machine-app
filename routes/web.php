@@ -13,6 +13,7 @@ use App\Http\Controllers\EnvironmentReportController;
 use App\Http\Controllers\CandidateController;
 use App\Http\Controllers\ItRepairController;
 use App\Http\Controllers\ChatbotController;
+use App\Http\Controllers\VisitorTicketController;
 
 /*
 |--------------------------------------------------------------------------
@@ -215,6 +216,24 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     Route::post('/chatbot', [ChatbotController::class, 'chat'])->name('chatbot.chat');
+
+    // VISITOR TICKETS: Xem danh sách & Chi tiết (Admin, Bảo vệ role:security, hoặc người có quyền visitors.create)
+    Route::middleware(['role_or_permission:admin|security|visitors.create|visitors.security'])->group(function () {
+        Route::get('/visitor-tickets', [VisitorTicketController::class, 'index'])->name('visitor-tickets.index');
+        Route::get('/visitor-tickets/{id}', [VisitorTicketController::class, 'show'])->name('visitor-tickets.show')->whereNumber('id');
+    });
+
+    // VISITOR TICKETS: Tạo phiếu (Admin + người được admin tích chọn quyền visitors.create)
+    Route::middleware(['role_or_permission:admin|visitors.create'])->group(function () {
+        Route::get('/visitor-tickets/create', [VisitorTicketController::class, 'create'])->name('visitor-tickets.create');
+        Route::post('/visitor-tickets', [VisitorTicketController::class, 'store'])->name('visitor-tickets.store');
+    });
+
+    // VISITOR TICKETS: Bảo vệ cập nhật vào/ra & đóng phiếu (Mặc định cho Admin + role:security)
+    Route::middleware(['role_or_permission:admin|security|visitors.security'])->group(function () {
+        Route::post('/visitor-tickets/{id}/security', [VisitorTicketController::class, 'securityUpdate'])->name('visitor-tickets.security_update')->whereNumber('id');
+        Route::post('/visitor-tickets/{id}/close', [VisitorTicketController::class, 'close'])->name('visitor-tickets.close')->whereNumber('id');
+    });
 });
 
 require __DIR__ . '/auth.php';

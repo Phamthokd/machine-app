@@ -1641,6 +1641,7 @@ return [
     'role_bok' => 'BOK',
     'role_worker' => 'Công nhân',
     'role_hr' => 'HR',
+    'role_security' => 'Bảo vệ',
     'type_bok' => 'Sửa BOK',
     'type_bok_desc' => 'Báo hỏng, sự cố liên quan đến bộ phận BOK...',
     'bok_requests' => 'Yêu cầu sửa BOK',
@@ -1681,4 +1682,10 @@ return [
     'seven_s_ctcd_q18' => 'Máy móc có đầy đủ SOP, cảnh báo bằng Tiếng việt không? SOP, cảnh báo có bị mờ rách không?',
     'seven_s_ctcd_q19' => 'Hàng hoá, nguyên phụ liệu có để gần tủ điện, công tắc điện không? (tối thiểu 0,5m)',
     'seven_s_ctcd_q20' => 'Các tủ điện có cảnh báo nguy hiểm điện giật không? Có thảm cách điện không?',
+
+    // Visitor Tickets
+    'visitor_tickets'       => 'Phiếu Đăng Ký Khách',
+    'p_visitors_create'     => 'Tạo & Xem phiếu đăng ký khách',
+    'p_visitors_security'   => 'Bảo vệ: cập nhật giờ vào/ra, đóng phiếu',
 ];
+
