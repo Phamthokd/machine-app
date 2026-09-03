@@ -773,6 +773,7 @@ class RepairTicketController extends Controller
             'endline_qc_name' => ['nullable', 'string', 'max:255'],
             'inline_qc_name' => ['nullable', 'string', 'max:255'],
             'qa_supervisor_name' => ['nullable', 'string', 'max:255'],
+            'images.*' => ['nullable', 'image', 'max:10240'],
         ];
 
         if ($repair->type == 'contractor') {
@@ -783,6 +784,7 @@ class RepairTicketController extends Controller
                 'started_at' => ['required', 'date'],
                 'ended_at' => ['nullable', 'date', 'after_or_equal:started_at'],
                 'nguoi_ho_tro' => ['nullable', 'string', 'max:255'],
+                'images.*' => ['nullable', 'image', 'max:10240'],
             ];
         } elseif ($repair->type == 'bok') {
             // Simplified rules for bok
@@ -791,6 +793,7 @@ class RepairTicketController extends Controller
                 'noi_dung_sua_chua' => ['required', 'string'],
                 'started_at' => ['required', 'date'],
                 'ended_at' => ['nullable', 'date', 'after_or_equal:started_at'],
+                'images.*' => ['nullable', 'image', 'max:10240'],
             ];
         }
 
@@ -799,6 +802,26 @@ class RepairTicketController extends Controller
         $validated['status'] = 'submitted';
         $validated['ended_at'] = now();
         $validated['mechanic_id'] = auth()->id();
+
+        // Handle image uploading & removing
+        $existingImages = $repair->images ?? [];
+        if (!is_array($existingImages)) {
+            $existingImages = [];
+        }
+
+        if ($request->has('remove_images')) {
+            $removeImages = (array) $request->input('remove_images');
+            $existingImages = array_values(array_diff($existingImages, $removeImages));
+        }
+
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $file) {
+                $filename = now()->format('Y-m-d-His-') . uniqid() . '.' . $file->extension();
+                $path = $file->storeAs('repairs', $filename, 'public');
+                $existingImages[] = 'storage/' . ltrim($path, '/');
+            }
+        }
+        $validated['images'] = !empty($existingImages) ? $existingImages : null;
 
         $repair->update($validated);
 
@@ -846,6 +869,7 @@ class RepairTicketController extends Controller
             'inline_qc_name' => ['nullable', 'string', 'max:255'],
             'qa_supervisor_name' => ['nullable', 'string', 'max:255'],
             'mechanic_id' => ['required', 'exists:users,id'],
+            'images.*' => ['nullable', 'image', 'max:10240'],
         ];
 
         if ($repair->type == 'contractor') {
@@ -856,10 +880,32 @@ class RepairTicketController extends Controller
                 'ended_at' => ['required', 'date', 'after_or_equal:started_at'],
                 'nguoi_ho_tro' => ['nullable', 'string', 'max:255'],
                 'mechanic_id' => ['required', 'exists:users,id'],
+                'images.*' => ['nullable', 'image', 'max:10240'],
             ];
         }
 
         $validated = $request->validate($rules);
+
+        // Handle image uploading & removing
+        $existingImages = $repair->images ?? [];
+        if (!is_array($existingImages)) {
+            $existingImages = [];
+        }
+
+        if ($request->has('remove_images')) {
+            $removeImages = (array) $request->input('remove_images');
+            $existingImages = array_values(array_diff($existingImages, $removeImages));
+        }
+
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $file) {
+                $filename = now()->format('Y-m-d-His-') . uniqid() . '.' . $file->extension();
+                $path = $file->storeAs('repairs', $filename, 'public');
+                $existingImages[] = 'storage/' . ltrim($path, '/');
+            }
+        }
+        $validated['images'] = !empty($existingImages) ? $existingImages : null;
+
         $repair->update($validated);
 
         return back()->with('success', "Đã cập nhật phiếu sửa đã hoàn thành: {$repair->code}");

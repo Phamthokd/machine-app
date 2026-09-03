@@ -100,7 +100,16 @@
                         {{ $r->nguyen_nhan }}
                     </td>
                     <td class="px-3">
-                        {{ $r->noi_dung_sua_chua }}
+                        <div>{{ $r->noi_dung_sua_chua }}</div>
+                        @if(!empty($r->images) && count($r->images) > 0)
+                            <div class="d-flex flex-wrap gap-1 mt-1">
+                                @foreach($r->images as $img)
+                                    <a href="/{{ $img }}" target="_blank" class="d-inline-block text-decoration-none" title="Xem ảnh">
+                                        <img src="/{{ $img }}" class="rounded border shadow-sm" style="width: 36px; height: 36px; object-fit: cover;">
+                                    </a>
+                                @endforeach
+                            </div>
+                        @endif
                     </td>
                     <td class="px-3">
                         @if($r->nguoi_ho_tro)

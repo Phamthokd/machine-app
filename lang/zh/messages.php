@@ -1729,4 +1729,10 @@ return [
     'seven_s_ctcd_q18' => '机器是否备有完整的标准作业程序（SOP）及越南语警示？SOP与警示是否有模糊或破损？',
     'seven_s_ctcd_q19' => '货品、原辅料是否放置在靠近电箱或电源开关处？（至少保持0.5公尺距离）',
     'seven_s_ctcd_q20' => '各电箱是否有电击危险警告标示？是否有配置绝缘垫？',
+
+    // Repair Completion Photos
+    'repair_completion_photos' => '维修后的设备照片',
+    'repair_photos_optional_hint' => '拍照或从设备选择照片（可选）',
+    'tap_to_add_photo' => '点击拍照/上传照片',
+    'current_photos' => '现有照片',
 ];

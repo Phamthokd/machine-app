@@ -1016,6 +1016,11 @@ return [
     'activate_user_confirm' => 'Re-activate this user account?',
     'deactivate' => 'Deactivate',
     'activate' => 'Activate',
+    // Repair Completion Photos
+    'repair_completion_photos' => 'Photos after repair',
+    'repair_photos_optional_hint' => 'Take photos with camera or choose from device (optional)',
+    'tap_to_add_photo' => 'Tap to take / upload photos',
+    'current_photos' => 'Current photos',
 
     // Permission labels (keys used in config)
     'p_repairs_manage' => 'Create & Process Repair Tickets',

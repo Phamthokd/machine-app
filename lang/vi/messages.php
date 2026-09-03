@@ -1687,5 +1687,11 @@ return [
     'visitor_tickets'       => 'Phiếu Đăng Ký Khách',
     'p_visitors_create'     => 'Tạo & Xem phiếu đăng ký khách',
     'p_visitors_security'   => 'Bảo vệ: cập nhật giờ vào/ra, đóng phiếu',
+
+    // Repair Completion Photos
+    'repair_completion_photos' => 'Ảnh thiết bị sau khi sửa',
+    'repair_photos_optional_hint' => 'Chụp ảnh bằng camera hoặc chọn ảnh từ máy (không bắt buộc)',
+    'tap_to_add_photo' => 'Chạm để chụp / tải ảnh lên',
+    'current_photos' => 'Ảnh hiện có',
 ];
 
