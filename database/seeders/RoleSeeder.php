@@ -27,6 +27,7 @@ class RoleSeeder extends Seeder
             'bok',
             'worker',
             'hr',
+            'security',
         ];
 
         // Xoá các role không nằm trong danh sách chuẩn (để dọn dẹp VPS)
