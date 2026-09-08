@@ -76,10 +76,10 @@
                 <label class="form-label">{{ __('messages.supporter_optional') }}</label>
                 <select class="form-select" name="nguoi_ho_tro[]" multiple style="min-height: 100px;">
                     @php
-                        $selected = old('nguoi_ho_tro', $repair->nguoi_ho_tro ?? '');
-                        if (!is_array($selected)) {
-                            $selected = explode(', ', $selected);
-                        }
+                    $selected = old('nguoi_ho_tro', $repair->nguoi_ho_tro ?? '');
+                    if (!is_array($selected)) {
+                    $selected = explode(', ', $selected);
+                    }
                     @endphp
                     @foreach($contractors as $c)
                     <option value="{{ $c->name }}" @selected(in_array($c->name, $selected))>{{ $c->name }}</option>
@@ -93,8 +93,8 @@
                 <div class="d-flex justify-content-between align-items-center mb-1">
                     <label class="form-label fw-bold mb-0 text-dark d-flex align-items-center gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary">
-                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-                            <circle cx="12" cy="13" r="4"/>
+                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                            <circle cx="12" cy="13" r="4" />
                         </svg>
                         {{ __('messages.repair_completion_photos') }}
                     </label>
@@ -110,9 +110,9 @@
                         @foreach($repair->images as $img)
                         <div class="position-relative current-image-thumb" style="width: 76px; height: 76px;">
                             <img src="/{{ $img }}" class="rounded-3 border w-100 h-100" style="object-fit: cover;">
-                            <button type="button" class="btn btn-danger btn-sm position-absolute p-0 rounded-circle remove-existing-img" 
-                                    style="top: -6px; right: -6px; width: 20px; height: 20px; font-size: 11px; line-height: 1; display: flex; align-items: center; justify-content: center;"
-                                    data-img="{{ $img }}" title="Xóa ảnh này">×</button>
+                            <button type="button" class="btn btn-danger btn-sm position-absolute p-0 rounded-circle remove-existing-img"
+                                style="top: -6px; right: -6px; width: 20px; height: 20px; font-size: 11px; line-height: 1; display: flex; align-items: center; justify-content: center;"
+                                data-img="{{ $img }}" title="Xóa ảnh này">×</button>
                         </div>
                         @endforeach
                     </div>
@@ -122,9 +122,9 @@
                 <div class="photo-upload-area" onclick="document.getElementById('photoFileInput').click()">
                     <div class="d-flex flex-column align-items-center justify-content-center py-2">
                         <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#0d6efd" stroke-width="1.8" class="mb-2">
-                            <rect x="3" y="3" width="18" height="18" rx="3"/>
-                            <circle cx="8.5" cy="8.5" r="1.5"/>
-                            <polyline points="21 15 16 10 5 21"/>
+                            <rect x="3" y="3" width="18" height="18" rx="3" />
+                            <circle cx="8.5" cy="8.5" r="1.5" />
+                            <polyline points="21 15 16 10 5 21" />
                         </svg>
                         <span class="fw-bold text-primary" style="font-size: 0.9rem;">{{ __('messages.tap_to_add_photo') }}</span>
                         <span class="text-muted" style="font-size: 0.75rem; margin-top: 2px;">{{ __('messages.multiple_photos_hint') }}</span>
@@ -220,7 +220,7 @@
                 </div>
                 <select class="form-select" name="qa_supervisor_name">
                     <option value="" selected>{{ __('messages.select_qa') }}</option>
-                    <option value="Tuyen" @selected(old('qa_supervisor_name', $repair->qa_supervisor_name) == 'Tuyen')>Tuyen</option>
+                    <option value="Liza" @selected(old('qa_supervisor_name', $repair->qa_supervisor_name) == 'Liza')>Liza</option>
                 </select>
             </div>
             @endif
@@ -279,7 +279,8 @@
         background: #f8fafc;
     }
 
-    .photo-upload-area:hover, .photo-upload-area:active {
+    .photo-upload-area:hover,
+    .photo-upload-area:active {
         border-color: #0d6efd;
         background: #eff6ff;
     }
@@ -320,71 +321,71 @@
         justify-content: center;
         cursor: pointer;
         line-height: 1;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     }
 </style>
 
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    const photoInput = document.getElementById('photoFileInput');
-    const previewGrid = document.getElementById('photoPreviewGrid');
-    const hiddenContainer = document.getElementById('hiddenImagesContainer');
-    const removeContainer = document.getElementById('removeImagesContainer');
+    document.addEventListener('DOMContentLoaded', function() {
+        const photoInput = document.getElementById('photoFileInput');
+        const previewGrid = document.getElementById('photoPreviewGrid');
+        const hiddenContainer = document.getElementById('hiddenImagesContainer');
+        const removeContainer = document.getElementById('removeImagesContainer');
 
-    if (photoInput) {
-        photoInput.addEventListener('change', function () {
-            Array.from(this.files).forEach(file => {
-                const reader = new FileReader();
-                reader.onload = e => {
-                    const thumb = document.createElement('div');
-                    thumb.className = 'photo-thumb';
+        if (photoInput) {
+            photoInput.addEventListener('change', function() {
+                Array.from(this.files).forEach(file => {
+                    const reader = new FileReader();
+                    reader.onload = e => {
+                        const thumb = document.createElement('div');
+                        thumb.className = 'photo-thumb';
 
-                    const img = document.createElement('img');
-                    img.src = e.target.result;
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
 
-                    const rmBtn = document.createElement('button');
-                    rmBtn.type = 'button';
-                    rmBtn.className = 'remove-btn';
-                    rmBtn.innerHTML = '×';
-                    rmBtn.onclick = () => {
-                        thumb.remove();
-                        newInput.remove();
+                        const rmBtn = document.createElement('button');
+                        rmBtn.type = 'button';
+                        rmBtn.className = 'remove-btn';
+                        rmBtn.innerHTML = '×';
+                        rmBtn.onclick = () => {
+                            thumb.remove();
+                            newInput.remove();
+                        };
+
+                        thumb.appendChild(img);
+                        thumb.appendChild(rmBtn);
+                        previewGrid.appendChild(thumb);
                     };
+                    reader.readAsDataURL(file);
 
-                    thumb.appendChild(img);
-                    thumb.appendChild(rmBtn);
-                    previewGrid.appendChild(thumb);
-                };
-                reader.readAsDataURL(file);
-
-                const newInput = document.createElement('input');
-                newInput.type = 'file';
-                newInput.name = 'images[]';
-                newInput.style.display = 'none';
-                const dt = new DataTransfer();
-                dt.items.add(file);
-                newInput.files = dt.files;
-                hiddenContainer.appendChild(newInput);
+                    const newInput = document.createElement('input');
+                    newInput.type = 'file';
+                    newInput.name = 'images[]';
+                    newInput.style.display = 'none';
+                    const dt = new DataTransfer();
+                    dt.items.add(file);
+                    newInput.files = dt.files;
+                    hiddenContainer.appendChild(newInput);
+                });
+                this.value = '';
             });
-            this.value = '';
-        });
-    }
+        }
 
-    // Handle removing existing images
-    document.querySelectorAll('.remove-existing-img').forEach(btn => {
-        btn.addEventListener('click', function () {
-            const imgPath = this.getAttribute('data-img');
-            const thumb = this.closest('.current-image-thumb');
-            
-            const hidden = document.createElement('input');
-            hidden.type = 'hidden';
-            hidden.name = 'remove_images[]';
-            hidden.value = imgPath;
-            removeContainer.appendChild(hidden);
+        // Handle removing existing images
+        document.querySelectorAll('.remove-existing-img').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const imgPath = this.getAttribute('data-img');
+                const thumb = this.closest('.current-image-thumb');
 
-            thumb.remove();
+                const hidden = document.createElement('input');
+                hidden.type = 'hidden';
+                hidden.name = 'remove_images[]';
+                hidden.value = imgPath;
+                removeContainer.appendChild(hidden);
+
+                thumb.remove();
+            });
         });
     });
-});
 </script>
 @endsection

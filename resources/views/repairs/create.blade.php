@@ -125,20 +125,24 @@
         border: none;
         overflow: hidden;
     }
+
     .modal-unevaluated .modal-header {
         background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
         color: white;
         border: none;
         padding: 20px 24px 16px;
     }
+
     .modal-unevaluated .modal-body {
         padding: 24px;
     }
+
     .modal-unevaluated .modal-footer {
         border: none;
         padding: 0 24px 24px;
         gap: 12px;
     }
+
     .unevaluated-count-badge {
         display: inline-flex;
         align-items: center;
@@ -160,20 +164,24 @@
         border: none;
         overflow: hidden;
     }
+
     .modal-approval .modal-header {
         background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
         color: white;
         border: none;
         padding: 20px 24px 16px;
     }
+
     .modal-approval .modal-body {
         padding: 24px;
     }
+
     .modal-approval .modal-footer {
         border: none;
         padding: 0 24px 24px;
         gap: 12px;
     }
+
     .approval-icon-badge {
         display: inline-flex;
         align-items: center;
@@ -197,9 +205,9 @@
             <div class="modal-header">
                 <div class="d-flex align-items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-                        <line x1="12" y1="9" x2="12" y2="13"/>
-                        <line x1="12" y1="17" x2="12.01" y2="17"/>
+                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                        <line x1="12" y1="9" x2="12" y2="13" />
+                        <line x1="12" y1="17" x2="12.01" y2="17" />
                     </svg>
                     <h5 class="modal-title mb-0 fw-bold" id="unevaluatedWarningModalLabel">{{ __('messages.need_evaluate_title') }}</h5>
                 </div>
@@ -214,10 +222,10 @@
             <div class="modal-footer flex-column">
                 <a href="/repairs" class="btn btn-danger w-100 fw-bold rounded-pill py-2 d-flex align-items-center justify-content-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                        <polyline points="14 2 14 8 20 8"/>
-                        <line x1="16" y1="13" x2="8" y2="13"/>
-                        <line x1="16" y1="17" x2="8" y2="17"/>
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                        <polyline points="14 2 14 8 20 8" />
+                        <line x1="16" y1="13" x2="8" y2="13" />
+                        <line x1="16" y1="17" x2="8" y2="17" />
                     </svg>
                     {{ __('messages.go_to_history') }}
                 </a>
@@ -229,7 +237,7 @@
     </div>
 </div>
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('DOMContentLoaded', function() {
         var modal = new bootstrap.Modal(document.getElementById('unevaluatedWarningModal'));
         modal.show();
     });
@@ -240,14 +248,14 @@
 {{-- Modal chọn cần phê duyệt hay không (chỉ dành cho Chủ quản / supervisor) --}}
 @hasrole('supervisor')
 <div class="modal fade modal-approval" id="approvalChoiceModal" tabindex="-1"
-     data-bs-backdrop="static" data-bs-keyboard="false"
-     aria-labelledby="approvalChoiceModalLabel" aria-modal="true" role="dialog">
+    data-bs-backdrop="static" data-bs-keyboard="false"
+    aria-labelledby="approvalChoiceModalLabel" aria-modal="true" role="dialog">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
                 <div class="d-flex align-items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                     </svg>
                     <h5 class="modal-title mb-0 fw-bold" id="approvalChoiceModalLabel">
                         {{ __('messages.approval_needed_title') }}
@@ -263,14 +271,14 @@
             </div>
             <div class="modal-footer flex-column">
                 <button type="button" id="btnNeedsApproval"
-                        class="btn btn-warning w-100 fw-bold rounded-pill py-2 d-flex align-items-center justify-content-center gap-2">
+                    class="btn btn-warning w-100 fw-bold rounded-pill py-2 d-flex align-items-center justify-content-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                     </svg>
                     {{ __('messages.approval_yes_create_btn') }}
                 </button>
                 <button type="button" id="btnNoApproval"
-                        class="btn btn-outline-secondary w-100 rounded-pill py-2">
+                    class="btn btn-outline-secondary w-100 rounded-pill py-2">
                     {{ __('messages.approval_no_create_btn') }}
                 </button>
             </div>
@@ -289,12 +297,12 @@
     <h4 class="mb-0 fw-bold">{{ __('messages.create_ticket') }}</h4>
 </div>
 @php
-    $prefillValue = '';
-    if (request('prefill') === 'daily_inspection') {
-        $prefillValue = 'Kiểm tra hàng ngày';
-    } elseif (request('type') === 'maintenance') {
-        $prefillValue = 'Bảo dưỡng hàng tháng';
-    }
+$prefillValue = '';
+if (request('prefill') === 'daily_inspection') {
+$prefillValue = 'Kiểm tra hàng ngày';
+} elseif (request('type') === 'maintenance') {
+$prefillValue = 'Bảo dưỡng hàng tháng';
+}
 @endphp
 
 <form method="POST" action="/repairs" id="repairForm" enctype="multipart/form-data">
@@ -358,10 +366,10 @@
             <label class="form-label">{{ __('messages.helper_label') }} ({{ __('messages.optional_label') }})</label>
             <select class="form-select" name="nguoi_ho_tro[]" multiple style="min-height: 100px;">
                 @php
-                    $selected = old('nguoi_ho_tro', []);
-                    if (!is_array($selected)) {
-                        $selected = explode(', ', $selected);
-                    }
+                $selected = old('nguoi_ho_tro', []);
+                if (!is_array($selected)) {
+                $selected = explode(', ', $selected);
+                }
                 @endphp
                 @foreach($contractors as $c)
                 <option value="{{ $c->name }}" @selected(in_array($c->name, $selected))>{{ $c->name }}</option>
@@ -381,22 +389,22 @@
             <label class="form-label">{{ __('messages.request_type') }}</label>
             <div class="d-flex align-items-center">
                 @php
-                    $reqType = request('type', 'mechanic');
+                $reqType = request('type', 'mechanic');
                 @endphp
                 <input type="hidden" name="type" id="repair_type_input" value="{{ $reqType }}">
-                
+
                 @if($reqType === 'mechanic')
-                    <span class="badge bg-danger bg-opacity-10 text-danger px-3 py-2 rounded-pill fw-semibold" style="font-size: 0.95rem;">
-                        🔧 {{ __('messages.type_repair') }}
-                    </span>
+                <span class="badge bg-danger bg-opacity-10 text-danger px-3 py-2 rounded-pill fw-semibold" style="font-size: 0.95rem;">
+                    🔧 {{ __('messages.type_repair') }}
+                </span>
                 @elseif($reqType === 'contractor')
-                    <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill fw-semibold" style="font-size: 0.95rem;">
-                        🏗 {{ __('messages.type_construction') }}
-                    </span>
+                <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill fw-semibold" style="font-size: 0.95rem;">
+                    🏗 {{ __('messages.type_construction') }}
+                </span>
                 @elseif($reqType === 'bok')
-                    <span class="badge bg-warning bg-opacity-10 text-warning-emphasis px-3 py-2 rounded-pill fw-semibold" style="font-size: 0.95rem;">
-                        📦 {{ __('messages.type_bok') }}
-                    </span>
+                <span class="badge bg-warning bg-opacity-10 text-warning-emphasis px-3 py-2 rounded-pill fw-semibold" style="font-size: 0.95rem;">
+                    📦 {{ __('messages.type_bok') }}
+                </span>
                 @endif
             </div>
         </div>
@@ -531,7 +539,7 @@
             </div>
             <select class="form-select" name="qa_supervisor_name">
                 <option value="" selected>{{ __('messages.select_qa') }}</option>
-                <option value="Tuyen">Tuyen</option>
+                <option value="Liza">Liza</option>
             </select>
         </div>
 
@@ -577,10 +585,10 @@
         startedAtField.value = local;
     }
 
-    document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('DOMContentLoaded', function() {
         const typeInput = document.getElementById('repair_type_input');
         const bokPhotosSection = document.getElementById('bokPhotosSection');
-        
+
         function toggleBokPhotos() {
             const activeType = typeInput ? typeInput.value : '';
             if (activeType === 'bok') {
@@ -589,7 +597,7 @@
                 if (bokPhotosSection) bokPhotosSection.style.display = 'none';
             }
         }
-        
+
         if (typeInput && bokPhotosSection) {
             toggleBokPhotos();
         }
@@ -599,45 +607,45 @@
 {{-- JS: Supervisor approval modal logic --}}
 @hasrole('supervisor')
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    const contractorRadio = document.getElementById('type_contractor');
-    const mechanicRadio   = document.getElementById('type_mechanic');
-    const needsApprovalInput = document.getElementById('needsApprovalInput');
-    const approvalModal  = document.getElementById('approvalChoiceModal');
-    const btnNeeds       = document.getElementById('btnNeedsApproval');
-    const btnNo          = document.getElementById('btnNoApproval');
+    document.addEventListener('DOMContentLoaded', function() {
+        const contractorRadio = document.getElementById('type_contractor');
+        const mechanicRadio = document.getElementById('type_mechanic');
+        const needsApprovalInput = document.getElementById('needsApprovalInput');
+        const approvalModal = document.getElementById('approvalChoiceModal');
+        const btnNeeds = document.getElementById('btnNeedsApproval');
+        const btnNo = document.getElementById('btnNoApproval');
 
-    if (!approvalModal || !contractorRadio) return;
+        if (!approvalModal || !contractorRadio) return;
 
-    const bsModal = new bootstrap.Modal(approvalModal);
+        const bsModal = new bootstrap.Modal(approvalModal);
 
-    // Khi chọn "Bộ phận công trình" → hiện modal
-    contractorRadio.addEventListener('change', function () {
-        if (this.checked) {
-            needsApprovalInput.value = '0'; // reset
-            bsModal.show();
-        }
-    });
-
-    // Nếu chọn lại "Sửa máy" → ẩn modal nếu đang mở
-    if (mechanicRadio) {
-        mechanicRadio.addEventListener('change', function () {
-            needsApprovalInput.value = '0';
+        // Khi chọn "Bộ phận công trình" → hiện modal
+        contractorRadio.addEventListener('change', function() {
+            if (this.checked) {
+                needsApprovalInput.value = '0'; // reset
+                bsModal.show();
+            }
         });
-    }
 
-    // Nút "Có, cần duyệt"
-    btnNeeds.addEventListener('click', function () {
-        needsApprovalInput.value = '1';
-        bsModal.hide();
-    });
+        // Nếu chọn lại "Sửa máy" → ẩn modal nếu đang mở
+        if (mechanicRadio) {
+            mechanicRadio.addEventListener('change', function() {
+                needsApprovalInput.value = '0';
+            });
+        }
 
-    // Nút "Không cần duyệt"
-    btnNo.addEventListener('click', function () {
-        needsApprovalInput.value = '0';
-        bsModal.hide();
+        // Nút "Có, cần duyệt"
+        btnNeeds.addEventListener('click', function() {
+            needsApprovalInput.value = '1';
+            bsModal.hide();
+        });
+
+        // Nút "Không cần duyệt"
+        btnNo.addEventListener('click', function() {
+            needsApprovalInput.value = '0';
+            bsModal.hide();
+        });
     });
-});
 </script>
 @endhasrole
 @endsection
