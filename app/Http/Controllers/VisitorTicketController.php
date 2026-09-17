@@ -57,13 +57,14 @@ class VisitorTicketController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'guest_unit'          => ['required', 'string', 'max:255'],
-            'purpose'             => ['required', 'string', 'max:500'],
-            'visit_date'          => ['required', 'date'],
-            'guests'              => ['required', 'array', 'min:1'],
-            'guests.*.full_name'  => ['required', 'string', 'max:255'],
-            'guests.*.id_number'  => ['nullable', 'string', 'max:50'],
-            'guests.*.guest_card_number' => ['nullable', 'string', 'max:50'],
+            'guest_unit'               => ['required', 'string', 'max:255'],
+            'purpose'                  => ['required', 'string', 'max:500'],
+            'visit_date'               => ['required', 'date'],
+            'visit_time'               => ['nullable', 'string', 'max:10'],
+            'guests'                   => ['required', 'array', 'min:1'],
+            'guests.*.full_name'       => ['required', 'string', 'max:255'],
+            'guests.*.id_number'       => ['nullable', 'string', 'max:50'],
+            'guests.*.baggage_checked' => ['nullable', 'in:0,1'],
         ], [
             'guest_unit.required'         => 'Vui lòng nhập đơn vị khách.',
             'purpose.required'            => 'Vui lòng nhập mục đích vào công ty.',
@@ -77,6 +78,7 @@ class VisitorTicketController extends Controller
             'guest_unit'  => $request->guest_unit,
             'purpose'     => $request->purpose,
             'visit_date'  => $request->visit_date,
+            'visit_time'  => $request->visit_time,
             'status'      => 'open',
             'created_by'  => auth()->id(),
         ]);
@@ -88,12 +90,79 @@ class VisitorTicketController extends Controller
             $ticket->guests()->create([
                 'full_name'        => $guestData['full_name'],
                 'id_number'        => $guestData['id_number'] ?? null,
-                'guest_card_number' => $guestData['guest_card_number'] ?? null,
+                'baggage_checked'  => isset($guestData['baggage_checked']) ? (bool) $guestData['baggage_checked'] : false,
+                'guest_card_number'=> null,
             ]);
         }
 
         return redirect()->route('visitor-tickets.show', $ticket->id)
             ->with('success', 'Tạo phiếu đăng ký khách thành công!');
+    }
+
+    // ─── EDIT ────────────────────────────────────────────────────────────────────
+
+    public function edit(int $id)
+    {
+        $ticket = VisitorTicket::with('guests')->findOrFail($id);
+
+        if (!$ticket->canEdit(auth()->user())) {
+            abort(403, __('messages.cannot_edit_ticket_processed') ?? 'Phiếu này không thể chỉnh sửa do đã được bảo vệ xử lý hoặc đã đóng.');
+        }
+
+        return view('visitor_tickets.edit', compact('ticket'));
+    }
+
+    // ─── UPDATE ──────────────────────────────────────────────────────────────────
+
+    public function update(Request $request, int $id)
+    {
+        $ticket = VisitorTicket::with('guests')->findOrFail($id);
+
+        if (!$ticket->canEdit(auth()->user())) {
+            abort(403, __('messages.cannot_edit_ticket_processed') ?? 'Phiếu này không thể chỉnh sửa do đã được bảo vệ xử lý hoặc đã đóng.');
+        }
+
+        $request->validate([
+            'guest_unit'               => ['required', 'string', 'max:255'],
+            'purpose'                  => ['required', 'string', 'max:500'],
+            'visit_date'               => ['required', 'date'],
+            'visit_time'               => ['nullable', 'string', 'max:10'],
+            'guests'                   => ['required', 'array', 'min:1'],
+            'guests.*.full_name'       => ['required', 'string', 'max:255'],
+            'guests.*.id_number'       => ['nullable', 'string', 'max:50'],
+            'guests.*.baggage_checked' => ['nullable', 'in:0,1'],
+        ], [
+            'guest_unit.required'         => 'Vui lòng nhập đơn vị khách.',
+            'purpose.required'            => 'Vui lòng nhập mục đích vào công ty.',
+            'visit_date.required'         => 'Vui lòng chọn ngày.',
+            'guests.required'             => 'Vui lòng thêm ít nhất 1 khách.',
+            'guests.min'                  => 'Vui lòng thêm ít nhất 1 khách.',
+            'guests.*.full_name.required' => 'Họ và tên khách là bắt buộc.',
+        ]);
+
+        $ticket->update([
+            'guest_unit'  => $request->guest_unit,
+            'purpose'     => $request->purpose,
+            'visit_date'  => $request->visit_date,
+            'visit_time'  => $request->visit_time,
+        ]);
+
+        $ticket->guests()->delete();
+
+        foreach ($request->guests as $guestData) {
+            if (empty(trim($guestData['full_name'] ?? ''))) {
+                continue;
+            }
+            $ticket->guests()->create([
+                'full_name'        => $guestData['full_name'],
+                'id_number'        => $guestData['id_number'] ?? null,
+                'baggage_checked'  => isset($guestData['baggage_checked']) ? (bool) $guestData['baggage_checked'] : false,
+                'guest_card_number'=> null,
+            ]);
+        }
+
+        return redirect()->route('visitor-tickets.show', $ticket->id)
+            ->with('success', __('messages.visitor_ticket_updated_success') ?? 'Cập nhật phiếu đăng ký khách thành công!');
     }
 
     // ─── SHOW ────────────────────────────────────────────────────────────────────
@@ -107,7 +176,7 @@ class VisitorTicketController extends Controller
         return view('visitor_tickets.show', compact('ticket', 'canSecurity', 'canCreate'));
     }
 
-    // ─── SECURITY UPDATE (bảo vệ cập nhật hành lý, giờ vào/ra, ghi chú) ────────
+    // ─── SECURITY UPDATE (bảo vệ cập nhật số thẻ, giờ vào/ra, ghi chú) ──────────
 
     public function securityUpdate(Request $request, int $id)
     {
@@ -117,7 +186,7 @@ class VisitorTicketController extends Controller
         $request->validate([
             'guests'                        => ['required', 'array'],
             'guests.*.id'                   => ['required', 'integer', 'exists:visitor_guests,id'],
-            'guests.*.baggage_checked'      => ['nullable', 'in:0,1,'],
+            'guests.*.guest_card_number'    => ['nullable', 'string', 'max:50'],
             'guests.*.checked_in_at'        => ['nullable', 'date_format:Y-m-d\TH:i'],
             'guests.*.checked_out_at'       => ['nullable', 'date_format:Y-m-d\TH:i'],
             'guests.*.note'                 => ['nullable', 'string', 'max:500'],
@@ -134,9 +203,9 @@ class VisitorTicketController extends Controller
                 'processed_by'   => auth()->id(),
             ];
 
-            // Kiểm tra hành lý: chỉ cập nhật nếu được gửi lên
-            if (isset($guestData['baggage_checked']) && $guestData['baggage_checked'] !== '') {
-                $update['baggage_checked'] = (bool) $guestData['baggage_checked'];
+            // Số thẻ khách: bảo vệ cấp phát khi khách vào
+            if (isset($guestData['guest_card_number'])) {
+                $update['guest_card_number'] = $guestData['guest_card_number'];
             }
 
             if (!empty($guestData['checked_in_at'])) {
@@ -173,5 +242,22 @@ class VisitorTicketController extends Controller
 
         return redirect()->route('visitor-tickets.show', $ticket->id)
             ->with('success', 'Phiếu đã được đóng thành công!');
+    }
+
+    // ─── DESTROY ──────────────────────────────────────────────────────────────────
+
+    public function destroy(int $id)
+    {
+        $ticket = VisitorTicket::findOrFail($id);
+
+        if (!$ticket->canDelete(auth()->user())) {
+            abort(403, __('messages.unauthorized_delete_ticket') ?? 'Bạn không có quyền xoá phiếu này.');
+        }
+
+        $ticket->guests()->delete();
+        $ticket->delete();
+
+        return redirect()->route('visitor-tickets.index')
+            ->with('success', __('messages.visitor_ticket_deleted_success') ?? 'Xoá phiếu đăng ký khách thành công!');
     }
 }

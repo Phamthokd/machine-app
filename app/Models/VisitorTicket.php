@@ -15,6 +15,7 @@ class VisitorTicket extends Model
         'guest_unit',
         'purpose',
         'visit_date',
+        'visit_time',
         'status',
         'created_by',
         'closed_by',
@@ -68,5 +69,43 @@ class VisitorTicket extends Model
     public function isClosed(): bool
     {
         return $this->status === 'closed';
+    }
+
+    public function canDelete(?User $user = null): bool
+    {
+        $user = $user ?? auth()->user();
+        if (!$user) {
+            return false;
+        }
+
+        return $user->isAdminUser() || (int) $this->created_by === (int) $user->id;
+    }
+
+    public function isSecurityProcessed(): bool
+    {
+        return $this->guests()->where(function ($q) {
+            $q->whereNotNull('guest_card_number')
+              ->orWhereNotNull('checked_in_at')
+              ->orWhereNotNull('checked_out_at')
+              ->orWhereNotNull('processed_by');
+        })->exists();
+    }
+
+    public function canEdit(?User $user = null): bool
+    {
+        $user = $user ?? auth()->user();
+        if (!$user) {
+            return false;
+        }
+
+        if (!$user->isAdminUser() && (int) $this->created_by !== (int) $user->id) {
+            return false;
+        }
+
+        if ($this->isClosed()) {
+            return false;
+        }
+
+        return !$this->isSecurityProcessed();
     }
 }

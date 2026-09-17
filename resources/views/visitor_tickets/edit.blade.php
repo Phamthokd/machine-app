@@ -2,7 +2,7 @@
     $maxWidth = '100%';
 @endphp
 @extends('layouts.app-simple')
-@section('title', __('messages.create_visitor_ticket'))
+@section('title', __('messages.edit_visitor_ticket') . ' #' . $ticket->id)
 
 @section('content')
 
@@ -21,17 +21,18 @@
 </style>
 
 <div class="d-flex align-items-center gap-2 mb-3 mb-md-4">
-    <a href="{{ route('visitor-tickets.index') }}" class="btn btn-sm btn-light border rounded-pill px-3 d-flex align-items-center gap-1 text-secondary">
+    <a href="{{ route('visitor-tickets.show', $ticket->id) }}" class="btn btn-sm btn-light border rounded-pill px-3 d-flex align-items-center gap-1 text-secondary">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
         <span class="d-none d-sm-inline">{{ __('messages.back') }}</span>
     </a>
-    <h4 class="mb-0 fw-bold fs-5 fs-md-4">{{ __('messages.create_visitor_ticket') }}</h4>
+    <h4 class="mb-0 fw-bold fs-5 fs-md-4">{{ __('messages.edit_visitor_ticket') }} <span class="text-primary">#{{ $ticket->id }}</span></h4>
 </div>
 
 <div class="row g-3 g-md-4">
     <div class="col-12">
-        <form method="POST" action="{{ route('visitor-tickets.store') }}" id="ticketForm">
+        <form method="POST" action="{{ route('visitor-tickets.update', $ticket->id) }}" id="ticketForm">
             @csrf
+            @method('PUT')
 
             {{-- 1. Thông tin phiếu --}}
             <div class="card border-0 shadow-sm rounded-4 mb-3 mb-md-4">
@@ -46,27 +47,27 @@
                         <div class="col-12 col-md-6">
                             <label class="form-label fw-bold small text-secondary">{{ __('messages.guest_unit') }} <span class="text-danger">*</span></label>
                             <input type="text" class="form-control @error('guest_unit') is-invalid @enderror"
-                                   name="guest_unit" value="{{ old('guest_unit') }}"
+                                   name="guest_unit" value="{{ old('guest_unit', $ticket->guest_unit) }}"
                                    placeholder="{{ __('messages.guest_unit_placeholder') }}" required>
                             @error('guest_unit')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                         <div class="col-6 col-md-3">
                             <label class="form-label fw-bold small text-secondary">{{ __('messages.visit_date') }} <span class="text-danger">*</span></label>
                             <input type="date" class="form-control @error('visit_date') is-invalid @enderror"
-                                   name="visit_date" value="{{ old('visit_date', date('Y-m-d')) }}" required>
+                                   name="visit_date" value="{{ old('visit_date', $ticket->visit_date?->format('Y-m-d')) }}" required>
                             @error('visit_date')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                         <div class="col-6 col-md-3">
                             <label class="form-label fw-bold small text-secondary">{{ __('messages.visit_time') }}</label>
                             <input type="time" class="form-control @error('visit_time') is-invalid @enderror"
-                                   name="visit_time" value="{{ old('visit_time') }}"
+                                   name="visit_time" value="{{ old('visit_time', $ticket->visit_time) }}"
                                    placeholder="{{ __('messages.visit_time_placeholder') }}">
                             @error('visit_time')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                         <div class="col-12">
                             <label class="form-label fw-bold small text-secondary">{{ __('messages.purpose') }} <span class="text-danger">*</span></label>
                             <input type="text" class="form-control @error('purpose') is-invalid @enderror"
-                                   name="purpose" value="{{ old('purpose') }}"
+                                   name="purpose" value="{{ old('purpose', $ticket->purpose) }}"
                                    placeholder="{{ __('messages.purpose_placeholder') }}" required>
                             @error('purpose')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
@@ -107,9 +108,9 @@
             <div class="d-flex flex-column flex-md-row gap-2 gap-md-3">
                 <button type="submit" class="btn btn-primary btn-lg py-3 px-5 fw-bold rounded-3 shadow flex-fill tap d-flex align-items-center justify-content-center gap-2" id="submitBtn">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-                    {{ __('messages.save_visitor_ticket') }}
+                    {{ __('messages.update_button') }}
                 </button>
-                <a href="{{ route('visitor-tickets.index') }}" class="btn btn-outline-secondary btn-lg py-3 px-4 rounded-3 text-center">{{ __('messages.cancel') }}</a>
+                <a href="{{ route('visitor-tickets.show', $ticket->id) }}" class="btn btn-outline-secondary btn-lg py-3 px-4 rounded-3 text-center">{{ __('messages.cancel') }}</a>
             </div>
         </form>
     </div>
@@ -123,7 +124,7 @@
                 {{ __('messages.guest_item') }} #<span class="guest-index">1</span>
             </span>
             <button type="button" class="btn btn-sm btn-outline-danger border-0 rounded-circle remove-guest-btn d-flex align-items-center justify-content-center"
-                    style="width:32px;height:32px;" title="Xóa">
+                    style="width:32px;height:32px;" title="{{ __('messages.delete') }}">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
         </div>
@@ -210,13 +211,20 @@ document.addEventListener('DOMContentLoaded', function () {
 
     addBtn.addEventListener('click', () => addGuest());
 
-    // Pre-fill old values if validation error
+    // Pre-fill existing guests
     @if(old('guests'))
         @foreach(old('guests', []) as $guest)
             addGuest(@json($guest));
         @endforeach
+    @elseif($ticket->guests->count() > 0)
+        @foreach($ticket->guests as $guest)
+            addGuest({
+                full_name: @json($guest->full_name),
+                id_number: @json($guest->id_number),
+                baggage_checked: @json($guest->baggage_checked)
+            });
+        @endforeach
     @else
-        // Mặc định thêm 1 khách đầu tiên
         addGuest();
     @endif
 

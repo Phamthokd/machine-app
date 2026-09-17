@@ -221,12 +221,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware(['role_or_permission:admin|security|visitors.create|visitors.security'])->group(function () {
         Route::get('/visitor-tickets', [VisitorTicketController::class, 'index'])->name('visitor-tickets.index');
         Route::get('/visitor-tickets/{id}', [VisitorTicketController::class, 'show'])->name('visitor-tickets.show')->whereNumber('id');
+        Route::delete('/visitor-tickets/{id}', [VisitorTicketController::class, 'destroy'])->name('visitor-tickets.destroy')->whereNumber('id');
     });
 
-    // VISITOR TICKETS: Tạo phiếu (Admin + người được admin tích chọn quyền visitors.create)
-    Route::middleware(['role_or_permission:admin|visitors.create'])->group(function () {
+    // VISITOR TICKETS: Tạo & Sửa phiếu (Admin, Bảo vệ role:security, hoặc người được cấp quyền visitors.create)
+    Route::middleware(['role_or_permission:admin|security|visitors.create'])->group(function () {
         Route::get('/visitor-tickets/create', [VisitorTicketController::class, 'create'])->name('visitor-tickets.create');
         Route::post('/visitor-tickets', [VisitorTicketController::class, 'store'])->name('visitor-tickets.store');
+        Route::get('/visitor-tickets/{id}/edit', [VisitorTicketController::class, 'edit'])->name('visitor-tickets.edit')->whereNumber('id');
+        Route::put('/visitor-tickets/{id}', [VisitorTicketController::class, 'update'])->name('visitor-tickets.update')->whereNumber('id');
     });
 
     // VISITOR TICKETS: Bảo vệ cập nhật vào/ra & đóng phiếu (Mặc định cho Admin + role:security)
