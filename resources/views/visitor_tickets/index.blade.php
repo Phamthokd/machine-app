@@ -28,15 +28,24 @@
 <form method="GET" action="{{ route('visitor-tickets.index') }}" class="card border-0 shadow-sm rounded-4 mb-3 mb-md-4">
     <div class="card-body p-3">
         <div class="row g-2 align-items-end">
-            <div class="col-12 col-md-4">
+            <div class="col-12 col-md-3">
                 <label class="form-label small fw-semibold mb-1">{{ __('messages.search') }}</label>
                 <input type="text" class="form-control form-control-sm" name="search" value="{{ request('search') }}" placeholder="{{ __('messages.search_placeholder') }}">
             </div>
             <div class="col-6 col-md-3">
+                <label class="form-label small fw-semibold mb-1">{{ __('messages.visitor_type') }}</label>
+                <select class="form-select form-select-sm" name="visitor_type">
+                    <option value="">{{ __('messages.all') }}</option>
+                    @foreach(\App\Models\VisitorTicket::visitorTypeOptions() as $val => $transKey)
+                        <option value="{{ $val }}" @selected(request('visitor_type') === $val)>{{ __($transKey) }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-6 col-md-2">
                 <label class="form-label small fw-semibold mb-1">{{ __('messages.visit_date') }}</label>
                 <input type="date" class="form-control form-control-sm" name="date" value="{{ request('date') }}">
             </div>
-            <div class="col-6 col-md-3">
+            <div class="col-6 col-md-2">
                 <label class="form-label small fw-semibold mb-1">{{ __('messages.status_filter') }}</label>
                 <select class="form-select form-select-sm" name="status">
                     <option value="">{{ __('messages.all') }}</option>
@@ -44,12 +53,12 @@
                     <option value="closed" @selected(request('status') === 'closed')>{{ __('messages.status_closed') }}</option>
                 </select>
             </div>
-            <div class="col-12 col-md-2 d-flex gap-2">
+            <div class="col-6 col-md-2 d-flex gap-2">
                 <button type="submit" class="btn btn-primary btn-sm flex-fill rounded-3 py-2 fw-semibold">
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="me-1"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
                     {{ __('messages.filter_button') }}
                 </button>
-                @if(request()->hasAny(['search','date','status']))
+                @if(request()->hasAny(['search','visitor_type','date','status']))
                 <a href="{{ route('visitor-tickets.index') }}" class="btn btn-outline-secondary btn-sm rounded-3 py-2 px-3">✕</a>
                 @endif
             </div>
@@ -88,6 +97,11 @@
                             <td class="px-4 text-muted small">{{ $loop->iteration + ($tickets->currentPage() - 1) * $tickets->perPage() }}</td>
                             <td>
                                 <div class="fw-bold text-dark">{{ $ticket->guest_unit }}</div>
+                                @if($ticket->visitor_type)
+                                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill px-2 py-0 fw-normal" style="font-size:0.75rem;">
+                                        {{ $ticket->visitor_type_label }}
+                                    </span>
+                                @endif
                             </td>
                             <td>
                                 <div class="text-truncate" style="max-width:260px" title="{{ $ticket->purpose }}">{{ $ticket->purpose }}</div>
@@ -153,6 +167,11 @@
                                 <div>
                                     <span class="text-secondary small fw-semibold">#{{ $ticket->id }}</span>
                                     <h6 class="fw-bold mb-0 text-dark mt-1">{{ $ticket->guest_unit }}</h6>
+                                    @if($ticket->visitor_type)
+                                        <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill px-2 py-0 fw-normal mt-1" style="font-size:0.75rem;">
+                                            {{ $ticket->visitor_type_label }}
+                                        </span>
+                                    @endif
                                 </div>
                                 <div>
                                     @if($ticket->isOpen())

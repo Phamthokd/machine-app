@@ -89,18 +89,28 @@
             <div class="card-body p-3 p-md-4">
                 <div class="row g-2 g-md-3">
                     <div class="col-12 col-md-3">
+                        <div class="text-secondary small fw-semibold">{{ __('messages.visitor_type') }}</div>
+                        @if($ticket->visitor_type)
+                            <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill px-2 py-1 fw-semibold" style="font-size:0.82rem;">
+                                {{ $ticket->visitor_type_label }}
+                            </span>
+                        @else
+                            <div class="fw-bold text-muted">—</div>
+                        @endif
+                    </div>
+                    <div class="col-12 col-md-3">
                         <div class="text-secondary small fw-semibold">{{ __('messages.guest_unit') }}</div>
                         <div class="fw-bold fs-6">{{ $ticket->guest_unit }}</div>
                     </div>
-                    <div class="col-6 col-md-3">
+                    <div class="col-6 col-md-2">
                         <div class="text-secondary small fw-semibold">{{ __('messages.visit_date') }}</div>
                         <div class="fw-bold">{{ $ticket->visit_date->format('d/m/Y') }}</div>
                     </div>
-                    <div class="col-6 col-md-3">
+                    <div class="col-6 col-md-2">
                         <div class="text-secondary small fw-semibold">{{ __('messages.visit_time') }}</div>
                         <div class="fw-bold">{{ $ticket->visit_time ?: '—' }}</div>
                     </div>
-                    <div class="col-12 col-md-3">
+                    <div class="col-12 col-md-2">
                         <div class="text-secondary small fw-semibold">{{ __('messages.created_by') }}</div>
                         <div class="fw-bold text-truncate">{{ $ticket->creator->name ?? '—' }}</div>
                     </div>

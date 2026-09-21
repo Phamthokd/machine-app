@@ -21,6 +21,11 @@ class VisitorTicketController extends Controller
             $query->where('status', $request->status);
         }
 
+        // Lọc theo phân loại khách
+        if ($request->filled('visitor_type')) {
+            $query->where('visitor_type', $request->visitor_type);
+        }
+
         // Lọc theo ngày
         if ($request->filled('date')) {
             $query->whereDate('visit_date', $request->date);
@@ -58,6 +63,7 @@ class VisitorTicketController extends Controller
     {
         $request->validate([
             'guest_unit'               => ['required', 'string', 'max:255'],
+            'visitor_type'             => ['nullable', 'string', 'max:50'],
             'purpose'                  => ['required', 'string', 'max:500'],
             'visit_date'               => ['required', 'date'],
             'visit_time'               => ['nullable', 'string', 'max:10'],
@@ -75,12 +81,13 @@ class VisitorTicketController extends Controller
         ]);
 
         $ticket = VisitorTicket::create([
-            'guest_unit'  => $request->guest_unit,
-            'purpose'     => $request->purpose,
-            'visit_date'  => $request->visit_date,
-            'visit_time'  => $request->visit_time,
-            'status'      => 'open',
-            'created_by'  => auth()->id(),
+            'guest_unit'   => $request->guest_unit,
+            'visitor_type' => $request->visitor_type,
+            'purpose'      => $request->purpose,
+            'visit_date'   => $request->visit_date,
+            'visit_time'   => $request->visit_time,
+            'status'       => 'open',
+            'created_by'   => auth()->id(),
         ]);
 
         foreach ($request->guests as $guestData) {
@@ -124,6 +131,7 @@ class VisitorTicketController extends Controller
 
         $request->validate([
             'guest_unit'               => ['required', 'string', 'max:255'],
+            'visitor_type'             => ['nullable', 'string', 'max:50'],
             'purpose'                  => ['required', 'string', 'max:500'],
             'visit_date'               => ['required', 'date'],
             'visit_time'               => ['nullable', 'string', 'max:10'],
@@ -141,10 +149,11 @@ class VisitorTicketController extends Controller
         ]);
 
         $ticket->update([
-            'guest_unit'  => $request->guest_unit,
-            'purpose'     => $request->purpose,
-            'visit_date'  => $request->visit_date,
-            'visit_time'  => $request->visit_time,
+            'guest_unit'   => $request->guest_unit,
+            'visitor_type' => $request->visitor_type,
+            'purpose'      => $request->purpose,
+            'visit_date'   => $request->visit_date,
+            'visit_time'   => $request->visit_time,
         ]);
 
         $ticket->guests()->delete();

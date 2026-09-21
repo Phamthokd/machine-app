@@ -177,5 +177,14 @@
     "messages.visitor_ticket_updated_success": "Visitor ticket updated successfully!",
     "messages.cannot_edit_ticket_processed": "This ticket cannot be edited because security has already processed it or it is closed.",
     "messages.update_button": "UPDATE TICKET",
-    "messages.update_visitor_ticket": "UPDATE TICKET"
+    "messages.update_visitor_ticket": "UPDATE TICKET",
+    "messages.visitor_type": "Visitor Classification",
+    "messages.visitor_type_placeholder": "-- Select visitor classification --",
+    "messages.visitor_type_vip_no_reg": "VIP - No registration required (attached list)",
+    "messages.visitor_type_vip": "VIP Guest",
+    "messages.visitor_type_regular": "Regular Guest",
+    "messages.visitor_type_candidate": "Candidate",
+    "messages.visitor_type_construction": "Construction",
+    "messages.visitor_type_contractor_03": "Contractor (03)",
+    "messages.visitor_type_contractor_regular": "Regular Contractor"
 }

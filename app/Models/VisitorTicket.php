@@ -13,6 +13,7 @@ class VisitorTicket extends Model
 
     protected $fillable = [
         'guest_unit',
+        'visitor_type',
         'purpose',
         'visit_date',
         'visit_time',
@@ -107,5 +108,27 @@ class VisitorTicket extends Model
         }
 
         return !$this->isSecurityProcessed();
+    }
+
+    public static function visitorTypeOptions(): array
+    {
+        return [
+            'vip_no_reg'          => 'messages.visitor_type_vip_no_reg',
+            'vip'                 => 'messages.visitor_type_vip',
+            'regular'             => 'messages.visitor_type_regular',
+            'candidate'           => 'messages.visitor_type_candidate',
+            'construction'        => 'messages.visitor_type_construction',
+            'contractor_03'       => 'messages.visitor_type_contractor_03',
+            'contractor_regular'  => 'messages.visitor_type_contractor_regular',
+        ];
+    }
+
+    public function getVisitorTypeLabelAttribute(): string
+    {
+        $options = self::visitorTypeOptions();
+        if ($this->visitor_type && isset($options[$this->visitor_type])) {
+            return __($options[$this->visitor_type]);
+        }
+        return $this->visitor_type ?? '—';
     }
 }

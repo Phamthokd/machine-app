@@ -44,6 +44,16 @@
                 <div class="card-body p-3 p-md-4">
                     <div class="row g-3">
                         <div class="col-12 col-md-6">
+                            <label class="form-label fw-bold small text-secondary">{{ __('messages.visitor_type') }}</label>
+                            <select class="form-select @error('visitor_type') is-invalid @enderror" name="visitor_type">
+                                <option value="">{{ __('messages.visitor_type_placeholder') }}</option>
+                                @foreach(\App\Models\VisitorTicket::visitorTypeOptions() as $val => $transKey)
+                                    <option value="{{ $val }}" @selected(old('visitor_type') === $val)>{{ __($transKey) }}</option>
+                                @endforeach
+                            </select>
+                            @error('visitor_type')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="col-12 col-md-6">
                             <label class="form-label fw-bold small text-secondary">{{ __('messages.guest_unit') }} <span class="text-danger">*</span></label>
                             <input type="text" class="form-control @error('guest_unit') is-invalid @enderror"
                                    name="guest_unit" value="{{ old('guest_unit') }}"
@@ -63,7 +73,7 @@
                                    placeholder="{{ __('messages.visit_time_placeholder') }}">
                             @error('visit_time')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
-                        <div class="col-12">
+                        <div class="col-12 col-md-6">
                             <label class="form-label fw-bold small text-secondary">{{ __('messages.purpose') }} <span class="text-danger">*</span></label>
                             <input type="text" class="form-control @error('purpose') is-invalid @enderror"
                                    name="purpose" value="{{ old('purpose') }}"

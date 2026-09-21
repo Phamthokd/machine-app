@@ -174,5 +174,14 @@
     "messages.visitor_ticket_updated_success": "访客登记单更新成功！",
     "messages.cannot_edit_ticket_processed": "由于保安已录入信息或单据已关闭，该工单无法修改。",
     "messages.update_button": "更新登记单",
-    "messages.update_visitor_ticket": "更新登记单"
+    "messages.update_visitor_ticket": "更新登记单",
+    "messages.visitor_type": "访客分类",
+    "messages.visitor_type_placeholder": "-- 请选择访客分类 --",
+    "messages.visitor_type_vip_no_reg": "VIP访客无需登记（附名单）",
+    "messages.visitor_type_vip": "VIP访客",
+    "messages.visitor_type_regular": "普通访客",
+    "messages.visitor_type_candidate": "应聘人员",
+    "messages.visitor_type_construction": "工程人员",
+    "messages.visitor_type_contractor_03": "承包商 (03)",
+    "messages.visitor_type_contractor_regular": "普通承包商"
 }
