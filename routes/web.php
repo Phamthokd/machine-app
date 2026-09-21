@@ -159,6 +159,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     Route::middleware(['role_or_permission:admin|warehouse|machines.manage'])->group(function () {
+        // Export Excel
+        Route::get('/machines/export', [App\Http\Controllers\MachineController::class, 'export'])->name('machines.export');
+
         // Print QR
         Route::get('/machines/department/{department}/print-qr', [App\Http\Controllers\MachineController::class, 'printDepartmentQr'])->name('machines.print_department_qr');
         Route::get('/machines/{machine}/print-qr', [App\Http\Controllers\MachineController::class, 'printQr'])->name('machines.print_qr');

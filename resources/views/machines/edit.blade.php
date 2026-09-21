@@ -60,6 +60,9 @@
                             <th class="py-3 px-2" style="min-width: 140px;">NGÀY VÀO KHO</th>
                             <th class="py-3 px-2" style="min-width: 140px;">NGÀY RA KHO</th>
                             <th class="py-3 px-2" style="min-width: 180px;">{{ __('messages.warranty_period') }}</th>
+                            <th class="py-3 px-2" style="min-width: 140px;">{{ __('messages.purchase_date') }}</th>
+                            <th class="py-3 px-2" style="min-width: 180px;">{{ __('messages.supplier') }}</th>
+                            <th class="py-3 px-2" style="min-width: 160px;">{{ __('messages.purchase_order') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -109,6 +112,15 @@
                             </td>
                             <td class="p-2">
                                 <input type="text" class="form-control border-0" name="warranty_period" value="{{ old('warranty_period', $machine->warranty_period) }}" placeholder="Ví dụ: 12 tháng">
+                            </td>
+                            <td class="p-2">
+                                <input type="date" class="form-control border-0" name="purchase_date" value="{{ old('purchase_date', $machine->purchase_date ? date('Y-m-d', strtotime($machine->purchase_date)) : '') }}">
+                            </td>
+                            <td class="p-2">
+                                <input type="text" class="form-control border-0" name="supplier" value="{{ old('supplier', $machine->supplier) }}" placeholder="Tên nhà cung cấp">
+                            </td>
+                            <td class="p-2">
+                                <input type="text" class="form-control border-0" name="purchase_order" value="{{ old('purchase_order', $machine->purchase_order) }}" placeholder="Mã đơn hàng/PO">
                             </td>
                         </tr>
                     </tbody>

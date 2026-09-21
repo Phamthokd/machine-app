@@ -82,4 +82,18 @@ class MachineTest extends TestCase
             'id' => $this->machine->id,
         ]);
     }
+
+    public function test_admin_can_export_machines_by_department(): void
+    {
+        $response = $this->actingAs($this->admin)
+            ->get("/machines/export?department_id={$this->department->id}");
+
+        $response->assertStatus(200);
+        $response->assertHeader('Content-Type', 'application/vnd.ms-excel');
+        
+        $content = $response->streamedContent();
+        $this->assertStringContainsString('MAY-001', $content);
+        $this->assertStringContainsString('Test Machine', $content);
+        $this->assertStringContainsString('Test Department', $content);
+    }
 }

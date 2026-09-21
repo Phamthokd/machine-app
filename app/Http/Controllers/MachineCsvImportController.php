@@ -30,7 +30,10 @@ class MachineCsvImportController extends Controller
             'vi_tri_text',
             'ngay_vao_kho',
             'ngay_ra_kho',
-            'warranty_period'
+            'warranty_period',
+            'purchase_date',
+            'supplier',
+            'purchase_order'
         ];
 
         $samples = [
@@ -48,7 +51,10 @@ class MachineCsvImportController extends Controller
                 'Xưởng 5',
                 '29/07/2023',
                 '',
-                '12 tháng'
+                '12 tháng',
+                '15/07/2023',
+                'Cty TNHH Thiết Bị May ABC',
+                'PO-2023-088'
             ],
             [
                 '00-MM-0002-KXD',
@@ -64,7 +70,10 @@ class MachineCsvImportController extends Controller
                 'Kho cơ khí',
                 '',
                 '05/02/2026',
-                '24 tháng'
+                '24 tháng',
+                '01/02/2026',
+                'Cty Máy May Quốc Tế',
+                'PO-2026-012'
             ]
         ];
 
@@ -186,6 +195,9 @@ class MachineCsvImportController extends Controller
         $i_ngayvao   = $idxAny(['ngày vào kho', 'ngay vao kho', 'ngay_vao_kho']);
         $i_ngayra    = $idxAny(['ngày ra kho', 'ngay ra kho', 'ngay_ra_kho']);
         $i_warranty  = $idxAny(['thoi_gian_bao_hanh', 'thời gian bảo hành', 'warranty_period', 'warranty period']);
+        $i_purchasedate = $idxAny(['purchase_date', 'purchase date', 'ngày mua', 'ngay mua', 'ngay_mua']);
+        $i_supplier  = $idxAny(['supplier', 'nhà cung cấp', 'nha cung cap', 'nha_cung_cap', 'vendor', 'nha_cc']);
+        $i_po        = $idxAny(['purchase_order', 'purchase order', 'đơn đặt hàng', 'don dat hang', 'don_dat_hang', 'po', 'po_number', 'order_number']);
 
         if ($i_code === null) {
             fclose($handle);
@@ -264,6 +276,9 @@ class MachineCsvImportController extends Controller
                     'ngay_vao_kho' => $i_ngayvao !== null ? $parseDate($row[$i_ngayvao] ?? null) : null,
                     'ngay_ra_kho' => $i_ngayra !== null ? $parseDate($row[$i_ngayra] ?? null) : null,
                     'warranty_period' => $i_warranty !== null ? $this->cleanCell($row[$i_warranty] ?? null) : null,
+                    'purchase_date' => $i_purchasedate !== null ? $parseDate($row[$i_purchasedate] ?? null) : null,
+                    'supplier' => $i_supplier !== null ? $this->cleanCell($row[$i_supplier] ?? null) : null,
+                    'purchase_order' => $i_po !== null ? $this->cleanCell($row[$i_po] ?? null) : null,
                 ]
             );
 

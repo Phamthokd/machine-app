@@ -284,6 +284,18 @@
             <div class="info-label">{{ __('messages.warranty_period') }}</div>
             <div class="info-value">{{ $machine->warranty_period ?? '—' }}</div>
         </div>
+        <div class="info-item">
+            <div class="info-label">{{ __('messages.purchase_date') }}</div>
+            <div class="info-value">{{ $machine->purchase_date ? \Carbon\Carbon::parse($machine->purchase_date)->format('d/m/Y') : '—' }}</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">{{ __('messages.supplier') }}</div>
+            <div class="info-value">{{ $machine->supplier ?? '—' }}</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">{{ __('messages.purchase_order') }}</div>
+            <div class="info-value">{{ $machine->purchase_order ?? '—' }}</div>
+        </div>
         <div class="info-item full-width">
             <div class="info-label">{{ __('messages.location_note') }}</div>
             <div class="info-value">{{ $machine->vi_tri_text ?? '—' }}</div>

@@ -42,7 +42,11 @@
     @endif
     
     @if(request('department_id'))
-        <div class="mb-4 d-flex justify-content-end">
+        <div class="mb-4 d-flex justify-content-end gap-2">
+            <a href="{{ route('machines.export', request()->query()) }}" class="btn btn-success d-flex align-items-center gap-2 shadow-sm tap">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                {{ __('messages.export_excel') }}
+            </a>
             <a href="{{ route('machines.print_department_qr', request('department_id')) }}" target="_blank" class="btn btn-dark d-flex align-items-center gap-2 shadow-sm tap">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
                 {{ __('messages.print_batch_qr') }}
@@ -70,6 +74,9 @@
                         <th class="py-2 px-2">{{ __('messages.warehouse_in_date') }}</th>
                         <th class="py-2 px-2">{{ __('messages.warehouse_out_date') }}</th>
                         <th class="py-2 px-2">{{ __('messages.warranty_period') }}</th>
+                        <th class="py-2 px-2">{{ __('messages.purchase_date') }}</th>
+                        <th class="py-2 px-2">{{ __('messages.supplier') }}</th>
+                        <th class="py-2 px-2">{{ __('messages.purchase_order') }}</th>
                         <th class="py-2 px-2 text-center" style="width: 80px;">{{ __('messages.actions') }}</th>
                     </tr>
                 </thead>
@@ -92,6 +99,9 @@
                         <td class="px-2">{{ $m->ngay_vao_kho ? \Carbon\Carbon::parse($m->ngay_vao_kho)->format('d/m/Y') : '' }}</td>
                         <td class="px-2">{{ $m->ngay_ra_kho ? \Carbon\Carbon::parse($m->ngay_ra_kho)->format('d/m/Y') : '' }}</td>
                         <td class="px-2">{{ $m->warranty_period }}</td>
+                        <td class="px-2">{{ $m->purchase_date ? \Carbon\Carbon::parse($m->purchase_date)->format('d/m/Y') : '' }}</td>
+                        <td class="px-2">{{ $m->supplier }}</td>
+                        <td class="px-2">{{ $m->purchase_order }}</td>
                         <td class="px-2 text-center">
                             <div class="d-flex justify-content-center gap-2">
                                 <a href="{{ route('machines.print_qr', $m->id) }}" target="_blank" class="btn btn-sm btn-outline-dark border-0 p-1" title="{{ __('messages.print_qr_action') }}">
@@ -114,7 +124,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="15" class="text-center py-5 text-secondary">
+                        <td colspan="18" class="text-center py-5 text-secondary">
                             {{ __('messages.no_data_found') }}
                         </td>
                     </tr>

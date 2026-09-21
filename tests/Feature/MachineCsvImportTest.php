@@ -47,18 +47,22 @@ class MachineCsvImportTest extends TestCase
         $this->assertStringContainsString('ngay_vao_kho', $content);
         $this->assertStringContainsString('ngay_ra_kho', $content);
         $this->assertStringContainsString('warranty_period', $content);
+        $this->assertStringContainsString('purchase_date', $content);
+        $this->assertStringContainsString('supplier', $content);
+        $this->assertStringContainsString('purchase_order', $content);
         
         // Assert samples are present
         $this->assertStringContainsString('00-MM-0001-KXD', $content);
         $this->assertStringContainsString('12 tháng', $content);
         $this->assertStringContainsString('24 tháng', $content);
+        $this->assertStringContainsString('Cty TNHH Thiết Bị May ABC', $content);
     }
 
     public function test_admin_can_import_valid_csv(): void
     {
         // Define CSV content
-        $csvContent = "ma_thiet_bi,ten_thiet_bi,to_hien_tai,brand,model,serial,invoice_cd,year,country,stock_in_date,vi_tri_text,ngay_vao_kho,ngay_ra_kho,warranty_period\n" .
-                      "MA-999,Máy test import,Tổ Kiểm Thử,BrandTest,ModelTest,S12345,INV-1234,2026,Vietnam,29/07/2023,Khu Test,29/07/2023,30/07/2023,36 tháng";
+        $csvContent = "ma_thiet_bi,ten_thiet_bi,to_hien_tai,brand,model,serial,invoice_cd,year,country,stock_in_date,vi_tri_text,ngay_vao_kho,ngay_ra_kho,warranty_period,purchase_date,supplier,purchase_order\n" .
+                      "MA-999,Máy test import,Tổ Kiểm Thử,BrandTest,ModelTest,S12345,INV-1234,2026,Vietnam,29/07/2023,Khu Test,29/07/2023,30/07/2023,36 tháng,15/07/2023,Cty Test Supplier,PO-999";
 
         // Create dummy CSV file
         $file = UploadedFile::fake()->createWithContent('import_test.csv', $csvContent);
@@ -85,6 +89,9 @@ class MachineCsvImportTest extends TestCase
             'ngay_vao_kho' => '2023-07-29',
             'ngay_ra_kho' => '2023-07-30',
             'warranty_period' => '36 tháng',
+            'purchase_date' => '2023-07-15',
+            'supplier' => 'Cty Test Supplier',
+            'purchase_order' => 'PO-999',
         ]);
 
         // Assert department was created

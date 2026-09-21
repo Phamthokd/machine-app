@@ -21,6 +21,9 @@ class Machine extends Model
         'ngay_vao_kho',
         'ngay_ra_kho',
         'warranty_period',
+        'purchase_date',
+        'supplier',
+        'purchase_order',
     ];
 
     
