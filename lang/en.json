@@ -186,5 +186,18 @@
     "messages.visitor_type_candidate": "Candidate",
     "messages.visitor_type_construction": "Construction",
     "messages.visitor_type_contractor_03": "Contractor (03)",
-    "messages.visitor_type_contractor_regular": "Regular Contractor"
+    "messages.visitor_type_contractor_regular": "Regular Contractor",
+    "May xưởng 6 tầng 1": "Sewing Workshop 6 F1",
+    "May xưởng 6 Tầng 1": "Sewing Workshop 6 F1",
+    "May xưởng 6 tầng 2": "Sewing Workshop 6 F2",
+    "May xưởng 6 Tầng 2": "Sewing Workshop 6 F2",
+    "Khu vực kiểm hàng không có vật dụng không liên quan.": "Inspection area must be free of unrelated items.",
+    "Không để hàng lỗi lẫn với hàng đạt.": "Do not mix defective items with passed items.",
+    "Hàng đạt, chờ kiểm, chờ đóng gói tách biệt, có phân cách": "Passed, pending inspection, and pending packing items are separated with clear partitions.",
+    "Hàng hóa đặt ngay ngắn, phân màu sắc, không chồng cao hoặc để dưới đất.": "Goods must be neatly arranged, color-sorted, not stacked too high or placed directly on the floor.",
+    "Dụng cụ có hiệu chuẩn đầy đủ chưa": "Are all tools properly calibrated?",
+    "Là, KTHT, đóng gói tầng 1": "Ironing, Inspection, Packing F1",
+    "Là, KTHT, đóng gói tầng 2": "Ironing, Inspection, Packing F2",
+    "Mẫu kiểm, mẫu chuẩn được để riêng, có nhãn nhận dạng.": "Inspection samples and standard samples are kept separate with identification labels.",
+    "QA, KTDC, FQC": "QA, Mid-line QC, FQC"
 }

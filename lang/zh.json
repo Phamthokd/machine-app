@@ -183,5 +183,18 @@
     "messages.visitor_type_candidate": "应聘人员",
     "messages.visitor_type_construction": "工程人员",
     "messages.visitor_type_contractor_03": "承包商 (03)",
-    "messages.visitor_type_contractor_regular": "普通承包商"
+    "messages.visitor_type_contractor_regular": "普通承包商",
+    "May xưởng 6 tầng 1": "6厂1楼车缝",
+    "May xưởng 6 Tầng 1": "6厂1楼车缝",
+    "May xưởng 6 tầng 2": "6厂2楼车缝",
+    "May xưởng 6 Tầng 2": "6厂2楼车缝",
+    "Khu vực kiểm hàng không có vật dụng không liên quan.": "不得在工作桌面或生產線上放置個人物品（如手機、手提包、食物等）。",
+    "Không để hàng lỗi lẫn với hàng đạt.": "不得將不良品與合格品混放",
+    "Hàng đạt, chờ kiểm, chờ đóng gói tách biệt, có phân cách": "合格品、待檢品、待包裝品須分區擺放，並有明確隔離",
+    "Hàng hóa đặt ngay ngắn, phân màu sắc, không chồng cao hoặc để dưới đất.": "貨品需擺放整齊，按顏色分類，不得堆放過高或直接放在地面上",
+    "Dụng cụ có hiệu chuẩn đầy đủ chưa": "完全校准的仪器？",
+    "Là, KTHT, đóng gói tầng 1": "1楼烫衣、成检、包装",
+    "Là, KTHT, đóng gói tầng 2": "2楼烫衣、成检、包装",
+    "Mẫu kiểm, mẫu chuẩn được để riêng, có nhãn nhận dạng.": "檢驗樣品與標準樣品須分開擺放，並貼有識別標籤",
+    "QA, KTDC, FQC": "QA、中检、FQC"
 }
