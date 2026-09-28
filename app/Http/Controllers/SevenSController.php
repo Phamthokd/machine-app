@@ -12,6 +12,13 @@ use Illuminate\Http\Request;
 
 class SevenSController extends Controller
 {
+  private const HIDDEN_DEPARTMENTS = [
+    'Xưởng 6 tầng 1',
+    'Xưởng 6 tầng 2',
+    'Xưởng 6 Tầng 1',
+    'Xưởng 6 Tầng 2',
+  ];
+
   private function userManagedDepartments(User $user): array
   {
     return AuditTemplate::getDepartmentQueryNames($user->managedDepartments());
@@ -21,8 +28,10 @@ class SevenSController extends Controller
   {
     $user = auth()->user();
     
-    // Get unique departments for "New 7S Check" grid
-    $templates = SevenSChecklist::distinct()->pluck('department');
+    // Get unique departments for "New 7S Check" grid (excluding hidden departments)
+    $templates = SevenSChecklist::whereNotIn('department', self::HIDDEN_DEPARTMENTS)
+      ->distinct()
+      ->pluck('department');
 
     $query = SevenSRecord::with(['inspector', 'results'])->orderByDesc('created_at');
 
@@ -59,7 +68,14 @@ class SevenSController extends Controller
   public function create(Request $request)
   {
     $department = $request->query('department', 'XNK');
-    $departments = SevenSChecklist::distinct()->pluck('department');
+
+    if (in_array($department, self::HIDDEN_DEPARTMENTS)) {
+      return redirect()->route('seven-s.index')->with('error', 'Bộ phận này không còn cho phép tạo phiếu 7S mới.');
+    }
+
+    $departments = SevenSChecklist::whereNotIn('department', self::HIDDEN_DEPARTMENTS)
+      ->distinct()
+      ->pluck('department');
 
     $checklist = SevenSChecklist::where('department', $department)
       ->orderBy('sort_order')
@@ -73,6 +89,10 @@ class SevenSController extends Controller
   public function store(Request $request)
   {
     $department = $request->input('department', 'XNK');
+
+    if (in_array($department, self::HIDDEN_DEPARTMENTS)) {
+      return redirect()->route('seven-s.index')->with('error', 'Bộ phận này không còn cho phép tạo phiếu 7S mới.');
+    }
     $grades = $request->input('grades', []);
     $notes  = $request->input('notes', []);
 

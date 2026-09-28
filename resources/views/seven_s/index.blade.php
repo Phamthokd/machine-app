@@ -192,6 +192,12 @@
 </div>
 @endif
 
+@if(session('error'))
+<div class="alert alert-danger border-0 shadow-sm rounded-4 mb-4">
+    {{ session('error') }}
+</div>
+@endif
+
 @if(auth()->check() && !auth()->user()->hasManagedDepartments())
 <div class="mb-5">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
