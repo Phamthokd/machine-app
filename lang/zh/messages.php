@@ -709,7 +709,7 @@ return [
     'repairer' => '维修工',
 
     // Extra Departments
-    'Phòng mẫu' => '版房',
+    'Phòng mẫu' => '板房',
     'Đánh giá bộ phận Phòng mẫu' => '版房评估',
     'Kiểm vải' => '验布',
     'Đánh giá bộ phận Kiểm vải' => '验布评估',
@@ -720,11 +720,11 @@ return [
     'May xưởng 6 Tầng 1' => '6厂1楼车缝',
     'May xưởng 6 tầng 2' => '6厂2楼车缝',
     'May xưởng 6 Tầng 2' => '6厂2楼车缝',
-    'Là, KTHT, đóng gói tầng 1' => '1楼烫衣、成检、包装',
-    'Là, KTHT, đóng gói tầng 2' => '2楼烫衣、成检、包装',
+    'Là, KTHT, đóng gói tầng 1' => '6 厂1楼烫衣，尾查，包装',
+    'Là, KTHT, đóng gói tầng 2' => '6 厂2楼烫衣，尾查，包装',
     'QA, KTDC, FQC' => 'QA、中检、FQC',
     'Thêu' => '绣花部',
-    'May lập trình' => '电脑缝纫部',
+    'May lập trình' => '模板组',
     'Kế toán' => '会计',
     'Sale' => '销售',
     'Đơn hàng' => '订单',
