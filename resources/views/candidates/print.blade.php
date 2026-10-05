@@ -343,7 +343,7 @@
                 <td class="value-cell">{{ $candidate->phone }}</td>
             </tr>
             <tr>
-                <td class="label-cell">Địa chỉ nhà<br><span class="label-zh">家庭地址</span></td>
+                <td class="label-cell">Địa chỉ thường trú<br><span class="label-zh">永久居住地址</span></td>
                 <td colspan="6" class="value-cell">{{ $candidate->address }}</td>
             </tr>
             <tr>
@@ -366,7 +366,7 @@
                 <td class="label-cell">Số con<br><span class="label-zh">子女数量</span></td>
                 <td colspan="6">
                     @php $children = array_filter($candidate->children_dob ?? []); @endphp
-                    @foreach([0,1,2] as $i)
+                    @foreach([0,1,2,3,4,5] as $i)
                     <span class="opt"><span class="box">{{ isset($children[$i]) && $children[$i] ? '✓' : '' }}</span> Năm sinh con {{ $i+1 }}: {{ $children[$i] ?? '________' }}</span>
                     @endforeach
                 </td>
@@ -402,7 +402,7 @@
                 <td>ĐT: {{ $candidate->emergency_phone }}</td>
             </tr>
             <tr>
-                <td colspan="6">Địa chỉ: {{ $candidate->emergency_address }}</td>
+                <td colspan="6">Địa chỉ thường trú: {{ $candidate->emergency_address }}</td>
             </tr>
         </table>
 
@@ -495,7 +495,7 @@
                         <span class="box">{{ $sm->pivot->review_result === 'rejected' ? '✓' : '' }}</span> Không tuyển / 不录用
                     </span>
                     <span class="opt">
-                        <span class="box">{{ $sm->pivot->review_result === 'pending' || !$sm->pivot->review_result ? '✓' : '' }}</span> Xem xét / 待定
+                        <span class="box">{{ $sm->pivot->review_result === 'pending' || !$sm->pivot->review_result ? '✓' : '' }}</span>Chờ xem xét / 待审核
                     </span>
                 </td>
             </tr>
