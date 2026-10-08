@@ -1828,4 +1828,7 @@ return [
     'visitor_type_construction'     => 'Construction',
     'visitor_type_contractor_03'    => 'Contractor (03)',
     'visitor_type_contractor_regular' => 'Regular Contractor',
+    'card_code_badge'               => 'Badge Code: :code',
+    'card_placeholder_vip'          => 'e.g. VIP or VIP-01',
+    'card_placeholder_pattern'      => 'e.g. :prefix-01',
 ];

@@ -1776,6 +1776,9 @@ return [
     'visitor_type_construction'     => 'Công trình',
     'visitor_type_contractor_03'    => 'Nhà thầu (03)',
     'visitor_type_contractor_regular' => 'Nhà thầu bình thường',
+    'card_code_badge'               => 'Mã thẻ: :code',
+    'card_placeholder_vip'          => 'VD: VIP hoặc VIP-01',
+    'card_placeholder_pattern'      => 'VD: :prefix-01',
 
     // Repair Completion Photos
     'repair_completion_photos' => 'Ảnh thiết bị sau khi sửa',

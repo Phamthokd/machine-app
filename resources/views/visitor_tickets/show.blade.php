@@ -160,7 +160,16 @@
                                 <th class="py-3" style="min-width:160px">{{ __('messages.full_name') }}</th>
                                 <th class="py-3" style="min-width:120px">{{ __('messages.id_number') }}</th>
                                 <th class="py-3 text-center" style="min-width:130px">{{ __('messages.baggage_checked') }}</th>
-                                <th class="py-3" style="min-width:130px">{{ __('messages.guest_card_number') }}</th>
+                                <th class="py-3" style="min-width:140px">
+                                    <div class="d-flex align-items-center gap-1">
+                                        <span>{{ __('messages.guest_card_number') }}</span>
+                                        @if($ticket->card_prefix)
+                                            <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill px-2 py-0 fw-semibold" style="font-size:0.72rem;">
+                                                {{ $ticket->card_prefix }}
+                                            </span>
+                                        @endif
+                                    </div>
+                                </th>
                                 <th class="py-3" style="min-width:180px">{{ __('messages.checked_in_at') }}</th>
                                 <th class="py-3" style="min-width:180px">{{ __('messages.checked_out_at') }}</th>
                                 <th class="py-3 pe-4" style="min-width:160px">{{ __('messages.note') }}</th>
@@ -195,8 +204,8 @@
                                     @if($canSecurity && $ticket->isOpen())
                                         <input type="text" class="form-control form-control-sm fw-bold text-dark"
                                                name="guests[{{ $i }}][guest_card_number]"
-                                               value="{{ $guest->guest_card_number }}"
-                                               placeholder="{{ __('messages.guest_card_placeholder') }}"
+                                               value="{{ $guest->guest_card_number ?: ($ticket->card_prefix ?? '') }}"
+                                               placeholder="{{ $ticket->card_placeholder }}"
                                                maxlength="50" style="min-width:110px;">
                                     @else
                                         @if($guest->guest_card_number)
@@ -297,12 +306,19 @@
                             <div class="row g-2">
                                 {{-- Số thẻ khách --}}
                                 <div class="col-12 mb-2">
-                                    <label class="form-label small fw-bold text-secondary mb-1">{{ __('messages.guest_card_number') }}:</label>
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <label class="form-label small fw-bold text-secondary mb-0">{{ __('messages.guest_card_number') }}:</label>
+                                        @if($ticket->card_prefix)
+                                            <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill px-2 py-0 fw-semibold" style="font-size:0.72rem;">
+                                                {{ __('messages.card_code_badge', ['code' => $ticket->card_prefix]) }}
+                                            </span>
+                                        @endif
+                                    </div>
                                     <input type="text" class="form-control form-control-sm fw-bold text-dark"
                                            id="mob_card_{{ $i }}"
                                            name="guests[{{ $i }}][guest_card_number]"
-                                           value="{{ $guest->guest_card_number }}"
-                                           placeholder="{{ __('messages.guest_card_placeholder') }}">
+                                           value="{{ $guest->guest_card_number ?: ($ticket->card_prefix ?? '') }}"
+                                           placeholder="{{ $ticket->card_placeholder }}">
                                 </div>
 
                                 {{-- Giờ vào --}}

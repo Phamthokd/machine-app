@@ -131,4 +131,35 @@ class VisitorTicket extends Model
         }
         return $this->visitor_type ?? '—';
     }
+
+    public static function cardPrefixMap(): array
+    {
+        return [
+            'vip_no_reg'          => 'VIP',
+            'vip'                 => 'VIP',
+            'regular'             => 'V',
+            'construction'        => 'C',
+            'candidate'           => 'I',
+            'contractor_03'       => 'D',
+            'contractor_regular'  => 'S',
+        ];
+    }
+
+    public function getCardPrefixAttribute(): ?string
+    {
+        $map = self::cardPrefixMap();
+        return $map[$this->visitor_type] ?? null;
+    }
+
+    public function getCardPlaceholderAttribute(): string
+    {
+        $prefix = $this->card_prefix;
+        if ($prefix === 'VIP') {
+            return __('messages.card_placeholder_vip');
+        }
+        if ($prefix) {
+            return __('messages.card_placeholder_pattern', ['prefix' => $prefix]);
+        }
+        return __('messages.guest_card_placeholder');
+    }
 }

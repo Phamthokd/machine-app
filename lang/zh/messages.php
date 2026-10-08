@@ -1823,6 +1823,9 @@ return [
     'visitor_type_construction'     => '工程人员',
     'visitor_type_contractor_03'    => '承包商 (03)',
     'visitor_type_contractor_regular' => '普通承包商',
+    'card_code_badge'               => '卡号前缀: :code',
+    'card_placeholder_vip'          => '例如：VIP 或 VIP-01',
+    'card_placeholder_pattern'      => '例如：:prefix-01',
 
     // Repair Completion Photos
     'repair_completion_photos' => '维修后的设备照片',
