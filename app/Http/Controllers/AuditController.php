@@ -20,14 +20,15 @@ class AuditController extends Controller
     public function index(Request $request)
     {
         // Get list of active templates for creating new audits
-        $templates = AuditTemplate::where('is_active', true)->get();
+        $templates = AuditTemplate::where('is_active', true)->with('criteria')->get();
         $user = auth()->user();
 
-        $query = AuditRecord::with('template', 'auditor', 'results');
+        $query = AuditRecord::with('template.criteria', 'auditor', 'results');
 
         // 1. Authorization/Base Filter: Filter by all managed departments if the user has any
         $managedDepartments = $this->userManagedDepartments($user);
         if (!empty($managedDepartments) && !$user->hasRole('senior_manager')) {
+            $query->where('status', 'completed');
             $query->whereHas('template', function ($q) use ($managedDepartments) {
                 $q->whereIn('department_name', $managedDepartments);
             });
@@ -50,7 +51,13 @@ class AuditController extends Controller
 
         $audits = $query->orderByDesc('created_at')->paginate(20)->withQueryString();
 
-        return view('audits.index', compact('templates', 'audits'));
+        $myPausedAudits = AuditRecord::with('template.criteria', 'results')
+            ->where('auditor_id', $user->id)
+            ->where('status', 'paused')
+            ->orderByDesc('created_at')
+            ->get();
+
+        return view('audits.index', compact('templates', 'audits', 'myPausedAudits'));
     }
 
     public function create(Request $request)
@@ -62,6 +69,17 @@ class AuditController extends Controller
 
         $template = AuditTemplate::with('criteria')->findOrFail($templateId);
 
+        // Check if there is an active paused audit for this template by current user
+        $pausedAudit = AuditRecord::where('auditor_id', auth()->id())
+            ->where('audit_template_id', $template->id)
+            ->where('status', 'paused')
+            ->first();
+
+        if ($pausedAudit) {
+            return redirect()->route('audits.edit', $pausedAudit->id)
+                ->with('info', __('messages.audit_paused_banner_desc'));
+        }
+
         return view('audits.create', compact('template'));
     }
 
@@ -70,23 +88,68 @@ class AuditController extends Controller
         abort_unless(empty(auth()->user()->managedDepartments()), 403, 'Bạn không có quyền thực hiện chức năng này vì đã được phân công bộ phận.');
 
         $templateId = $request->input('audit_template_id');
-        $template = AuditTemplate::findOrFail($templateId);
+        $template = AuditTemplate::with('criteria')->findOrFail($templateId);
 
+        $action = $request->input('action', 'complete');
         $results = $request->input('results', []);
 
-        // Validate results
+        if ($action === 'pause') {
+            $record = AuditRecord::create([
+                'audit_template_id' => $template->id,
+                'auditor_id' => auth()->id(),
+                'status' => 'paused',
+            ]);
+
+            foreach ($results as $index => $item) {
+                if (!isset($item['is_passed']) || !in_array((string)$item['is_passed'], ['1', '0'])) {
+                    continue;
+                }
+
+                $imagePaths = [];
+                if ($item['is_passed'] == 0 && $request->hasFile("results.{$index}.image")) {
+                    $files = $request->file("results.{$index}.image");
+                    if (!is_array($files)) {
+                        $files = [$files];
+                    }
+                    foreach ($files as $file) {
+                        if ($file && $file->isValid()) {
+                            $filename = now()->format('Y-m-d-His-') . uniqid() . '.' . $file->extension();
+                            $path = $file->storeAs('audits', $filename, 'public');
+                            $imagePaths[] = 'storage/' . ltrim($path, '/');
+                        }
+                    }
+                }
+
+                AuditResult::create([
+                    'audit_record_id' => $record->id,
+                    'audit_criterion_id' => $item['audit_criterion_id'],
+                    'is_passed' => (bool)$item['is_passed'],
+                    'note' => $item['note'] ?? null,
+                    'image_path' => empty($imagePaths) ? null : $imagePaths,
+                ]);
+            }
+
+            return redirect()->route('audits.index')->with('success', __('messages.audit_paused_success_msg', ['dept' => $template->department_name]));
+        }
+
+        // Validate results for complete action
         $request->validate([
             'results' => 'required|array',
             'results.*.audit_criterion_id' => 'required|exists:audit_criteria,id',
             'results.*.is_passed' => 'required|in:1,0',
             'results.*.note' => 'required_if:results.*.is_passed,0',
-            'results.*.image' => 'nullable|array|max:20', // Array of images, max 20 images
-            'results.*.image.*' => 'image|max:10240', // Max 10MB per image
+            'results.*.image' => 'nullable|array|max:20',
+            'results.*.image.*' => 'image|max:10240',
         ], [
             'results.*.note.required_if' => 'Vui lòng nhập ghi chú nguyên nhân cho các mục Không đạt (X).',
             'results.*.image.*.image' => 'File đính kèm phải là hình ảnh.',
             'results.*.image.*.max' => 'Kích thước ảnh tối đa là 10MB.',
         ]);
+
+        $evaluatedIds = collect($results)->pluck('audit_criterion_id')->filter()->unique();
+        if ($evaluatedIds->count() < $template->criteria->count()) {
+            return back()->withInput()->withErrors(['criteria' => 'Vui lòng hoàn thành đánh giá cho tất cả các tiêu chí trước khi hoàn thành.']);
+        }
 
         // Create the main record
         $record = AuditRecord::create([
@@ -95,11 +158,9 @@ class AuditController extends Controller
             'status' => 'completed',
         ]);
 
-        // Create the individual criterion results
         foreach ($results as $index => $item) {
             $imagePaths = [];
 
-            // Handle image upload if provided and the criterion failed
             if (isset($item['is_passed']) && $item['is_passed'] == 0 && $request->hasFile("results.{$index}.image")) {
                 $files = $request->file("results.{$index}.image");
                 if (!is_array($files)) {
@@ -107,10 +168,11 @@ class AuditController extends Controller
                 }
 
                 foreach ($files as $file) {
-                    $filename = now()->format('Y-m-d-His-') . uniqid() . '.' . $file->extension();
-                    $path = $file->storeAs('audits', $filename, 'public');
-                    // Prefix with storage/ for asset referencing 
-                    $imagePaths[] = 'storage/' . ltrim($path, '/');
+                    if ($file && $file->isValid()) {
+                        $filename = now()->format('Y-m-d-His-') . uniqid() . '.' . $file->extension();
+                        $path = $file->storeAs('audits', $filename, 'public');
+                        $imagePaths[] = 'storage/' . ltrim($path, '/');
+                    }
                 }
             }
 
@@ -132,23 +194,24 @@ class AuditController extends Controller
     public function editAudit($id)
     {
         $user = auth()->user();
-        abort_unless(
-            $user->canManageAuditModule(),
-            403,
-            'Bạn không có quyền sửa phiếu đánh giá.'
-        );
+        $audit = AuditRecord::with(['template.criteria', 'auditor', 'results.criterion'])->findOrFail($id);
 
-        $audit = AuditRecord::with(['template', 'auditor', 'results.criterion'])->findOrFail($id);
+        $canEdit = $user->isAdminUser() ||
+            ($user->canManageAuditModule() && ($audit->isPaused() ? $audit->auditor_id === $user->id : true));
 
-        $isFullyReviewed = $audit->results->contains(function ($r) {
-            return !empty($r->improver_name);
-        }) &&
-            $audit->results->filter(function ($r) {
-                return !empty($r->improver_name) && empty($r->reviewer_name);
-            })->isEmpty();
+        abort_unless($canEdit, 403, 'Bạn không có quyền sửa phiếu đánh giá.');
 
-        if ($isFullyReviewed && !$user->isAdminUser()) {
-            abort(403, 'Phiếu này đã được đánh giá lần 2 và bị khóa. Chỉ Admin mới có thể chỉnh sửa.');
+        if ($audit->isCompleted()) {
+            $isFullyReviewed = $audit->results->contains(function ($r) {
+                return !empty($r->improver_name);
+            }) &&
+                $audit->results->filter(function ($r) {
+                    return !empty($r->improver_name) && empty($r->reviewer_name);
+                })->isEmpty();
+
+            if ($isFullyReviewed && !$user->isAdminUser()) {
+                abort(403, 'Phiếu này đã được đánh giá lần 2 và bị khóa. Chỉ Admin mới có thể chỉnh sửa.');
+            }
         }
 
         return view('audits.edit', compact('audit'));
@@ -157,43 +220,84 @@ class AuditController extends Controller
     public function updateAudit(Request $request, $id)
     {
         $user = auth()->user();
-        abort_unless(
-            $user->canManageAuditModule(),
-            403,
-            'Bạn không có quyền sửa phiếu đánh giá.'
-        );
+        $audit = AuditRecord::with(['template.criteria', 'results'])->findOrFail($id);
 
-        $audit = AuditRecord::with('results')->findOrFail($id);
+        $canEdit = $user->isAdminUser() ||
+            ($user->canManageAuditModule() && ($audit->isPaused() ? $audit->auditor_id === $user->id : true));
 
-        $isFullyReviewed = $audit->results->contains(function ($r) {
-            return !empty($r->improver_name);
-        }) &&
-            $audit->results->filter(function ($r) {
-                return !empty($r->improver_name) && empty($r->reviewer_name);
-            })->isEmpty();
+        abort_unless($canEdit, 403, 'Bạn không có quyền sửa phiếu đánh giá.');
 
-        if ($isFullyReviewed && !$user->isAdminUser()) {
-            abort(403, 'Phiếu này đã được đánh giá lần 2 và bị khóa. Chỉ Admin mới có thể chỉnh sửa.');
+        if ($audit->isCompleted()) {
+            $isFullyReviewed = $audit->results->contains(function ($r) {
+                return !empty($r->improver_name);
+            }) &&
+                $audit->results->filter(function ($r) {
+                    return !empty($r->improver_name) && empty($r->reviewer_name);
+                })->isEmpty();
+
+            if ($isFullyReviewed && !$user->isAdminUser()) {
+                abort(403, 'Phiếu này đã được đánh giá lần 2 và bị khóa. Chỉ Admin mới có thể chỉnh sửa.');
+            }
         }
 
+        $action = $request->input('action', $audit->isPaused() ? 'complete' : 'update');
         $results = $request->input('results', []);
         $files   = $request->file('results', []);
 
-        foreach ($audit->results as $result) {
-            $rid   = $result->id;
-            $input = $results[$rid] ?? [];
+        $templateCriteria = $audit->template->criteria;
 
-            // 1. Đổi pass/fail và ghi chú
-            $isPassed = isset($input['is_passed']) && $input['is_passed'] == '1';
+        if ($action === 'complete') {
+            foreach ($templateCriteria as $criterion) {
+                $cid = $criterion->id;
+                $input = $results[$cid] ?? null;
+                if (!$input) {
+                    $existing = $audit->results->firstWhere('audit_criterion_id', $cid);
+                    if ($existing && isset($results[$existing->id])) {
+                        $input = $results[$existing->id];
+                    }
+                }
+
+                if (!$input || !isset($input['is_passed']) || !in_array((string)$input['is_passed'], ['1', '0'])) {
+                    return back()->withInput()->withErrors([
+                        'criteria' => 'Vui lòng hoàn thành đánh giá cho tất cả các tiêu chí trước khi hoàn thành.',
+                    ]);
+                }
+
+                if ((string)$input['is_passed'] === '0' && empty(trim($input['note'] ?? ''))) {
+                    return back()->withInput()->withErrors([
+                        'note' => 'Vui lòng nhập ghi chú nguyên nhân cho các mục Không đạt (X).',
+                    ]);
+                }
+            }
+        }
+
+        foreach ($templateCriteria as $criterion) {
+            $cid = $criterion->id;
+            $input = $results[$cid] ?? null;
+            $fileInputKey = $cid;
+
+            if (!$input) {
+                $existing = $audit->results->firstWhere('audit_criterion_id', $cid);
+                if ($existing && isset($results[$existing->id])) {
+                    $input = $results[$existing->id];
+                    $fileInputKey = $existing->id;
+                }
+            }
+
+            if (!$input || !isset($input['is_passed']) || !in_array((string)$input['is_passed'], ['1', '0'])) {
+                continue;
+            }
+
+            $isPassed = (string)$input['is_passed'] === '1';
             $note     = $isPassed ? null : ($input['note'] ?? null);
 
-            // 2. Xử lý xóa ảnh cũ
-            $currentPaths = (array) ($result->image_path ?? []);
-            $toRemove     = $input['image_remove'] ?? [];      // mảng path cần xóa
+            $result = $audit->results->firstWhere('audit_criterion_id', $cid);
+
+            $currentPaths = $result ? (array) ($result->image_path ?? []) : [];
+            $toRemove     = $input['image_remove'] ?? [];
             if (!empty($toRemove)) {
                 foreach ($toRemove as $removePath) {
                     $currentPaths = array_filter($currentPaths, fn($p) => $p !== $removePath);
-                    // Xóa file vật lý khỏi storage
                     $disk = \Illuminate\Support\Facades\Storage::disk('public');
                     $physicalPath = str_replace('storage/', '', ltrim($removePath, '/'));
                     if ($disk->exists($physicalPath)) {
@@ -203,14 +307,12 @@ class AuditController extends Controller
                 $currentPaths = array_values($currentPaths);
             }
 
-            // Nếu đổi sang Đạt thì xóa hết ảnh cũ
             if ($isPassed) {
                 $currentPaths = [];
             }
 
-            // 3. Upload ảnh mới
-            if (!$isPassed && isset($files[$rid]['image'])) {
-                $newFiles = $files[$rid]['image'];
+            if (!$isPassed && isset($files[$fileInputKey]['image'])) {
+                $newFiles = $files[$fileInputKey]['image'];
                 if (!is_array($newFiles)) {
                     $newFiles = [$newFiles];
                 }
@@ -223,22 +325,59 @@ class AuditController extends Controller
                 }
             }
 
-            // 4. Lưu
-            $result->update([
-                'is_passed'  => $isPassed,
-                'note'       => $note,
-                'image_path' => empty($currentPaths) ? null : array_values($currentPaths),
-            ]);
+            if ($result) {
+                $result->update([
+                    'is_passed'  => $isPassed,
+                    'note'       => $note,
+                    'image_path' => empty($currentPaths) ? null : array_values($currentPaths),
+                ]);
+            } else {
+                AuditResult::create([
+                    'audit_record_id'    => $audit->id,
+                    'audit_criterion_id' => $cid,
+                    'is_passed'          => $isPassed,
+                    'note'               => $note,
+                    'image_path'         => empty($currentPaths) ? null : array_values($currentPaths),
+                ]);
+            }
         }
 
-        // 5. Tính lại điểm
-        $audit->refresh();
-        $total  = $audit->results->count();
-        $passed = $audit->results->where('is_passed', true)->count();
-        $score  = $total > 0 ? round(($passed / $total) * 100, 2) : 0;
-        $audit->update(['score' => $score]);
+        if ($action === 'pause') {
+            $audit->update(['status' => 'paused']);
+            return redirect()->route('audits.index')->with('success', __('messages.audit_paused_success_msg', ['dept' => $audit->template->department_name]));
+        }
 
-        return redirect()->route('audits.show', $audit->id)->with('success', "Đã cập nhật phiếu đánh giá! Điểm số mới: {$score}%");
+        $wasPaused = $audit->isPaused();
+        $audit->update(['status' => 'completed']);
+        $audit->refresh();
+
+        if ($wasPaused) {
+            $this->notifyDepartmentAboutAuditCreated($audit, $audit->template);
+        }
+
+        return redirect()->route('audits.show', $audit->id)->with('success', "Đã hoàn thành đánh giá bộ phận {$audit->template->department_name}! Điểm số đạt: {$audit->score}%");
+    }
+
+    public function destroy($id)
+    {
+        $audit = AuditRecord::with('results')->findOrFail($id);
+        $user = auth()->user();
+
+        $canDelete = $user->isAdminUser() || ($audit->isPaused() && $audit->auditor_id === $user->id);
+        abort_unless($canDelete, 403, 'Bạn không có quyền xoá phiếu đánh giá này.');
+
+        foreach ($audit->results as $result) {
+            if (!empty($result->image_path)) {
+                foreach ((array)$result->image_path as $path) {
+                    $physicalPath = str_replace('storage/', '', ltrim($path, '/'));
+                    \Illuminate\Support\Facades\Storage::disk('public')->delete($physicalPath);
+                }
+            }
+        }
+
+        $audit->delete();
+
+        return redirect()->route('audits.index')->with('success', 'Đã xoá phiếu đánh giá thành công.');
     }
 
     public function export(Request $request)
@@ -635,21 +774,6 @@ class AuditController extends Controller
             ->with('success', 'Đã lưu kết quả đánh giá lại thành công.');
     }
 
-    public function destroy($id)
-    {
-        $audit = AuditRecord::findOrFail($id);
-
-        // Ensure only admin can delete
-        abort_unless(auth()->user()->isAdminUser(), 403, 'Chỉ Admin mới có quyền xóa phiếu đánh giá');
-
-        // Delete the audit record (AuditResults should cascade, or we can delete them explicitly)
-        // Let's explicitly delete results to be safe if cascade isn't set up
-        $audit->results()->delete();
-        $audit->delete();
-
-        return redirect()->route('audits.index')
-            ->with('success', 'Đã xóa phiếu đánh giá thành công.');
-    }
 
     public function submitAgreements(Request $request, $id)
     {

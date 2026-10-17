@@ -198,6 +198,47 @@
 </div>
 @endif
 
+@if(isset($myPausedRecords) && $myPausedRecords->isNotEmpty())
+<div class="card border-0 shadow-sm rounded-4 mb-4" style="background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border-left: 5px solid #f59e0b !important;">
+    <div class="card-body p-3 p-md-4">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <div>
+                <h5 class="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
+                    <span class="fs-5">⏸️</span>
+                    {{ __('messages.7s_has_paused_records_alert', ['count' => $myPausedRecords->count()]) }}
+                </h5>
+                <p class="text-muted small mb-0">{{ __('messages.7s_paused_banner_desc') }}</p>
+            </div>
+        </div>
+        <div class="mt-3 d-flex flex-column gap-2">
+            @foreach($myPausedRecords as $paused)
+            <div class="d-flex flex-wrap align-items-center justify-content-between bg-white p-3 rounded-3 shadow-xs gap-3 border">
+                <div class="d-flex align-items-center gap-3">
+                    <span class="badge bg-warning text-dark px-2 py-1 fw-bold">⏸️ {{ __('messages.7s_status_paused') }}</span>
+                    <span class="fw-bold text-dark">{{ __('messages.' . $paused->department) }}</span>
+                    <span class="text-muted small">({{ __('messages.7s_items_progress', ['answered' => $paused->results->count(), 'total' => $paused->total_checklist_items]) }})</span>
+                    <span class="text-muted small">• {{ $paused->updated_at->diffForHumans() }}</span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <a href="{{ route('seven-s.edit', $paused->id) }}" class="btn btn-sm btn-primary fw-bold d-flex align-items-center gap-1 px-3 shadow-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                        {{ __('messages.7s_resume_inspection') }}
+                    </a>
+                    <form action="{{ route('seven-s.destroy', $paused->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Bạn có chắc muốn hủy bản kiểm tra tạm dừng này không?')">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-sm btn-outline-danger border-0" title="{{ __('messages.7s_discard_draft') }}">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                        </button>
+                    </form>
+                </div>
+            </div>
+            @endforeach
+        </div>
+    </div>
+</div>
+@endif
+
 @if(auth()->check() && !auth()->user()->hasManagedDepartments())
 <div class="mb-5">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
@@ -225,15 +266,25 @@
 
     <div class="audit-grid" id="auditTemplateGrid">
         @foreach($templates as $deptName)
-        <div class="audit-card" data-dept="{{ $deptName }}">
+        @php
+        $pausedForDept = isset($myPausedRecords) ? $myPausedRecords->firstWhere('department', $deptName) : null;
+        @endphp
+        <div class="audit-card {{ $pausedForDept ? 'border-warning border-2' : '' }}" data-dept="{{ $deptName }}">
             <div>
-                <div class="card-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                        <polyline points="14 2 14 8 20 8"></polyline>
-                        <rect x="8" y="13" width="8" height="2"></rect>
-                        <rect x="8" y="17" width="8" height="2"></rect>
-                    </svg>
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div class="card-icon mb-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <rect x="8" y="13" width="8" height="2"></rect>
+                            <rect x="8" y="17" width="8" height="2"></rect>
+                        </svg>
+                    </div>
+                    @if($pausedForDept)
+                    <span class="badge bg-warning text-dark border border-warning shadow-xs">
+                        ⏸️ {{ __('messages.7s_status_paused') }}
+                    </span>
+                    @endif
                 </div>
                 <h5 class="card-title">{{ __('messages.7s_inspection') }} {{ __('messages.' . $deptName) }}</h5>
                 <div class="card-dept">
@@ -244,9 +295,16 @@
                     {{ __('messages.' . $deptName) }}
                 </div>
             </div>
+            @if($pausedForDept)
+            <a href="{{ route('seven-s.edit', $pausedForDept->id) }}" class="btn btn-warning text-dark fw-bold text-decoration-none text-center d-flex align-items-center justify-content-center gap-1 shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                {{ __('messages.7s_resume_inspection') }}
+            </a>
+            @else
             <a href="{{ route('seven-s.create', ['department' => $deptName]) }}" class="btn btn-start-audit text-decoration-none text-center">
                 {{ __('messages.7s_create_btn') }}
             </a>
+            @endif
         </div>
         @endforeach
     </div>
@@ -354,7 +412,7 @@
                     $isAdmin = auth()->user()->isAdminUser();
 
                     $isDepartmentUser = \Illuminate\Support\Facades\Auth::check() && auth()->user()->managesDepartment($auditDept);
-                    $canRespond = $isDepartmentUser && $isPendingFeedback;
+                    $canRespond = $record->isCompleted() && $isDepartmentUser && $isPendingFeedback;
 
                     $improveableResults = $failedResults->filter(function($r) {
                         return $r->department_agreement === true ||
@@ -380,7 +438,11 @@
                             <div class="d-flex flex-column gap-1">
                                 <span class="fw-bold">{{ __('messages.' . $record->department) }}</span>
                                  <div class="d-flex align-items-center gap-2">
-                                    @if($isPendingFeedback)
+                                    @if($record->isPaused())
+                                    <span class="status-badge bg-warning bg-opacity-20 text-dark border border-warning shadow-none" style="padding: 2px 8px;">
+                                        ⏸️ {{ __('messages.7s_status_paused') }}
+                                    </span>
+                                    @elseif($isPendingFeedback)
                                     <span class="status-badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 shadow-none" style="padding: 2px 8px;">
                                         {{ __('messages.7s_status_pending_feedback') }}
                                     </span>
@@ -413,10 +475,17 @@
                             </div>
                         </td>
                         <td>
+                            @if($record->isPaused())
+                            <div class="score-badge bg-warning bg-opacity-20 text-dark border border-warning mx-auto" style="font-size:0.75rem; font-weight:700;">
+                                {{ $record->results->count() }}/{{ $record->total_checklist_items }}
+                            </div>
+                            <div class="text-center small text-muted mt-1">{{ __('messages.7s_status_paused') }}</div>
+                            @else
                             <div class="score-badge bg-{{ $pct >= 80 ? 'success' : ($pct >= 60 ? 'warning' : 'danger') }} bg-opacity-10 text-{{ $pct >= 80 ? 'success' : ($pct >= 60 ? 'warning' : 'danger') }}">
                                 {{ $pct }}%
                             </div>
                             <div class="text-center small text-muted mt-1">{{ $record->score }}/{{ $record->max_score }}</div>
+                            @endif
                         </td>
                         <td>
                             <div class="d-flex align-items-center gap-2">
@@ -433,23 +502,30 @@
                             {{ $record->created_at->format('H:i d/m/Y') }}
                         </td>
                         <td class="text-center">
-                            <div class="d-flex justify-content-center gap-2">
+                            <div class="d-flex justify-content-center align-items-center gap-1">
+                                @if($record->isPaused() && (auth()->user()->isAdminUser() || $record->inspector_id === auth()->id()))
+                                <a href="{{ route('seven-s.edit', $record->id) }}" class="btn btn-sm btn-primary text-white shadow-sm d-inline-flex align-items-center justify-content-center" style="width: 32px; height: 32px; border-radius: 6px;" title="{{ __('messages.7s_resume_inspection') }}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                        <polygon points="6 4 20 12 6 20 6 4"></polygon>
+                                    </svg>
+                                </a>
+                                @endif
                                 @if($canRespond)
                                 <button type="button" class="btn btn-sm btn-info text-white shadow-sm fw-bold px-3" data-bs-toggle="modal" data-bs-target="#respondModal_{{ $record->id }}">
                                     {{ __('messages.audit_respond_btn') }}
                                 </button>
                                 @endif
-                                <a href="{{ route('seven-s.show', $record->id) }}" class="btn btn-sm btn-light border text-primary px-2" title="{{ __('messages.view_detail') }}">
+                                <a href="{{ route('seven-s.show', $record->id) }}" class="btn btn-sm btn-light border text-primary d-inline-flex align-items-center justify-content-center" style="width: 32px; height: 32px; border-radius: 6px;" title="{{ __('messages.view_detail') }}">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
                                         <circle cx="12" cy="12" r="3" />
                                     </svg>
                                 </a>
-                                @if(auth()->user()->isAdminUser())
-                                <form action="{{ route('seven-s.destroy', $record->id) }}" method="POST" class="d-inline" onsubmit="return confirm('{{ __('messages.confirm_delete_audit') }}')">
+                                @if(auth()->user()->isAdminUser() || ($record->isPaused() && $record->inspector_id === auth()->id()))
+                                <form action="{{ route('seven-s.destroy', $record->id) }}" method="POST" class="d-inline m-0" onsubmit="return confirm('{{ __('messages.confirm_delete_audit') }}')">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-outline-danger border-0" title="{{ __('messages.delete') }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger border-0 d-inline-flex align-items-center justify-content-center" style="width: 32px; height: 32px; border-radius: 6px;" title="{{ __('messages.delete') }}">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                             <path d="M3 6h18" />
                                             <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />

@@ -33,6 +33,13 @@ class SevenSController extends Controller
       ->distinct()
       ->pluck('department');
 
+    // Paused records belonging to current user
+    $myPausedRecords = SevenSRecord::with(['results'])
+      ->where('inspector_id', $user->id)
+      ->where('status', 'paused')
+      ->orderByDesc('updated_at')
+      ->get();
+
     $query = SevenSRecord::with(['inspector', 'results'])->orderByDesc('created_at');
 
     // 1. Base Filter by Role/Managed Department
@@ -41,7 +48,10 @@ class SevenSController extends Controller
       $query->where(function ($q) use ($user, $managedDepartments) {
         $q->where('inspector_id', $user->id);
         if (!empty($managedDepartments)) {
-          $q->orWhereIn('department', $managedDepartments);
+          $q->orWhere(function ($deptQuery) use ($managedDepartments) {
+            $deptQuery->whereIn('department', $managedDepartments)
+              ->where('status', 'completed');
+          });
         }
       });
     }
@@ -61,7 +71,7 @@ class SevenSController extends Controller
 
     $records = $query->paginate(20)->withQueryString();
     
-    return view('seven_s.index', compact('records', 'templates'));
+    return view('seven_s.index', compact('records', 'templates', 'myPausedRecords'));
   }
 
   /* Form tạo phiếu kiểm tra */
@@ -71,6 +81,20 @@ class SevenSController extends Controller
 
     if (in_array($department, self::HIDDEN_DEPARTMENTS)) {
       return redirect()->route('seven-s.index')->with('error', 'Bộ phận này không còn cho phép tạo phiếu 7S mới.');
+    }
+
+    // Check if current user has an unfinished paused inspection for this department
+    if (!$request->boolean('force_new')) {
+      $pausedRecord = SevenSRecord::where('department', $department)
+        ->where('inspector_id', auth()->id())
+        ->where('status', 'paused')
+        ->latest('updated_at')
+        ->first();
+
+      if ($pausedRecord) {
+        return redirect()->route('seven-s.edit', $pausedRecord->id)
+          ->with('info', "Bạn đang có 1 đợt kiểm tra tạm dừng của bộ phận {$department}. Đang tiếp tục đợt kiểm tra này.");
+      }
     }
 
     $departments = SevenSChecklist::whereNotIn('department', self::HIDDEN_DEPARTMENTS)
@@ -93,18 +117,33 @@ class SevenSController extends Controller
     if (in_array($department, self::HIDDEN_DEPARTMENTS)) {
       return redirect()->route('seven-s.index')->with('error', 'Bộ phận này không còn cho phép tạo phiếu 7S mới.');
     }
+
+    $action = $request->input('action', 'complete');
+    $isPause = ($action === 'pause');
+
     $grades = $request->input('grades', []);
     $notes  = $request->input('notes', []);
 
-    // Validate: C/D/E must have note
-    $errors = [];
-    foreach ($grades as $checklistId => $grade) {
-      if (in_array($grade, ['C', 'D', 'E']) && empty(trim($notes[$checklistId] ?? ''))) {
-        $errors["notes.{$checklistId}"] = 'Vui lòng nhập nhận xét cho mục ' . $checklistId;
+    $allChecklistItems = SevenSChecklist::where('department', $department)->get();
+    $totalCount = $allChecklistItems->count();
+
+    if (!$isPause) {
+      // Complete inspection: ALL items must be evaluated
+      if (count($grades) < $totalCount) {
+        return back()->with('error', 'Vui lòng đánh giá tất cả các mục trước khi hoàn thành kiểm tra (hoặc bấm "Tạm dừng kiểm tra" nếu chưa xong).')
+          ->withInput();
       }
-    }
-    if (!empty($errors)) {
-      return back()->withErrors($errors)->withInput();
+
+      // Validate: C/D/E must have note
+      $errors = [];
+      foreach ($grades as $checklistId => $grade) {
+        if (in_array($grade, ['C', 'D', 'E']) && empty(trim($notes[$checklistId] ?? ''))) {
+          $errors["notes.{$checklistId}"] = 'Vui lòng nhập nhận xét cho mục ' . $checklistId;
+        }
+      }
+      if (!empty($errors)) {
+        return back()->withErrors($errors)->withInput();
+      }
     }
 
     // Create record
@@ -113,12 +152,16 @@ class SevenSController extends Controller
       'inspector_id' => auth()->id(),
       'score'        => 0,
       'max_score'    => 0,
+      'status'       => $isPause ? 'paused' : 'completed',
     ]);
 
     $totalScore = 0;
     $maxScore   = 0;
 
     foreach ($grades as $checklistId => $grade) {
+      if (empty($grade)) {
+        continue;
+      }
       $points = SevenSResult::gradeToPoints($grade);
 
       // Upload images
@@ -140,17 +183,27 @@ class SevenSController extends Controller
         'note'         => $notes[$checklistId] ?? null,
         'image_path'   => empty($imagePaths) ? null : $imagePaths,
         'points'       => $points,
-        'review_status' => $grade === 'B' ? null : 'pending_feedback',
+        'review_status' => ($isPause || $grade === 'B') ? null : 'pending_feedback',
       ]);
 
       $totalScore += $points;
-      $maxScore   += 2; // max per item is B=2
+      $maxScore   += 2; // max per evaluated item is B=2
+    }
+
+    if (!$isPause) {
+      $maxScore = $totalCount * 2;
     }
 
     $record->update(['score' => $totalScore, 'max_score' => $maxScore]);
 
+    if ($isPause) {
+      $answeredCount = count($grades);
+      return redirect()->route('seven-s.show', $record->id)
+        ->with('success', "Đã tạm dừng kiểm tra 7S bộ phận {$department}! Tiến độ: {$answeredCount}/{$totalCount} mục. Bạn có thể tiếp tục kiểm tra bất cứ lúc nào.");
+    }
+
     return redirect()->route('seven-s.show', $record->id)
-      ->with('success', "Đã lưu phiếu kiểm tra 7S! Điểm: {$totalScore}/{$maxScore}");
+      ->with('success', "Đã hoàn thành và lưu phiếu kiểm tra 7S! Điểm: {$totalScore}/{$maxScore}");
   }
 
   /* Xem kết quả phiếu */
@@ -202,34 +255,52 @@ class SevenSController extends Controller
     }
 
     $nonBResults = $record->results->where('grade', '!=', 'B');
-    if ($nonBResults->isNotEmpty() && $nonBResults->every(fn($r) => !empty($r->improvement_note))) {
+    if ($record->isCompleted() && $nonBResults->isNotEmpty() && $nonBResults->every(fn($r) => !empty($r->improvement_note))) {
       return redirect()->route('seven-s.show', $id)
         ->with('error', 'Phiếu này đã được cải thiện xong, không thể chỉnh sửa nữa.');
     }
 
+    $action = $request->input('action', 'complete');
+    $isPause = ($action === 'pause');
+
     $grades = $request->input('grades', []);
     $notes  = $request->input('notes', []);
 
-    // Validate: C/D/E must have note
-    $errors = [];
-    foreach ($grades as $checklistId => $grade) {
-      $result = $record->results->firstWhere('checklist_id', $checklistId);
-      if ($result && (!is_null($result->department_agreement) || ($result->review_status === 'approved' && !empty($result->improvement_note)))) {
-        continue;
+    $allChecklistItems = SevenSChecklist::where('department', $record->department)->get();
+    $totalCount = $allChecklistItems->count();
+
+    // If completing the inspection:
+    if (!$isPause) {
+      if (count($grades) < $totalCount) {
+        return back()->with('error', 'Vui lòng đánh giá tất cả các mục trước khi hoàn thành kiểm tra (hoặc bấm "Tạm dừng kiểm tra" nếu chưa xong).')
+          ->withInput();
       }
 
-      if (in_array($grade, ['C', 'D', 'E']) && empty(trim($notes[$checklistId] ?? ''))) {
-        $errors["notes.{$checklistId}"] = 'Vui lòng nhập nhận xét cho mục ' . $checklistId;
+      // Validate: C/D/E must have note
+      $errors = [];
+      foreach ($grades as $checklistId => $grade) {
+        $result = $record->results->firstWhere('checklist_id', $checklistId);
+        if ($result && (!is_null($result->department_agreement) || ($result->review_status === 'approved' && !empty($result->improvement_note)))) {
+          continue;
+        }
+
+        if (in_array($grade, ['C', 'D', 'E']) && empty(trim($notes[$checklistId] ?? ''))) {
+          $errors["notes.{$checklistId}"] = 'Vui lòng nhập nhận xét cho mục ' . $checklistId;
+        }
       }
-    }
-    if (!empty($errors)) {
-      return back()->withErrors($errors)->withInput();
+      if (!empty($errors)) {
+        return back()->withErrors($errors)->withInput();
+      }
     }
 
     $totalScore = 0;
     $maxScore   = 0;
 
     foreach ($grades as $checklistId => $grade) {
+      if (empty($grade)) {
+        continue;
+      }
+
       $result = $record->results->firstWhere('checklist_id', $checklistId);
       
       // Check if locked: Responded OR already improved
@@ -262,13 +333,15 @@ class SevenSController extends Controller
         $imagePaths = array_values(array_filter($imagePaths, fn($p) => !in_array($p, $removedImages)));
       }
 
+      $reviewStatus = ($isPause || $grade === 'B') ? null : 'pending_feedback';
+
       if ($result) {
         $result->update([
           'grade'      => $grade,
           'note'       => $notes[$checklistId] ?? null,
           'image_path' => empty($imagePaths) ? null : array_values($imagePaths),
           'points'     => $points,
-          'review_status' => $grade === 'B' ? null : 'pending_feedback',
+          'review_status' => $reviewStatus,
         ]);
       } else {
         SevenSResult::create([
@@ -278,7 +351,7 @@ class SevenSController extends Controller
           'note'         => $notes[$checklistId] ?? null,
           'image_path'   => empty($imagePaths) ? null : $imagePaths,
           'points'       => $points,
-          'review_status' => $grade === 'B' ? null : 'pending_feedback',
+          'review_status' => $reviewStatus,
         ]);
       }
 
@@ -286,10 +359,27 @@ class SevenSController extends Controller
       $maxScore   += 2;
     }
 
-    $record->update(['score' => $totalScore, 'max_score' => $maxScore]);
+    if (!$isPause) {
+      $maxScore = $totalCount * 2;
+      $record->update([
+        'score'     => $totalScore,
+        'max_score' => $maxScore,
+        'status'    => 'completed',
+      ]);
 
+      return redirect()->route('seven-s.show', $record->id)
+        ->with('success', "Đã hoàn thành và cập nhật phiếu kiểm tra 7S! Điểm: {$totalScore}/{$maxScore}");
+    }
+
+    $record->update([
+      'score'     => $totalScore,
+      'max_score' => $maxScore,
+      'status'    => 'paused',
+    ]);
+
+    $answeredCount = count(array_filter($grades, fn($g) => !empty($g)));
     return redirect()->route('seven-s.show', $record->id)
-      ->with('success', "Đã cập nhật phiếu kiểm tra 7S! Điểm: {$totalScore}/{$maxScore}");
+      ->with('success', "Đã lưu tạm dừng kiểm tra 7S! Tiến độ: {$answeredCount}/{$totalCount} mục. Bạn có thể tiếp tục kiểm tra bất cứ lúc nào.");
   }
 
 
@@ -340,19 +430,23 @@ class SevenSController extends Controller
       $pct = $r->max_score > 0 ? round(($r->score / $r->max_score) * 100) : 0;
       
       // Determine Status (simplified for export)
-      $status = 'Đã xong';
-      $failedResults = $r->results->where('grade', '!=', 'B');
-      $unresponded = $failedResults->filter(fn($res) => is_null($res->department_agreement));
-      if ($unresponded->isNotEmpty()) {
-          $status = 'Chờ phản hồi';
+      if ($r->status === 'paused') {
+          $status = 'Tạm dừng';
       } else {
-          $pendingImp = $failedResults->filter(fn($res) => $res->review_status === 'pending_improvement' || $res->review_status === 'rejected');
-          if ($pendingImp->isNotEmpty()) {
-              $status = 'Chờ cải thiện';
+          $status = 'Đã xong';
+          $failedResults = $r->results->where('grade', '!=', 'B');
+          $unresponded = $failedResults->filter(fn($res) => is_null($res->department_agreement));
+          if ($unresponded->isNotEmpty()) {
+              $status = 'Chờ phản hồi';
           } else {
-              $pendingRev = $failedResults->filter(fn($res) => $res->review_status === 'pending_review');
-              if ($pendingRev->isNotEmpty()) {
-                  $status = 'Chờ phê duyệt';
+              $pendingImp = $failedResults->filter(fn($res) => $res->review_status === 'pending_improvement' || $res->review_status === 'rejected');
+              if ($pendingImp->isNotEmpty()) {
+                  $status = 'Chờ cải thiện';
+              } else {
+                  $pendingRev = $failedResults->filter(fn($res) => $res->review_status === 'pending_review');
+                  if ($pendingRev->isNotEmpty()) {
+                      $status = 'Chờ phê duyệt';
+                  }
               }
           }
       }
@@ -803,14 +897,17 @@ td, th { border: 1px solid #999; padding: 4px 6px; vertical-align: middle; mso-n
     return back()->with('success', 'Đã duyệt các lời phản đối kết quả.');
   }
 
-  /* Xoá phiếu kiểm tra — chỉ Admin */
+  /* Xoá phiếu kiểm tra — Admin hoặc người kiểm tra của phiếu tạm dừng */
   public function destroy($id)
   {
-    if (!auth()->user()->isAdminUser()) {
+    $record = SevenSRecord::with('results')->findOrFail($id);
+    $user = auth()->user();
+
+    $canDelete = $user->isAdminUser() || ($record->isPaused() && $record->inspector_id === $user->id);
+    if (!$canDelete) {
       abort(403);
     }
 
-    $record = SevenSRecord::with('results')->findOrFail($id);
     $record->results()->delete();
     $record->delete();
 

@@ -186,6 +186,33 @@
 </div>
 @endif
 
+@if(isset($myPausedAudits) && $myPausedAudits->isNotEmpty())
+<div class="alert alert-warning border-0 rounded-4 shadow-sm p-4 mb-4">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+        <div class="d-flex align-items-center gap-3">
+            <div class="bg-warning text-dark rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+                    <rect x="6" y="4" width="4" height="16"></rect>
+                    <rect x="14" y="4" width="4" height="16"></rect>
+                </svg>
+            </div>
+            <div>
+                <h6 class="fw-bold mb-1 text-dark">{{ __('messages.audit_has_paused_records_alert', ['count' => $myPausedAudits->count()]) }}</h6>
+                <div class="small text-muted">{{ __('messages.audit_paused_banner_desc') }}</div>
+            </div>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            @foreach($myPausedAudits as $pAudit)
+            <a href="{{ route('audits.edit', $pAudit->id) }}" class="btn btn-sm btn-warning text-dark fw-bold rounded-pill px-3 py-2 shadow-xs d-flex align-items-center gap-1">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"></polygon></svg>
+                {{ __('messages.' . $pAudit->template->department_name) }} ({{ $pAudit->results->count() }}/{{ $pAudit->template->criteria->count() }}) - {{ __('messages.audit_resume_inspection') }}
+            </a>
+            @endforeach
+        </div>
+    </div>
+</div>
+@endif
+
 @if(auth()->check() && !auth()->user()->hasManagedDepartments())
 <div class="mb-5">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
@@ -213,15 +240,25 @@
 
     <div class="audit-grid" id="auditTemplateGrid">
         @forelse($templates as $template)
-        <div class="audit-card" data-dept="{{ $template->department_name }}">
+        @php
+        $pausedForTemplate = isset($myPausedAudits) ? $myPausedAudits->firstWhere('audit_template_id', $template->id) : null;
+        @endphp
+        <div class="audit-card {{ $pausedForTemplate ? 'border-warning border-2' : '' }}" data-dept="{{ $template->department_name }}">
             <div>
-                <div class="card-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                        <polyline points="14 2 14 8 20 8"></polyline>
-                        <line x1="16" y1="13" x2="8" y2="13"></line>
-                        <line x1="16" y1="17" x2="8" y2="17"></line>
-                    </svg>
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div class="card-icon mb-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <line x1="16" y1="13" x2="8" y2="13"></line>
+                            <line x1="16" y1="17" x2="8" y2="17"></line>
+                        </svg>
+                    </div>
+                    @if($pausedForTemplate)
+                    <span class="badge bg-warning text-dark border border-warning shadow-xs">
+                        ⏸️ {{ __('messages.audit_status_paused') }}
+                    </span>
+                    @endif
                 </div>
                 <h5 class="card-title">{{ __($template->name) }}</h5>
                 <div class="card-dept">
@@ -234,9 +271,16 @@
                     {{ __('messages.' . $template->department_name) }}
                 </div>
             </div>
+            @if($pausedForTemplate)
+            <a href="{{ route('audits.edit', $pausedForTemplate->id) }}" class="btn btn-warning text-dark fw-bold text-decoration-none text-center d-flex align-items-center justify-content-center gap-1 shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"></polygon></svg>
+                {{ __('messages.audit_resume_inspection') }}
+            </a>
+            @else
             <a href="/audits/create?template_id={{ $template->id }}" class="btn btn-start-audit text-decoration-none text-center">
                 {{ __('messages.start_new_audit') }}
             </a>
+            @endif
         </div>
         @empty
         <div class="text-center py-5 bg-white rounded-4 shadow-sm w-100 grid-column-span-full">
@@ -379,7 +423,11 @@
                                     $unreviewed = $audit->results->filter(fn($r) => !empty($r->improver_name) && empty($r->reviewer_name));
                                     @endphp
 
-                                    @if($unrespondedResults->isNotEmpty())
+                                    @if($audit->isPaused())
+                                    <span class="status-badge bg-warning bg-opacity-20 text-dark border border-warning shadow-none" style="padding: 2px 8px;">
+                                        ⏸️ {{ __('messages.audit_status_paused') }}
+                                    </span>
+                                    @elseif($unrespondedResults->isNotEmpty())
                                     <span class="status-badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 shadow-none" style="padding: 2px 8px;">
                                         {{ __('messages.audit_pending_department_feedback_badge') }}
                                     </span>
@@ -422,9 +470,16 @@
                             </div>
                         </td>
                         <td>
+                            @if($audit->isPaused())
+                            <div class="score-badge bg-warning bg-opacity-20 text-dark border border-warning mx-auto" style="font-size:0.75rem; font-weight:700;">
+                                {{ $audit->results->count() }}/{{ $audit->total_criteria_count }}
+                            </div>
+                            <div class="text-center small text-muted mt-1">{{ __('messages.audit_status_paused') }}</div>
+                            @else
                             <div class="score-badge bg-{{ $audit->score == 100 ? 'success' : ($audit->score >= 80 ? 'warning' : 'danger') }} bg-opacity-10 text-{{ $audit->score == 100 ? 'success' : ($audit->score >= 80 ? 'warning' : 'danger') }}">
                                 {{ $audit->score }}%
                             </div>
+                            @endif
                         </td>
                         <td>
                             <div class="d-flex align-items-center gap-2">
@@ -441,23 +496,30 @@
                             {{ $audit->created_at->format('H:i d/m/Y') }}
                         </td>
                         <td class="text-center">
-                            <div class="d-flex justify-content-center gap-2">
-                                @if($canRespond)
+                            <div class="d-flex justify-content-center align-items-center gap-1">
+                                @if($audit->isPaused() && (auth()->user()->isAdminUser() || $audit->auditor_id === auth()->id()))
+                                <a href="{{ route('audits.edit', $audit->id) }}" class="btn btn-sm btn-primary text-white shadow-sm d-inline-flex align-items-center justify-content-center" style="width: 32px; height: 32px; border-radius: 6px;" title="{{ __('messages.audit_resume_inspection') }}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                        <polygon points="6 4 20 12 6 20 6 4"></polygon>
+                                    </svg>
+                                </a>
+                                @endif
+                                @if($canRespond && $audit->isCompleted())
                                 <button type="button" class="btn btn-sm btn-info text-white shadow-sm fw-bold px-3" data-bs-toggle="modal" data-bs-target="#respondModal_{{ $audit->id }}">
                                     {{ __('messages.audit_respond_btn') }}
                                 </button>
                                 @endif
-                                <a href="/audits/{{ $audit->id }}" class="btn btn-sm btn-light border text-primary px-2" title="{{ __('messages.view_detail') }}">
+                                <a href="/audits/{{ $audit->id }}" class="btn btn-sm btn-light border text-primary d-inline-flex align-items-center justify-content-center" style="width: 32px; height: 32px; border-radius: 6px;" title="{{ __('messages.view_detail') }}">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
                                         <circle cx="12" cy="12" r="3" />
                                     </svg>
                                 </a>
-                                @if(auth()->user()->isAdminUser())
-                                <form action="{{ route('audits.destroy', $audit->id) }}" method="POST" class="d-inline" data-confirm-msg="{{ __('messages.confirm_delete_audit') }}" onsubmit="return confirm(this.dataset.confirmMsg)">
+                                @if(auth()->user()->isAdminUser() || ($audit->isPaused() && $audit->auditor_id === auth()->id()))
+                                <form action="{{ route('audits.destroy', $audit->id) }}" method="POST" class="d-inline m-0" data-confirm-msg="{{ __('messages.confirm_delete_audit') }}" onsubmit="return confirm(this.dataset.confirmMsg)">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-outline-danger border-0" title="{{ __('messages.delete_audit') }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger border-0 d-inline-flex align-items-center justify-content-center" style="width: 32px; height: 32px; border-radius: 6px;" title="{{ __('messages.delete_audit') }}">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                             <path d="M3 6h18" />
                                             <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />

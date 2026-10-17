@@ -1,18 +1,44 @@
 @extends('layouts.app-simple')
-@section('title', __('messages.7s_edit_title') . $record->id)
+@section('title', ($record->isPaused() ? __('messages.7s_resume_inspection') : __('messages.7s_edit_title')) . ' #' . $record->id)
 
 @section('content')
-<div class="d-flex align-items-center gap-3 mb-4">
-    <a href="{{ route('seven-s.show', $record->id) }}" class="text-decoration-none text-secondary d-flex align-items-center gap-1">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M19 12H5M12 19l-7-7 7-7" />
-        </svg>
-        Quay lại
-    </a>
-    <h4 class="mb-0 fw-bold">✏️ {{ __('messages.7s_edit_title') }}{{ $record->id }}</h4>
-    <span class="badge bg-info text-dark">{{ $record->department }}</span>
+<div class="d-flex align-items-center justify-content-between gap-3 mb-4">
+    <div class="d-flex align-items-center gap-3">
+        <a href="{{ route('seven-s.show', $record->id) }}" class="text-decoration-none text-secondary d-flex align-items-center gap-1">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 12H5M12 19l-7-7 7-7" />
+            </svg>
+            Quay lại
+        </a>
+        <h4 class="mb-0 fw-bold">
+            @if($record->isPaused())
+            ▶️ {{ __('messages.7s_resume_inspection') }}
+            @else
+            ✏️ {{ __('messages.7s_edit_title') }}{{ $record->id }}
+            @endif
+        </h4>
+        <span class="badge bg-info text-dark">{{ __('messages.' . $record->department) }}</span>
+    </div>
+    @if($record->isPaused())
+    <form action="{{ route('seven-s.destroy', $record->id) }}" method="POST" onsubmit="return confirm('Bạn có chắc muốn hủy bản kiểm tra tạm dừng này không?')">
+        @csrf
+        @method('DELETE')
+        <button type="submit" class="btn btn-sm btn-outline-danger">
+            {{ __('messages.7s_discard_draft') }}
+        </button>
+    </form>
+    @endif
 </div>
 
+@if($record->isPaused())
+<div class="alert alert-warning border-0 shadow-sm rounded-4 mb-4 d-flex align-items-center gap-3">
+    <span class="fs-4">⏸️</span>
+    <div>
+        <div class="fw-bold">{{ __('messages.7s_paused_banner_title') }}</div>
+        <div class="small text-muted">{{ __('messages.7s_paused_banner_desc') }} ({{ __('messages.7s_items_progress', ['answered' => $record->results->count(), 'total' => $record->total_checklist_items]) }})</div>
+    </div>
+</div>
+@else
 <div class="alert alert-warning border-0 shadow-sm rounded-3 mb-4 d-flex align-items-center gap-2">
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0">
         <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
@@ -21,6 +47,7 @@
     </svg>
     <span>{{ __('messages.7s_edit_locked_warning') }}</span>
 </div>
+@endif
 
 @if ($errors->any())
 <div class="alert alert-danger border-0 rounded-3 mb-4">
@@ -83,7 +110,7 @@
                             value="{{ $grade }}"
                             data-item="{{ $item->id }}"
                             {{ $currentGrade === $grade ? 'checked' : '' }}
-                            required>
+                            {{ $record->isPaused() ? '' : 'required' }}>
                         <label for="grade_{{ $item->id }}_{{ $grade }}"
                             class="btn btn-outline-{{ $color }} rounded-3 px-3 py-2 fw-bold">
                             {{ $label }}<br><small class="opacity-75">{{ $pts }}</small>
@@ -149,19 +176,61 @@
 
     <div style="height:90px;"></div>
     <div class="fixed-bottom container p-3 bg-white border-top shadow-lg" style="max-width:1100px;">
-        <button type="submit" class="btn btn-warning w-100 py-3 rounded-pill fw-bold fs-5 text-uppercase d-flex align-items-center justify-content-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-                <polyline points="17 21 17 13 7 13 7 21" />
-                <polyline points="7 3 7 8 15 8" />
-            </svg>
-            {{ __('messages.7s_save_edit') }}
-        </button>
+        <div class="d-flex align-items-center gap-2">
+            <button type="submit" name="action" value="pause" formnovalidate class="btn btn-warning py-3 rounded-pill fw-bold fs-6 text-uppercase d-flex align-items-center justify-content-center gap-2 flex-grow-1 shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <rect x="6" y="4" width="4" height="16" rx="1" />
+                    <rect x="14" y="4" width="4" height="16" rx="1" />
+                </svg>
+                <span>{{ __('messages.7s_pause_inspection') }}</span>
+            </button>
+            <button type="submit" name="action" value="complete" class="btn btn-primary py-3 rounded-pill fw-bold fs-6 text-uppercase d-flex align-items-center justify-content-center gap-2 flex-grow-1 shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                    <polyline points="17 21 17 13 7 13 7 21" />
+                    <polyline points="7 3 7 8 15 8" />
+                </svg>
+                <span>{{ $record->isPaused() ? __('messages.7s_complete_inspection') : __('messages.7s_save_edit') }}</span>
+            </button>
+        </div>
     </div>
 </form>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('sevenSEditForm');
+        let submitAction = 'complete';
+
+        document.querySelectorAll('button[type="submit"]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                submitAction = this.value || 'complete';
+            });
+        });
+
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                if (submitAction === 'pause') {
+                    document.querySelectorAll('.grade-radio').forEach(r => r.removeAttribute('required'));
+                    return true;
+                }
+
+                // If completing, validate notes for non-locked C/D/E
+                const checkedRadios = document.querySelectorAll('.grade-radio:checked');
+                for (let radio of checkedRadios) {
+                    if (['C', 'D', 'E'].includes(radio.value)) {
+                        const itemId = radio.dataset.item;
+                        const noteTextarea = document.querySelector(`textarea[name="notes[${itemId}]"]`);
+                        if (noteTextarea && !noteTextarea.value.trim()) {
+                            e.preventDefault();
+                            noteTextarea.focus();
+                            noteTextarea.classList.add('is-invalid');
+                            alert('Vui lòng nhập nhận xét cho mục đánh giá loại ' + radio.value + ' trước khi hoàn thành kiểm tra (hoặc bấm "Tạm dừng kiểm tra" nếu chưa xong).');
+                            return false;
+                        }
+                    }
+                }
+            });
+        }
         // Show/hide note+photo area based on selected grade
         document.querySelectorAll('.grade-radio').forEach(radio => {
             radio.addEventListener('change', function() {

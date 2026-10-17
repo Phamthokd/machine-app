@@ -100,19 +100,63 @@
 
     <div style="height:90px;"></div>
     <div class="fixed-bottom container p-3 bg-white border-top shadow-lg" style="max-width:1100px;">
-        <button type="submit" class="btn btn-primary w-100 py-3 rounded-pill fw-bold fs-5 text-uppercase d-flex align-items-center justify-content-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-                <polyline points="17 21 17 13 7 13 7 21" />
-                <polyline points="7 3 7 8 15 8" />
-            </svg>
-            {{ __('messages.7s_save_record') }}
-        </button>
+        <div class="d-flex align-items-center gap-2">
+            <button type="submit" name="action" value="pause" formnovalidate class="btn btn-warning py-3 rounded-pill fw-bold fs-6 text-uppercase d-flex align-items-center justify-content-center gap-2 flex-grow-1 shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <rect x="6" y="4" width="4" height="16" rx="1" />
+                    <rect x="14" y="4" width="4" height="16" rx="1" />
+                </svg>
+                <span>{{ __('messages.7s_pause_inspection') }}</span>
+            </button>
+            <button type="submit" name="action" value="complete" class="btn btn-primary py-3 rounded-pill fw-bold fs-6 text-uppercase d-flex align-items-center justify-content-center gap-2 flex-grow-1 shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                    <polyline points="17 21 17 13 7 13 7 21" />
+                    <polyline points="7 3 7 8 15 8" />
+                </svg>
+                <span>{{ __('messages.7s_complete_inspection') }}</span>
+            </button>
+        </div>
     </div>
 </form>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('sevenSForm');
+        let submitAction = 'complete';
+
+        document.querySelectorAll('button[type="submit"]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                submitAction = this.value || 'complete';
+            });
+        });
+
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                if (submitAction === 'pause') {
+                    // Remove required constraint on radio inputs so browser allows partial submission
+                    document.querySelectorAll('.grade-radio').forEach(r => r.removeAttribute('required'));
+                    return true;
+                }
+
+                // If completing, validate C/D/E notes on client side for quick feedback
+                const checkedRadios = document.querySelectorAll('.grade-radio:checked');
+                for (let radio of checkedRadios) {
+                    if (['C', 'D', 'E'].includes(radio.value)) {
+                        const itemId = radio.dataset.item;
+                        const noteTextarea = document.querySelector(`textarea[name="notes[${itemId}]"]`);
+                        if (noteTextarea && !noteTextarea.value.trim()) {
+                            e.preventDefault();
+                            noteTextarea.focus();
+                            noteTextarea.classList.add('is-invalid');
+                            alert('Vui lòng nhập nhận xét cho mục đánh giá loại ' + radio.value + ' trước khi hoàn thành kiểm tra (hoặc bấm "Tạm dừng kiểm tra" nếu chưa xong).');
+                            return false;
+                        }
+                    }
+                }
+            });
+        }
+
         // Show/hide detail section based on grade
         document.querySelectorAll('.grade-radio').forEach(radio => {
             radio.addEventListener('change', function() {

@@ -27,14 +27,14 @@ $improveableResults = $failedResults->filter(function($r) {
 });
 
 // Điều kiện hiển thị các nút
-$canRespond = $isDepartmentUser && $unrespondedResults->isNotEmpty();
-$canReviewRejections = $isAuditUser && $rejectedResultsPendingAudit->isNotEmpty();
+$canRespond = $audit->isCompleted() && $isDepartmentUser && $unrespondedResults->isNotEmpty();
+$canReviewRejections = $audit->isCompleted() && $isAuditUser && $rejectedResultsPendingAudit->isNotEmpty();
 
-$canImprove = ($isDepartmentUser || $isAdmin)
+$canImprove = $audit->isCompleted() && ($isDepartmentUser || $isAdmin)
 && $improveableResults->isNotEmpty()
 && (!$isFullyReviewed || (auth()->check() && auth()->user()->isAdminUser()));
 
-$canReview = $isAuditUser && (!$isFullyReviewed || (auth()->check() && auth()->user()->isAdminUser()));
+$canReview = $audit->isCompleted() && $isAuditUser && (!$isFullyReviewed || (auth()->check() && auth()->user()->isAdminUser()));
 
 // Lấy danh sách cải thiện cần Audit duyệt KQ (Chỉ hiện khi bộ phận đã báo cáo hoàn thiện)
 $reviewableResults = $audit->results->filter(function($r) {
@@ -151,13 +151,46 @@ $completableResults = $improveableResults->filter(function($r) {
     </div>
     @endif
 
+    @if($audit->isPaused())
+    <div class="alert alert-warning border-0 rounded-4 shadow-sm p-4 mb-4 d-flex align-items-center justify-content-between flex-wrap gap-3">
+        <div class="d-flex align-items-center gap-3">
+            <div class="fs-2">⏸️</div>
+            <div>
+                <h5 class="fw-bold mb-1 text-dark">{{ __('messages.audit_paused_banner_title') }}</h5>
+                <div class="text-muted">{{ __('messages.audit_paused_banner_desc') }} ({{ __('messages.audit_items_progress', ['answered' => $audit->results->count(), 'total' => $audit->template->criteria->count()]) }})</div>
+            </div>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            @if(auth()->user()->isAdminUser() || $audit->auditor_id === auth()->id())
+            <a href="{{ route('audits.edit', $audit->id) }}" class="btn btn-warning text-dark fw-bold px-4 py-2 rounded-pill shadow-sm d-flex align-items-center gap-1">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"></polygon></svg>
+                {{ __('messages.audit_resume_inspection') }}
+            </a>
+            <form action="{{ route('audits.destroy', $audit->id) }}" method="POST" onsubmit="return confirm('{{ __('messages.confirm_delete_audit') }}')">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="btn btn-outline-danger fw-bold px-3 py-2 rounded-pill shadow-none">
+                    🗑️ {{ __('messages.audit_discard_draft') }}
+                </button>
+            </form>
+            @endif
+        </div>
+    </div>
+    @endif
+
     <div class="d-flex align-items-center flex-wrap justify-content-between gap-4 mb-4">
         <div class="d-flex align-items-center gap-3">
             <div class="card-icon" style="width: 56px; height: 56px; background: #eff6ff; color: #2563eb; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">#</div>
             <div>
                 <h2 class="h3 fw-bold mb-1">{{ __('messages.audit_detail') }} #{{ $audit->id }}</h2>
                 <div class="d-flex align-items-center gap-2">
+                    @if($audit->isPaused())
+                    <span class="badge bg-warning text-dark border border-warning px-3 py-2 fw-bold">
+                        ⏸️ {{ __('messages.audit_status_paused') }}
+                    </span>
+                    @else
                     <span class="status-badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 shadow-none" style="padding: 2px 10px;">{{ __('messages.audit_completed') }}</span>
+                    @endif
                     <span class="text-muted small">🕒 {{ $audit->created_at->format('H:i d/m/Y') }}</span>
                 </div>
             </div>
@@ -183,7 +216,14 @@ $completableResults = $improveableResults->filter(function($r) {
                 {{ __('messages.audit_confirm_completion_btn') }}
             </button>
             @endif
-            @if(auth()->user()->canManageAuditModule() && (!$isFullyReviewed || auth()->user()->isAdminUser()))
+            @if($audit->isPaused() && (auth()->user()->isAdminUser() || $audit->auditor_id === auth()->id()))
+            <a href="{{ route('audits.edit', $audit->id) }}" class="btn btn-primary fw-bold px-4 rounded-3 d-flex align-items-center gap-2 shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <polygon points="6 4 20 12 6 20 6 4"></polygon>
+                </svg>
+                {{ __('messages.audit_resume_inspection') }}
+            </a>
+            @elseif(auth()->user()->canManageAuditModule() && (!$isFullyReviewed || auth()->user()->isAdminUser()))
             <a href="{{ route('audits.edit', $audit->id) }}" class="btn btn-outline-warning fw-bold px-4 rounded-3">
                 {{ __('messages.edit_audit') }}
             </a>
@@ -213,8 +253,13 @@ $completableResults = $improveableResults->filter(function($r) {
                     <div class="text-white-50 text-uppercase fw-bold small mb-2" style="letter-spacing: 0.1em">{{ __('messages.department') }}</div>
                     <h4 class="h5 fw-bold text-info mb-4">{{ __('messages.' . $audit->template->department_name) }}</h4>
                     <div class="d-inline-flex flex-column align-items-md-end gap-1">
+                        @if($audit->isPaused())
+                        <div class="text-white-50 text-uppercase fw-bold small" style="letter-spacing: 0.1em">{{ __('messages.audit_status_paused') }}:</div>
+                        <div class="h1 fw-black display-5 mb-0 text-warning">{{ $audit->results->count() }}/{{ $audit->total_criteria_count }}</div>
+                        @else
                         <div class="text-white-50 text-uppercase fw-bold small" style="letter-spacing: 0.1em">{{ __('messages.pass_rate') }}:</div>
                         <div class="h1 fw-black display-5 mb-0 {{ $audit->score == 100 ? 'text-success' : ($audit->score >= 80 ? 'text-warning' : 'text-danger') }}">{{ $audit->score }}%</div>
+                        @endif
                     </div>
                 </div>
             </div>

@@ -4,24 +4,24 @@
 @section('content')
 @php
 $nonBResults = $record->results->where('grade', '!=', 'B');
-$isFullyImproved = $nonBResults->isNotEmpty() && $nonBResults->every(fn($r) => $r->review_status === 'approved');
+$isFullyImproved = $record->isCompleted() && $nonBResults->isNotEmpty() && $nonBResults->every(fn($r) => $r->review_status === 'approved');
 
 $isAuditor = auth()->user()->isAdminUser() || 
             (auth()->user()->canManageSevenSModule() && $record->inspector_id === auth()->id());
 
 $isDeptUser = auth()->user()->canAccessSevenSModule() && auth()->user()->managesDepartment($record->department);
 
-$canRespond = (auth()->user()->isAdminUser() || $isDeptUser) 
+$canRespond = $record->isCompleted() && (auth()->user()->isAdminUser() || $isDeptUser) 
             && $nonBResults->contains(fn($r) => $r->review_status === 'pending_feedback' && is_null($r->department_agreement));
 
-$canImprove = (
+$canImprove = $record->isCompleted() && (
     (auth()->user()->isAdminUser() || $isDeptUser)
     && $nonBResults->isNotEmpty()
     && $nonBResults->contains(fn($r) => in_array($r->review_status, ['pending_improvement', 'pending_review', 'rejected']))
 );
 
-$needsReview = $isAuditor && $nonBResults->contains(fn($r) => $r->review_status === 'pending_review');
-$needsDisputeReview = $isAuditor && $nonBResults->contains(fn($r) => $r->review_status === 'pending_dispute_review');
+$needsReview = $record->isCompleted() && $isAuditor && $nonBResults->contains(fn($r) => $r->review_status === 'pending_review');
+$needsDisputeReview = $record->isCompleted() && $isAuditor && $nonBResults->contains(fn($r) => $r->review_status === 'pending_dispute_review');
 @endphp
 
 <div class="d-flex align-items-center justify-content-between gap-3 mb-4">
@@ -33,7 +33,11 @@ $needsDisputeReview = $isAuditor && $nonBResults->contains(fn($r) => $r->review_
             {{ __('messages.7s_back') }}
         </a>
         <h4 class="mb-0 fw-bold">{{ __('messages.7s_record_title') }}{{ $record->id }}</h4>
-        @if($isFullyImproved)
+        @if($record->isPaused())
+        <span class="badge bg-warning text-dark border border-warning px-3 py-2 fw-bold">
+            ⏸️ {{ __('messages.7s_status_paused') }}
+        </span>
+        @elseif($isFullyImproved)
         <span class="badge bg-success bg-opacity-10 text-success border border-success px-3 py-2">
             ✅ {{ __('messages.7s_fully_improved_badge') }}
         </span>
@@ -70,12 +74,17 @@ $needsDisputeReview = $isAuditor && $nonBResults->contains(fn($r) => $r->review_
         </button>
         @endif
         @php
-        $canEdit = !$isFullyImproved && (
-        auth()->user()->isAdminUser() ||
-        (auth()->user()->canManageSevenSModule() && $record->inspector_id === auth()->id())
-        );
+        $canEdit = (
+            auth()->user()->isAdminUser() ||
+            (auth()->user()->canManageSevenSModule() && $record->inspector_id === auth()->id())
+        ) && (!$isFullyImproved || $record->isPaused());
         @endphp
-        @if($canEdit)
+        @if($record->isPaused() && $canEdit)
+        <a href="{{ route('seven-s.edit', $record->id) }}" class="btn btn-sm btn-primary fw-bold shadow-sm d-flex align-items-center gap-1 px-3">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+            {{ __('messages.7s_resume_inspection') }}
+        </a>
+        @elseif($canEdit)
         <a href="{{ route('seven-s.edit', $record->id) }}" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
@@ -111,6 +120,38 @@ $needsDisputeReview = $isAuditor && $nonBResults->contains(fn($r) => $r->review_
         @endif
     </div>
 </div>
+
+@if($record->isPaused())
+<div class="card border-0 shadow-sm rounded-4 mb-4" style="background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border-left: 5px solid #f59e0b !important;">
+    <div class="card-body p-4 d-flex flex-wrap align-items-center justify-content-between gap-3">
+        <div class="d-flex align-items-center gap-3">
+            <span class="fs-1">⏸️</span>
+            <div>
+                <h5 class="fw-bold text-dark mb-1">{{ __('messages.7s_paused_banner_title') }}</h5>
+                <p class="text-muted mb-0">{{ __('messages.7s_paused_banner_desc') }}</p>
+                <div class="mt-2 text-dark small fw-semibold">
+                    {{ __('messages.7s_items_progress', ['answered' => $record->results->count(), 'total' => $record->total_checklist_items]) }}
+                </div>
+            </div>
+        </div>
+        @if($canEdit)
+        <div class="d-flex align-items-center gap-2">
+            <a href="{{ route('seven-s.edit', $record->id) }}" class="btn btn-primary px-4 py-2 rounded-pill fw-bold shadow-sm d-flex align-items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                {{ __('messages.7s_resume_inspection') }}
+            </a>
+            <form action="{{ route('seven-s.destroy', $record->id) }}" method="POST" onsubmit="return confirm('Bạn có chắc muốn hủy bản kiểm tra tạm dừng này không?')">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="btn btn-outline-danger px-3 py-2 rounded-pill fw-bold">
+                    {{ __('messages.7s_discard_draft') }}
+                </button>
+            </form>
+        </div>
+        @endif
+    </div>
+</div>
+@endif
 
 @if($isFullyImproved)
 <div class="alert border-0 shadow-sm rounded-3 mb-4 d-flex align-items-center gap-3" style="background:#d1fae5; border-left: 4px solid #10b981 !important;">

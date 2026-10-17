@@ -27,6 +27,29 @@ class AuditRecord extends Model
         return $this->hasMany(AuditResult::class);
     }
 
+    public function isPaused(): bool
+    {
+        return $this->status === 'paused';
+    }
+
+    public function isCompleted(): bool
+    {
+        return $this->status === 'completed';
+    }
+
+    public function getTotalCriteriaCountAttribute(): int
+    {
+        if ($this->relationLoaded('template') && $this->template) {
+            return $this->template->relationLoaded('criteria') ? $this->template->criteria->count() : $this->template->criteria()->count();
+        }
+        return $this->template ? $this->template->criteria()->count() : 0;
+    }
+
+    public function getAnsweredCriteriaCountAttribute(): int
+    {
+        return $this->results->count();
+    }
+
     public function getScoreAttribute()
     {
         $total = $this->results->count();

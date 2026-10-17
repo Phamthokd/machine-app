@@ -130,6 +130,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/audits', [\App\Http\Controllers\AuditController::class, 'store'])->name('audits.store');
         Route::get('/audits/{audit}/edit', [\App\Http\Controllers\AuditController::class, 'editAudit'])->name('audits.edit');
         Route::post('/audits/{audit}/update-results', [\App\Http\Controllers\AuditController::class, 'updateAudit'])->name('audits.update');
+        Route::delete('/audits/{audit}', [\App\Http\Controllers\AuditController::class, 'destroy'])->name('audits.destroy');
         Route::get('/audits/{audit}', [\App\Http\Controllers\AuditController::class, 'show'])->name('audits.show');
     });
 
@@ -187,7 +188,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('/users/{user}', [UserController::class, 'update']);
         Route::patch('/users/{user}/toggle-active', [UserController::class, 'toggleActive'])->name('users.toggle_active');
         Route::delete('/users/{user}', [UserController::class, 'destroy']);
-        Route::delete('/audits/{audit}', [\App\Http\Controllers\AuditController::class, 'destroy'])->name('audits.destroy');
     });
 
     // CANDIDATES: Admin + Senior Manager + Supervisor + HR + candidates.create

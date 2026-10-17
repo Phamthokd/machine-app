@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class SevenSRecord extends Model
 {
-    protected $fillable = ['department', 'inspector_id', 'score', 'max_score'];
+    protected $fillable = ['department', 'inspector_id', 'score', 'max_score', 'status'];
 
     public function inspector()
     {
@@ -16,6 +16,26 @@ class SevenSRecord extends Model
     public function results()
     {
         return $this->hasMany(SevenSResult::class, 'record_id');
+    }
+
+    public function isPaused(): bool
+    {
+        return $this->status === 'paused';
+    }
+
+    public function isCompleted(): bool
+    {
+        return $this->status === 'completed' || empty($this->status);
+    }
+
+    public function getTotalChecklistItemsAttribute(): int
+    {
+        return SevenSChecklist::where('department', $this->department)->count();
+    }
+
+    public function getAnsweredItemsCountAttribute(): int
+    {
+        return $this->results()->count();
     }
 
     public function getScorePercentAttribute(): float

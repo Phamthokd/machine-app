@@ -1,5 +1,5 @@
 @extends('layouts.app-simple')
-@section('title', 'Sửa phiếu đánh giá')
+@section('title', $audit->isPaused() ? __('messages.audit_resume_inspection') : __('messages.edit_audit'))
 
 @section('content')
 <div class="mb-4">
@@ -13,43 +13,86 @@
     @if(session('success'))
     <div class="alert alert-success border-0 shadow-sm rounded-3 mb-3">{{ session('success') }}</div>
     @endif
+    @if(session('info'))
+    <div class="alert alert-info border-0 shadow-sm rounded-3 mb-3">{{ session('info') }}</div>
+    @endif
     @if ($errors->any())
     <div class="alert alert-danger border-0 shadow-sm rounded-3 mb-3">
         <ul class="mb-0">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
     </div>
     @endif
 
+    @if($audit->isPaused())
+    <div class="alert alert-warning border-0 rounded-4 shadow-sm p-3 mb-4 d-flex align-items-center justify-content-between flex-wrap gap-3">
+        <div class="d-flex align-items-center gap-3">
+            <div class="fs-2">⏸️</div>
+            <div>
+                <h6 class="fw-bold mb-1 text-dark">{{ __('messages.audit_paused_banner_title') }}</h6>
+                <div class="small text-muted">
+                    {{ __('messages.audit_paused_banner_desc') }} ({{ __('messages.audit_items_progress', ['answered' => $audit->results->count(), 'total' => $audit->template->criteria->count()]) }})
+                </div>
+            </div>
+        </div>
+        @if(auth()->user()->isAdminUser() || $audit->auditor_id === auth()->id())
+        <form action="{{ route('audits.destroy', $audit->id) }}" method="POST" onsubmit="return confirm('{{ __('messages.confirm_delete_audit') }}')">
+            @csrf
+            @method('DELETE')
+            <button type="submit" class="btn btn-sm btn-outline-danger fw-bold rounded-pill px-3 shadow-none">
+                🗑️ {{ __('messages.audit_discard_draft') }}
+            </button>
+        </form>
+        @endif
+    </div>
+    @endif
+
     {{-- Header card --}}
     <div class="card border-0 shadow-sm rounded-4 mb-4 bg-dark text-white overflow-hidden">
         <div class="card-body p-4">
-            <div class="text-white-50 text-uppercase fw-bold small mb-1">{{ __('messages.audit_template_label') }}</div>
-            <div class="h5 fw-bold mb-0">{{ __($audit->template->name) }}</div>
-            <div class="mt-2 text-white-50 small">{{ __('messages.department') }}: <strong class="text-info">{{ __('messages.' . $audit->template->department_name) }}</strong></div>
+            <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                <div>
+                    <div class="text-white-50 text-uppercase fw-bold small mb-1">{{ __('messages.audit_template_label') }}</div>
+                    <div class="h5 fw-bold mb-0">{{ __($audit->template->name) }}</div>
+                    <div class="mt-2 text-white-50 small">{{ __('messages.department') }}: <strong class="text-info">{{ __('messages.' . $audit->template->department_name) }}</strong></div>
+                </div>
+                @if($audit->isPaused())
+                <span class="badge bg-warning text-dark px-3 py-2 fw-bold">
+                    ⏸️ {{ __('messages.audit_status_paused') }}
+                </span>
+                @endif
+            </div>
         </div>
     </div>
 
-    <form action="{{ route('audits.update', $audit->id) }}" method="POST" enctype="multipart/form-data">
+    <form action="{{ route('audits.update', $audit->id) }}" method="POST" enctype="multipart/form-data" id="auditEditForm">
         @csrf
         <div class="card border-0 shadow-sm rounded-4 mb-5">
             <div class="card-body p-0">
-                @forelse($audit->results as $index => $result)
+                @forelse($audit->template->criteria as $index => $criterion)
+                @php
+                $result = $audit->results->firstWhere('audit_criterion_id', $criterion->id);
+                $isPassedVal = old("results.{$criterion->id}.is_passed", $result ? ($result->is_passed ? '1' : '0') : null);
+                $noteVal = old("results.{$criterion->id}.note", $result?->note ?? '');
+                $currentImagePaths = (array)($result?->image_path ?? []);
+                @endphp
                 <div class="p-4 {{ !$loop->last ? 'border-bottom' : '' }}">
+                    <input type="hidden" name="results[{{ $criterion->id }}][audit_criterion_id]" value="{{ $criterion->id }}">
+
                     {{-- Số thứ tự + câu hỏi --}}
                     <div class="mb-3">
                         <h5 class="fw-bold text-dark lh-base">
                             <span class="bg-light text-secondary rounded px-2 py-1 me-2 fs-6">{{ $index + 1 }}</span>
-                            {{ $result->criterion ? __($result->criterion->content) : 'Câu hỏi đã bị xoá' }}
+                            {{ __($criterion->content) }}
                         </h5>
                     </div>
 
-                    {{-- Nút Đạt / Lỗi (giống create.blade.php) --}}
+                    {{-- Nút Đạt / Lỗi --}}
                     <div class="d-flex flex-wrap gap-3 mb-3">
                         {{-- ĐẠT (V) --}}
-                        <input type="radio" class="btn-check audit-radio-pass" id="pass_{{ $result->id }}"
-                            name="results[{{ $result->id }}][is_passed]" value="1" autocomplete="off"
-                            {{ $result->is_passed ? 'checked' : '' }}>
+                        <input type="radio" class="btn-check audit-radio-pass" id="pass_{{ $criterion->id }}"
+                            name="results[{{ $criterion->id }}][is_passed]" value="1" autocomplete="off"
+                            {{ (string)$isPassedVal === '1' ? 'checked' : '' }}>
                         <label class="audit-btn btn btn-outline-primary d-flex align-items-center gap-2 flex-grow-1 justify-content-center py-3"
-                            for="pass_{{ $result->id }}" style="max-width: 200px; border-radius: 12px;">
+                            for="pass_{{ $criterion->id }}" style="max-width: 200px; border-radius: 12px;">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
                                 <polyline points="20 6 9 17 4 12"></polyline>
                             </svg>
@@ -57,11 +100,11 @@
                         </label>
 
                         {{-- LỖI (X) --}}
-                        <input type="radio" class="btn-check audit-radio-fail" id="fail_{{ $result->id }}"
-                            name="results[{{ $result->id }}][is_passed]" value="0" autocomplete="off"
-                            {{ !$result->is_passed ? 'checked' : '' }}>
+                        <input type="radio" class="btn-check audit-radio-fail" id="fail_{{ $criterion->id }}"
+                            name="results[{{ $criterion->id }}][is_passed]" value="0" autocomplete="off"
+                            {{ (string)$isPassedVal === '0' ? 'checked' : '' }}>
                         <label class="audit-btn btn btn-outline-danger d-flex align-items-center gap-2 flex-grow-1 justify-content-center py-3"
-                            for="fail_{{ $result->id }}" style="max-width: 200px; border-radius: 12px;">
+                            for="fail_{{ $criterion->id }}" style="max-width: 200px; border-radius: 12px;">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
                                 <line x1="18" y1="6" x2="6" y2="18"></line>
                                 <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -71,7 +114,7 @@
                     </div>
 
                     {{-- Khu vực lỗi: chỉ hiện khi chọn Lỗi --}}
-                    <div class="note-container" @if($result->is_passed) style="display: none;" @endif>
+                    <div class="note-container" @if((string)$isPassedVal !== '0') style="display: none;" @endif>
                         {{-- Ghi chú lỗi --}}
                         <div class="mb-3">
                             <label class="form-label text-danger fw-semibold d-flex align-items-center gap-1 mb-2">
@@ -84,8 +127,8 @@
                                 </svg>
                                 {{ __('messages.error_note_required') }}
                             </label>
-                            <textarea class="form-control bg-light" name="results[{{ $result->id }}][note]" rows="2"
-                                placeholder="{{ __('messages.error_note_placeholder') }}">{{ old("results.{$result->id}.note", $result->note) }}</textarea>
+                            <textarea class="form-control bg-light" name="results[{{ $criterion->id }}][note]" rows="2"
+                                placeholder="{{ __('messages.error_note_placeholder') }}">{{ $noteVal }}</textarea>
                         </div>
 
                         {{-- Ảnh đính kèm (Option) --}}
@@ -100,16 +143,16 @@
                             </label>
 
                             {{-- Ảnh đang có --}}
-                            @if(!empty($result->image_path))
+                            @if(!empty($currentImagePaths))
                             <div class="d-flex flex-wrap gap-2 mb-3">
-                                @foreach((array)$result->image_path as $path)
+                                @foreach($currentImagePaths as $path)
                                 <div class="position-relative current-image-thumb" style="width:80px; height:80px;">
                                     <a href="/{{ $path }}" target="_blank">
                                         <img src="/{{ $path }}" class="img-thumbnail w-100 h-100 rounded" style="object-fit:cover;" alt="Ảnh lỗi">
                                     </a>
                                     <button type="button"
                                         class="btn btn-sm btn-danger position-absolute top-0 end-0 rounded-circle p-0 d-flex align-items-center justify-content-center remove-img-btn"
-                                        data-result-id="{{ $result->id }}"
+                                        data-criterion-id="{{ $criterion->id }}"
                                         data-path="{{ $path }}"
                                         style="width:20px;height:20px;transform:translate(40%,-40%);font-size:12px;">&times;</button>
                                 </div>
@@ -117,8 +160,8 @@
                             </div>
                             @endif
 
-                            {{-- Thêm ảnh mới (giống create.blade.php) --}}
-                            <div class="photo-upload-wrapper mt-3" data-result-id="{{ $result->id }}">
+                            {{-- Thêm ảnh mới --}}
+                            <div class="photo-upload-wrapper mt-3" data-criterion-id="{{ $criterion->id }}">
                                 <div class="preview-container d-flex flex-wrap gap-2 mb-3"></div>
                                 <div class="hidden-inputs-container"></div>
                                 <button type="button" class="btn btn-outline-secondary w-100 d-flex align-items-center justify-content-center gap-2 py-2 btn-add-photo">
@@ -142,9 +185,28 @@
         {{-- Footer Spacer --}}
         <div style="height: 100px;"></div>
 
-        {{-- Submit Button (giống create.blade.php) --}}
+        {{-- Submit Buttons --}}
         <div class="fixed-bottom container p-3 bg-white border-top shadow-lg" style="max-width: 1100px;">
-            <button type="submit" class="btn btn-primary w-100 py-3 rounded-pill fw-bold fs-5 text-uppercase d-flex align-items-center justify-content-center gap-2">
+            @if($audit->isPaused())
+            <div class="d-flex align-items-center gap-2">
+                <button type="submit" name="action" value="pause" formnovalidate class="btn btn-warning text-dark fw-bold px-4 py-3 rounded-pill d-flex align-items-center justify-content-center gap-2 shadow-sm" style="min-width: 200px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <rect x="6" y="4" width="4" height="16"></rect>
+                        <rect x="14" y="4" width="4" height="16"></rect>
+                    </svg>
+                    {{ __('messages.audit_pause_inspection') }}
+                </button>
+                <button type="submit" name="action" value="complete" class="btn btn-primary flex-grow-1 py-3 rounded-pill fw-bold fs-5 text-uppercase d-flex align-items-center justify-content-center gap-2 shadow-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                        <polyline points="17 21 17 13 7 13 7 21" />
+                        <polyline points="7 3 7 8 15 8" />
+                    </svg>
+                    {{ __('messages.audit_complete_inspection') }}
+                </button>
+            </div>
+            @else
+            <button type="submit" name="action" value="update" class="btn btn-primary w-100 py-3 rounded-pill fw-bold fs-5 text-uppercase d-flex align-items-center justify-content-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
                     <polyline points="17 21 17 13 7 13 7 21" />
@@ -152,12 +214,48 @@
                 </svg>
                 Lưu thay đổi
             </button>
+            @endif
         </div>
     </form>
 </div>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        const auditEditForm = document.getElementById('auditEditForm');
+        if (auditEditForm) {
+            auditEditForm.addEventListener('submit', function(e) {
+                const submitter = e.submitter;
+                if (submitter && submitter.value === 'pause') {
+                    return;
+                }
+
+                if (submitter && submitter.value === 'complete') {
+                    const criteriaContainers = document.querySelectorAll('.card-body > .p-4');
+                    for (let i = 0; i < criteriaContainers.length; i++) {
+                        const cont = criteriaContainers[i];
+                        const passRadio = cont.querySelector('.audit-radio-pass');
+                        const failRadio = cont.querySelector('.audit-radio-fail');
+                        if (!passRadio.checked && !failRadio.checked) {
+                            e.preventDefault();
+                            alert('Vui lòng chọn Đạt hoặc Không đạt cho tiêu chí số ' + (i + 1) + '.');
+                            cont.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            return false;
+                        }
+                        if (failRadio.checked) {
+                            const note = cont.querySelector('textarea');
+                            if (!note || !note.value.trim()) {
+                                e.preventDefault();
+                                alert('Vui lòng nhập ghi chú nguyên nhân cho tiêu chí Không đạt số ' + (i + 1) + '.');
+                                cont.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                if (note) note.focus();
+                                return false;
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
         const radioPassBtns = document.querySelectorAll('.audit-radio-pass');
         const radioFailBtns = document.querySelectorAll('.audit-radio-fail');
 
@@ -183,11 +281,11 @@
             btn.addEventListener('click', function() {
                 const thumb = this.closest('.current-image-thumb');
                 const path = this.dataset.path;
-                const resultId = this.dataset.resultId;
+                const criterionId = this.dataset.criterionId;
 
                 const hiddenInput = document.createElement('input');
                 hiddenInput.type = 'hidden';
-                hiddenInput.name = `results[${resultId}][image_remove][]`;
+                hiddenInput.name = `results[${criterionId}][image_remove][]`;
                 hiddenInput.value = path;
                 this.closest('form').appendChild(hiddenInput);
 
@@ -198,19 +296,20 @@
             });
         });
 
-        // Thêm ảnh mới (giống create.blade.php)
+        // Thêm ảnh mới
         document.querySelectorAll('.btn-add-photo').forEach(btn => {
             btn.addEventListener('click', function() {
                 const wrapper = this.closest('.photo-upload-wrapper');
-                const resultId = wrapper.dataset.resultId;
+                const criterionId = wrapper.dataset.criterionId;
                 const hiddenInputsContainer = wrapper.querySelector('.hidden-inputs-container');
                 const previewContainer = wrapper.querySelector('.preview-container');
 
                 const fileInput = document.createElement('input');
                 fileInput.type = 'file';
-                fileInput.name = `results[${resultId}][image][]`;
+                fileInput.name = `results[${criterionId}][image][]`;
                 fileInput.accept = 'image/*';
                 fileInput.capture = 'environment';
+                fileInput.multiple = true;
                 fileInput.style.display = 'none';
 
                 fileInput.addEventListener('change', function() {
@@ -256,7 +355,6 @@
 </script>
 
 <style>
-    /* Giống create.blade.php */
     .btn-check:checked+.audit-btn {
         opacity: 1;
         transform: scale(1.02);

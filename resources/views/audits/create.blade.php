@@ -129,23 +129,63 @@
         <!-- Footer Spacer -->
         <div style="height: 100px;"></div>
 
-        <!-- Submit Button -->
+        <!-- Submit Buttons Floating Bar -->
         <div class="fixed-bottom container p-3 bg-white border-top shadow-lg" style="max-width: 1100px;">
-
-            <button type="submit" class="btn btn-primary w-100 py-3 rounded-pill fw-bold fs-5 text-uppercase d-flex align-items-center justify-content-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-                    <polyline points="17 21 17 13 7 13 7 21" />
-                    <polyline points="7 3 7 8 15 8" />
-                </svg>
-                {{ __('messages.save_audit_result') }}
-            </button>
+            <div class="d-flex align-items-center gap-2">
+                <button type="submit" name="action" value="pause" formnovalidate class="btn btn-warning text-dark fw-bold px-4 py-3 rounded-pill d-flex align-items-center justify-content-center gap-2 shadow-sm" style="min-width: 200px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <rect x="6" y="4" width="4" height="16"></rect>
+                        <rect x="14" y="4" width="4" height="16"></rect>
+                    </svg>
+                    {{ __('messages.audit_pause_inspection') }}
+                </button>
+                <button type="submit" name="action" value="complete" class="btn btn-primary flex-grow-1 py-3 rounded-pill fw-bold fs-5 text-uppercase d-flex align-items-center justify-content-center gap-2 shadow-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                        <polyline points="17 21 17 13 7 13 7 21" />
+                        <polyline points="7 3 7 8 15 8" />
+                    </svg>
+                    {{ __('messages.audit_complete_inspection') }}
+                </button>
+            </div>
         </div>
     </form>
 </div>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        const auditForm = document.getElementById('auditForm');
+        if (auditForm) {
+            auditForm.addEventListener('submit', function(e) {
+                const submitter = e.submitter;
+                if (submitter && submitter.value === 'pause') {
+                    return;
+                }
+
+                const criteriaContainers = document.querySelectorAll('.card-body > .p-4');
+                for (let i = 0; i < criteriaContainers.length; i++) {
+                    const cont = criteriaContainers[i];
+                    const passRadio = cont.querySelector('.audit-radio-pass');
+                    const failRadio = cont.querySelector('.audit-radio-fail');
+                    if (!passRadio.checked && !failRadio.checked) {
+                        e.preventDefault();
+                        alert('Vui lòng chọn Đạt hoặc Không đạt cho tiêu chí số ' + (i + 1) + '.');
+                        cont.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        return false;
+                    }
+                    if (failRadio.checked) {
+                        const note = cont.querySelector('textarea');
+                        if (!note || !note.value.trim()) {
+                            e.preventDefault();
+                            alert('Vui lòng nhập ghi chú nguyên nhân cho tiêu chí Không đạt số ' + (i + 1) + '.');
+                            cont.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            if (note) note.focus();
+                            return false;
+                        }
+                    }
+                }
+            });
+        }
         // Xử lý bật/tắt ghi chú cho nút Pass/Fail
         const radioPassBtns = document.querySelectorAll('.audit-radio-pass');
         const radioFailBtns = document.querySelectorAll('.audit-radio-fail');
