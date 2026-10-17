@@ -24,53 +24,62 @@ $needsReview = $record->isCompleted() && $isAuditor && $nonBResults->contains(fn
 $needsDisputeReview = $record->isCompleted() && $isAuditor && $nonBResults->contains(fn($r) => $r->review_status === 'pending_dispute_review');
 @endphp
 
-<div class="d-flex align-items-center justify-content-between gap-3 mb-4">
-    <div class="d-flex align-items-center gap-3">
-        <a href="{{ route('seven-s.index') }}" class="text-decoration-none text-secondary d-flex align-items-center gap-1">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+<div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3 mb-4">
+    <div class="d-flex flex-wrap align-items-center gap-2 gap-md-3">
+        <a href="{{ route('seven-s.index') }}" class="btn btn-sm btn-light border text-secondary rounded-pill d-inline-flex align-items-center gap-1.5 px-3 py-1.5 shadow-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M19 12H5M12 19l-7-7 7-7" />
             </svg>
-            {{ __('messages.7s_back') }}
+            <span class="fw-semibold">{{ __('messages.7s_back') }}</span>
         </a>
-        <h4 class="mb-0 fw-bold">{{ __('messages.7s_record_title') }}{{ $record->id }}</h4>
+        <h4 class="mb-0 fw-bold fs-5 fs-md-4 text-nowrap d-inline-flex align-items-center gap-2">
+            <span>{{ __('messages.7s_record_title') }}{{ $record->id }}</span>
+        </h4>
         @if($record->isPaused())
-        <span class="badge bg-warning text-dark border border-warning px-3 py-2 fw-bold">
-            ⏸️ {{ __('messages.7s_status_paused') }}
+        <span class="badge bg-warning text-dark border border-warning px-2.5 py-1.5 fw-bold d-inline-flex align-items-center gap-1.5 shadow-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                <rect x="6" y="4" width="4" height="16" rx="1"></rect>
+                <rect x="14" y="4" width="4" height="16" rx="1"></rect>
+            </svg>
+            <span>{{ __('messages.7s_status_paused') }}</span>
         </span>
         @elseif($isFullyImproved)
-        <span class="badge bg-success bg-opacity-10 text-success border border-success px-3 py-2">
-            ✅ {{ __('messages.7s_fully_improved_badge') }}
+        <span class="badge bg-success bg-opacity-10 text-success border border-success px-2.5 py-1.5 d-inline-flex align-items-center gap-1.5">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span>{{ __('messages.7s_fully_improved_badge') }}</span>
         </span>
         @endif
     </div>
-    <div class="d-flex align-items-center gap-2">
+    <div class="d-flex flex-wrap align-items-center gap-2 w-100 w-md-auto justify-content-start justify-content-md-end">
         @if($canRespond)
-        <button type="button" class="btn btn-sm btn-info text-white shadow-sm fw-bold px-3 d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#agreementModal">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <button type="button" class="btn btn-sm btn-info text-white shadow-sm fw-bold px-3 py-1.5 rounded-3 d-inline-flex align-items-center gap-1.5" data-bs-toggle="modal" data-bs-target="#agreementModal">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 1 1-7.6-14.1 8.38 8.38 0 0 1 3.8.9L21 3.5Z" />
             </svg>
-            {{ __('messages.audit_respond_btn') }}
+            <span>{{ __('messages.audit_respond_btn') }}</span>
         </button>
         @endif
 
         @if($needsDisputeReview)
-        <button type="button" class="btn btn-sm btn-primary d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#disputeReviewModal">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <button type="button" class="btn btn-sm btn-primary shadow-sm fw-bold px-3 py-1.5 rounded-3 d-inline-flex align-items-center gap-1.5" data-bs-toggle="modal" data-bs-target="#disputeReviewModal">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
                 <circle cx="9" cy="7" r="4" />
                 <polyline points="16 11 18 13 22 9" />
             </svg>
-            {{ __('messages.audit_review_disputes_btn') }}
+            <span>{{ __('messages.audit_review_disputes_btn') }}</span>
         </button>
         @endif
 
         @if($needsReview)
-        <button type="button" class="btn btn-sm btn-primary d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#reviewModal">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <button type="button" class="btn btn-sm btn-primary shadow-sm fw-bold px-3 py-1.5 rounded-3 d-inline-flex align-items-center gap-1.5" data-bs-toggle="modal" data-bs-target="#reviewModal">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
                 <polyline points="22 4 12 14.01 9 11.01" />
             </svg>
-            {{ __('messages.7s_review_btn') }}
+            <span>{{ __('messages.7s_review_btn') }}</span>
         </button>
         @endif
         @php
@@ -80,41 +89,41 @@ $needsDisputeReview = $record->isCompleted() && $isAuditor && $nonBResults->cont
         ) && (!$isFullyImproved || $record->isPaused());
         @endphp
         @if($record->isPaused() && $canEdit)
-        <a href="{{ route('seven-s.edit', $record->id) }}" class="btn btn-sm btn-primary fw-bold shadow-sm d-flex align-items-center gap-1 px-3">
+        <a href="{{ route('seven-s.edit', $record->id) }}" class="btn btn-sm btn-primary fw-bold shadow-sm d-inline-flex align-items-center gap-1.5 px-3 py-1.5 rounded-3">
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-            {{ __('messages.7s_resume_inspection') }}
+            <span>{{ __('messages.7s_resume_inspection') }}</span>
         </a>
         @elseif($canEdit)
-        <a href="{{ route('seven-s.edit', $record->id) }}" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <a href="{{ route('seven-s.edit', $record->id) }}" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1.5 px-3 py-1.5 rounded-3">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
             </svg>
-            {{ __('messages.7s_edit_btn') }}
+            <span>{{ __('messages.7s_edit_btn') }}</span>
         </a>
         @endif
         <a href="{{ route('seven-s.export_detail', $record->id) }}"
-            class="btn btn-sm btn-outline-success d-flex align-items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            class="btn btn-sm btn-outline-success d-inline-flex align-items-center gap-1.5 px-3 py-1.5 rounded-3">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                 <polyline points="7 10 12 15 17 10" />
                 <line x1="12" y1="15" x2="12" y2="3" />
             </svg>
-            {{ __('messages.7s_export_excel') }}
+            <span>{{ __('messages.7s_export_excel') }}</span>
         </a>
         @if(auth()->user()->isAdminUser())
-        <form action="{{ route('seven-s.destroy', $record->id) }}" method="POST" onsubmit="return confirm(`{{ __('messages.7s_delete_confirm') }}`)">
+        <form action="{{ route('seven-s.destroy', $record->id) }}" method="POST" onsubmit="return confirm(`{{ __('messages.7s_delete_confirm') }}`)" class="m-0">
             @csrf
             @method('DELETE')
-            <button type="submit" class="btn btn-sm btn-outline-danger d-flex align-items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <button type="submit" class="btn btn-sm btn-outline-danger d-inline-flex align-items-center gap-1.5 px-3 py-1.5 rounded-3">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <polyline points="3 6 5 6 21 6" />
                     <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
                     <path d="M10 11v6" />
                     <path d="M14 11v6" />
                     <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
                 </svg>
-                {{ __('messages.7s_delete_btn') }}
+                <span>{{ __('messages.7s_delete_btn') }}</span>
             </button>
         </form>
         @endif
@@ -122,33 +131,70 @@ $needsDisputeReview = $record->isCompleted() && $isAuditor && $nonBResults->cont
 </div>
 
 @if($record->isPaused())
-<div class="card border-0 shadow-sm rounded-4 mb-4" style="background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border-left: 5px solid #f59e0b !important;">
-    <div class="card-body p-4 d-flex flex-wrap align-items-center justify-content-between gap-3">
-        <div class="d-flex align-items-center gap-3">
-            <span class="fs-1">⏸️</span>
-            <div>
-                <h5 class="fw-bold text-dark mb-1">{{ __('messages.7s_paused_banner_title') }}</h5>
-                <p class="text-muted mb-0">{{ __('messages.7s_paused_banner_desc') }}</p>
-                <div class="mt-2 text-dark small fw-semibold">
-                    {{ __('messages.7s_items_progress', ['answered' => $record->results->count(), 'total' => $record->total_checklist_items]) }}
+@php
+    $answeredItemsCount = $record->results->count();
+    $totalItemsCount = $record->total_checklist_items;
+    $progressPercent = $totalItemsCount > 0 ? round(($answeredItemsCount / $totalItemsCount) * 100) : 0;
+@endphp
+<div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden" style="background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border-left: 5px solid #f59e0b !important;">
+    <div class="card-body p-3 p-md-4">
+        <div class="d-flex flex-column flex-lg-row align-items-start align-items-lg-center justify-content-between gap-3">
+            <div class="d-flex align-items-start gap-3">
+                <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 shadow-sm" style="width: 48px; height: 48px; background: #ffffff; color: #d97706; border: 2px solid #fde68a;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+                        <rect x="6" y="4" width="4" height="16" rx="1.5"></rect>
+                        <rect x="14" y="4" width="4" height="16" rx="1.5"></rect>
+                    </svg>
+                </div>
+                <div>
+                    <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                        <h5 class="fw-bold text-dark mb-0 fs-6 fs-md-5">{{ __('messages.7s_paused_banner_title') }}</h5>
+                        <span class="badge bg-warning text-dark border border-warning px-2 py-0.5 small fw-bold">Draft</span>
+                    </div>
+                    <p class="text-muted small mb-2">{{ __('messages.7s_paused_banner_desc') }}</p>
+                    
+                    {{-- Progress Bar indicator --}}
+                    <div style="max-width: 320px;">
+                        <div class="d-flex align-items-center justify-content-between text-dark small fw-semibold mb-1" style="font-size: 0.8rem;">
+                            <span class="d-inline-flex align-items-center gap-1.5">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-warning">
+                                    <path d="M9 11l3 3L22 4" />
+                                    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+                                </svg>
+                                {{ __('messages.7s_items_progress', ['answered' => $answeredItemsCount, 'total' => $totalItemsCount]) }}
+                            </span>
+                            <span class="text-warning-emphasis fw-bold">{{ $progressPercent }}%</span>
+                        </div>
+                        <div class="progress" style="height: 6px; border-radius: 99px; background: rgba(0,0,0,0.08);">
+                            <div class="progress-bar bg-warning" role="progressbar" style="width: {{ $progressPercent }}%"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
+
+            @if($canEdit)
+            <div class="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center gap-2 w-100 w-lg-auto mt-2 mt-lg-0">
+                <a href="{{ route('seven-s.edit', $record->id) }}" class="btn btn-primary px-3 py-2 rounded-pill fw-bold shadow-sm d-inline-flex align-items-center justify-content-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                    <span>{{ __('messages.7s_resume_inspection') }}</span>
+                </a>
+                <form action="{{ route('seven-s.destroy', $record->id) }}" method="POST" onsubmit="return confirm('{{ __('messages.7s_discard_draft_confirm') }}')" class="m-0">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn btn-outline-danger px-3 py-2 rounded-pill fw-bold w-100 d-inline-flex align-items-center justify-content-center gap-1.5">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="3 6 5 6 21 6" />
+                            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                            <path d="M10 11v6" />
+                            <path d="M14 11v6" />
+                            <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                        </svg>
+                        <span>{{ __('messages.7s_discard_draft') }}</span>
+                    </button>
+                </form>
+            </div>
+            @endif
         </div>
-        @if($canEdit)
-        <div class="d-flex align-items-center gap-2">
-            <a href="{{ route('seven-s.edit', $record->id) }}" class="btn btn-primary px-4 py-2 rounded-pill fw-bold shadow-sm d-flex align-items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-                {{ __('messages.7s_resume_inspection') }}
-            </a>
-            <form action="{{ route('seven-s.destroy', $record->id) }}" method="POST" onsubmit="return confirm('Bạn có chắc muốn hủy bản kiểm tra tạm dừng này không?')">
-                @csrf
-                @method('DELETE')
-                <button type="submit" class="btn btn-outline-danger px-3 py-2 rounded-pill fw-bold">
-                    {{ __('messages.7s_discard_draft') }}
-                </button>
-            </form>
-        </div>
-        @endif
     </div>
 </div>
 @endif
@@ -176,28 +222,106 @@ $pct = $record->max_score > 0 ? round(($record->score / $record->max_score) * 10
 $color = $pct >= 80 ? 'success' : ($pct >= 60 ? 'warning' : 'danger');
 @endphp
 <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden">
-    <div class="card-body p-4 d-flex align-items-center gap-4 flex-wrap">
-        <div>
-            <div class="text-muted small text-uppercase fw-bold mb-1">{{ __('messages.7s_department') }}</div>
-            <span class="badge bg-info text-dark fs-6 px-3 py-2">{{ $record->department }}</span>
+    <div class="card-body p-3 p-md-4">
+        <div class="row g-3 g-md-4 align-items-center">
+            {{-- Department --}}
+            <div class="col-6 col-md-3">
+                <div class="d-flex align-items-center gap-2 gap-md-3">
+                    <div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; background: #eff6ff; color: #2563eb;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect>
+                            <path d="M9 22v-4h6v4"></path>
+                            <path d="M8 6h.01"></path>
+                            <path d="M16 6h.01"></path>
+                            <path d="M8 10h.01"></path>
+                            <path d="M16 10h.01"></path>
+                            <path d="M8 14h.01"></path>
+                            <path d="M16 14h.01"></path>
+                        </svg>
+                    </div>
+                    <div class="min-w-0">
+                        <div class="text-muted text-uppercase fw-bold small" style="font-size: 0.72rem; letter-spacing: 0.5px;">{{ __('messages.7s_department') }}</div>
+                        <div class="mt-1">
+                            <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2.5 py-1.5 rounded-3 fw-bold text-truncate d-inline-block" style="max-width: 100%; font-size: 0.85rem;" title="{{ $record->department }}">
+                                {{ $record->department }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Inspector --}}
+            <div class="col-6 col-md-3">
+                <div class="d-flex align-items-center gap-2 gap-md-3">
+                    <div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; background: #f5f3ff; color: #7c3aed;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                    </div>
+                    <div class="min-w-0">
+                        <div class="text-muted text-uppercase fw-bold small" style="font-size: 0.72rem; letter-spacing: 0.5px;">{{ __('messages.7s_inspector_label') }}</div>
+                        <div class="fw-bold text-dark text-truncate mt-1" style="font-size: 0.95rem;">{{ $record->inspector->name ?? '—' }}</div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Inspection Date --}}
+            <div class="col-6 col-md-3">
+                <div class="d-flex align-items-center gap-2 gap-md-3">
+                    <div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; background: #ecfdf5; color: #059669;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="16" y1="2" x2="16" y2="6"></line>
+                            <line x1="8" y1="2" x2="8" y2="6"></line>
+                            <line x1="3" y1="10" x2="21" y2="10"></line>
+                        </svg>
+                    </div>
+                    <div class="min-w-0">
+                        <div class="text-muted text-uppercase fw-bold small" style="font-size: 0.72rem; letter-spacing: 0.5px;">{{ __('messages.7s_inspection_date') }}</div>
+                        <div class="fw-bold text-dark mt-1" style="font-size: 0.88rem;">{{ $record->created_at->format('d/m/Y H:i') }}</div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Score --}}
+            <div class="col-6 col-md-3">
+                <div class="p-2 p-md-3 rounded-3 bg-light border d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px; background: rgba(var(--bs-{{ $color }}-rgb), 0.15); color: var(--bs-{{ $color }});">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="8" r="7"></circle>
+                                <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="text-muted small fw-bold" style="font-size: 0.68rem; text-transform: uppercase;">{{ __('messages.7s_score_label') }}</div>
+                            <div class="fw-bold text-dark lh-1">
+                                <span class="fs-5 text-{{ $color }}">{{ $record->score }}</span><span class="text-muted small">/{{ $record->max_score }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <span class="badge bg-{{ $color }} fs-6 px-2.5 py-1.5 shadow-sm">{{ $pct }}%</span>
+                </div>
+            </div>
         </div>
-        <div>
-            <div class="text-muted small text-uppercase fw-bold mb-1">{{ __('messages.7s_inspector_label') }}</div>
-            <div class="fw-bold">{{ $record->inspector->name ?? '—' }}</div>
-        </div>
-        <div>
-            <div class="text-muted small text-uppercase fw-bold mb-1">{{ __('messages.7s_inspection_date') }}</div>
-            <div class="fw-bold">{{ $record->created_at->format('d/m/Y H:i') }}</div>
-        </div>
-        <div class="ms-auto text-center">
-            <div class="display-4 fw-bold text-{{ $color }}">{{ $record->score }}</div>
-            <div class="text-muted small">/ {{ $record->max_score }} {{ __('messages.7s_score_label') }}</div>
-            <div class="badge bg-{{ $color }} px-3 py-2 mt-1 fs-6">{{ $pct }}%</div>
-        </div>
-    </div>
-    <div class="px-4 pb-3">
-        <div class="progress" style="height:10px; border-radius:99px;">
-            <div class="progress-bar bg-{{ $color }}" style="width: {{ $pct }}%"></div>
+
+        {{-- Progress bar --}}
+        <div class="mt-3 pt-2 border-top">
+            <div class="d-flex justify-content-between align-items-center text-muted small mb-1">
+                <span class="d-inline-flex align-items-center gap-1.5" style="font-size: 0.75rem;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="20" x2="18" y2="10"></line>
+                        <line x1="12" y1="20" x2="12" y2="4"></line>
+                        <line x1="6" y1="20" x2="6" y2="14"></line>
+                    </svg>
+                    <span>{{ __('messages.pass_rate') ?? 'Tỷ lệ đạt chuẩn' }}</span>
+                </span>
+                <span class="fw-bold text-{{ $color }}">{{ $pct }}%</span>
+            </div>
+            <div class="progress" style="height: 8px; border-radius: 99px; background: #e2e8f0;">
+                <div class="progress-bar bg-{{ $color }}" role="progressbar" style="width: {{ $pct }}%"></div>
+            </div>
         </div>
     </div>
 </div>
@@ -206,7 +330,12 @@ $color = $pct >= 80 ? 'success' : ($pct >= 60 ? 'warning' : 'danger');
 @php $grouped = $record->results->groupBy(fn($r) => $r->checklist?->section ?? 'Khác') @endphp
 @foreach($grouped as $section => $results)
 <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden">
-    <div class="card-header fw-bold bg-dark text-white py-3 px-4">{{ __($section) }}</div>
+    <div class="card-header fw-bold bg-dark text-white py-3 px-3 px-md-4 d-flex align-items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+        </svg>
+        <span>{{ __($section) }}</span>
+    </div>
     <div class="card-body p-0">
         @foreach($results as $result)
         @php
@@ -214,13 +343,13 @@ $color = $pct >= 80 ? 'success' : ($pct >= 60 ? 'warning' : 'danger');
         $gradeColor = $gradeColors[$result->grade] ?? 'secondary';
         $gradeLabels = ['B' => __('messages.7s_grade_good_short'), 'C' => __('messages.7s_grade_acceptable_short'), 'D' => __('messages.7s_grade_fail_short'), 'E' => __('messages.7s_grade_poor_short')];
         @endphp
-        <div class="p-4 @if(!$loop->last) border-bottom @endif">
-            <div class="d-flex justify-content-between align-items-start gap-3">
-                <div>
+        <div class="p-3 p-md-4 @if(!$loop->last) border-bottom @endif">
+            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start gap-2 gap-sm-3">
+                <div class="min-w-0">
                     <span class="badge bg-secondary me-1">{{ $result->checklist?->sort_order }}</span>
                     <span class="fw-semibold">{{ __($result->checklist?->content) }}</span>
                 </div>
-                <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                <div class="d-flex flex-wrap align-items-center gap-2 flex-shrink-0 mt-1 mt-sm-0">
                     @if($result->grade !== 'B')
                     @php
                     $statusColors = [
@@ -236,7 +365,7 @@ $color = $pct >= 80 ? 'success' : ($pct >= 60 ? 'warning' : 'danger');
                         {{ $statusText }}
                     </span>
                     @endif
-                    <span class="badge bg-{{ $gradeColor }} px-3 py-2">{{ $result->grade }} — {{ $gradeLabels[$result->grade] }}</span>
+                    <span class="badge bg-{{ $gradeColor }} px-2.5 py-1.5">{{ $result->grade }} — {{ $gradeLabels[$result->grade] }}</span>
                     <span class="fw-bold text-{{ $result->points >= 0 ? ($result->points > 0 ? 'success' : 'secondary') : 'danger' }}">
                         {{ $result->points > 0 ? '+' : '' }}{{ $result->points }}đ
                     </span>
