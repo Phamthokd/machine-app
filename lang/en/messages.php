@@ -1238,7 +1238,7 @@ return [
     'seven_s_sua_may_q2' => 'Are documents, tools, and machines arranged neatly and kept in the correct place?',
     'seven_s_sua_may_q3' => 'Are the workshop room and working tools kept clean and hygienic?',
     'seven_s_sua_may_q4' => 'Are machines on the line maintained periodically every month?',
-    'seven_s_sua_may_q5' => 'After repair/maintenance, are machines recorded in the maintenance log, and has the team leader signed daily for confirmation?',
+    'seven_s_sua_may_q5' => 'Check any sewing machine code in the system to see whether it has undergone scheduled maintenance or repairs ?',
     'seven_s_sua_may_q6' => 'Do all employees comply with regulations? (Wear uniforms and employee cards according to regulations....',
     'seven_s_sua_may_q7' => 'Are walkways or firefighting equipment obstructed?',
     'seven_s_sua_may_q8' => 'Are chemicals properly controlled in issuance and collection?',

@@ -1186,7 +1186,7 @@ return [
     'seven_s_sua_may_q2' => 'Sắp xếp các tài liệu, dụng cụ, máy móc gọn gàng, đúng chỗ chưa',
     'seven_s_sua_may_q3' => 'Phòng làm việc, dụng cụ làm việc có được giữ gìn vệ sinh sạch sẽ ?',
     'seven_s_sua_may_q4' => 'Máy móc ở chuyền có được bảo dưỡng định kỳ hàng tháng',
-    'seven_s_sua_may_q5' => 'Máy móc sau khi được sửa chữa/bảo dưỡng có được ghi chép vào biểu theo dõi sửa máy không? Tổ trưởng có ký xác nhận hàng ngày chưa?',
+    'seven_s_sua_may_q5' => 'Kiểm tra bất kỳ một mã máy may trên hệ thống xem đã được bảo dưỡng/sửa chữa định kỳ hay chưa ?',
     'seven_s_sua_may_q6' => 'Toàn bộ công nhân viên có tuân thủ theo quy định chưa ( Mặc đồng phục, đeo thẻ NV đúng quy định....',
     'seven_s_sua_may_q7' => 'Lối đi, thiết bị phòng cháy có bị chắn không',
     'seven_s_sua_may_q8' => 'Hóa chất có được quản lý thu phát đúng không',
