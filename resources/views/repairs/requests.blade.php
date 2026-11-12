@@ -60,6 +60,9 @@
                     </td>
                     <td class="px-3 text-wrap" style="max-width: 300px; white-space: pre-line;">
                         {{ $r->mo_ta_loi && $r->mo_ta_loi !== 'N/A' ? $r->mo_ta_loi : ($r->nguyen_nhan && $r->nguyen_nhan !== 'N/A' ? $r->nguyen_nhan : '—') }}
+                        @if($r->isSavedMaintenance())
+                            <span class="badge bg-info-subtle text-info-emphasis border ms-1">{{ __('messages.status_saved_draft') }}</span>
+                        @endif
                     </td>
                     <td class="px-3">
                         <div class="d-flex align-items-center gap-2">

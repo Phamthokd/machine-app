@@ -574,4 +574,107 @@ class RepairTicketTypeTest extends TestCase
 
         $response2->assertRedirect("/m/{$this->machine->ma_thiet_bi}");
     }
+
+    public function test_save_draft_button_only_visible_for_maintenance_and_inspection(): void
+    {
+        $saveDraftLabel = __('messages.save_draft_btn');
+        $completeLabel = __('messages.save_ticket_btn');
+
+        // Maintenance page shows Save Draft + Complete buttons
+        $maintenancePage = $this->actingAs($this->contractorUser)
+            ->get("/repairs/create?machine={$this->machine->ma_thiet_bi}&type=maintenance");
+        $maintenancePage->assertOk();
+        $maintenancePage->assertSee($saveDraftLabel);
+        $maintenancePage->assertSee($completeLabel);
+
+        // Daily inspection page shows Save Draft + Complete buttons
+        $inspectionPage = $this->actingAs($this->admin)
+            ->get("/repairs/create?machine={$this->machine->ma_thiet_bi}&type=maintenance&prefill=daily_inspection");
+        $inspectionPage->assertOk();
+        $inspectionPage->assertSee($saveDraftLabel);
+        $inspectionPage->assertSee($completeLabel);
+
+        // Regular mechanic repair page does NOT show Save Draft button
+        $mechanicPage = $this->actingAs($this->admin)
+            ->get("/repairs/create?machine={$this->machine->ma_thiet_bi}&type=mechanic");
+        $mechanicPage->assertOk();
+        $mechanicPage->assertDontSee('name="submit_action" value="save"', false);
+        $mechanicPage->assertSee($completeLabel);
+
+        // Regular contractor repair page does NOT show Save Draft button
+        $contractorPage = $this->actingAs($this->contractorUser)
+            ->get("/repairs/create?machine={$this->machine->ma_thiet_bi}&type=contractor");
+        $contractorPage->assertOk();
+        $contractorPage->assertDontSee('name="submit_action" value="save"', false);
+        $contractorPage->assertSee($completeLabel);
+    }
+
+    public function test_maintenance_ticket_save_draft_does_not_set_ended_at_until_completed(): void
+    {
+        $startedAt = now()->subMinutes(15)->format('Y-m-d\TH:i');
+
+        // 1. Save draft temporarily from maintenance flow
+        $saveResponse = $this->actingAs($this->contractorUser)
+            ->post('/repairs', [
+                'machine_id' => $this->machine->id,
+                'department_id' => $this->department->id,
+                'nguyen_nhan' => 'Bảo dưỡng hàng tháng',
+                'noi_dung_sua_chua' => 'Đang kiểm tra vệ sinh',
+                'started_at' => $startedAt,
+                'type' => 'maintenance',
+                'is_maintenance_flow' => '1',
+                'submit_action' => 'save',
+            ]);
+
+        $saveResponse->assertRedirect("/m/{$this->machine->ma_thiet_bi}");
+
+        $ticket = RepairTicket::where('machine_id', $this->machine->id)->first();
+        $this->assertNotNull($ticket);
+        $this->assertEquals('saved_maintenance', $ticket->status);
+        $this->assertNull($ticket->ended_at);
+        $this->assertEquals($this->contractorUser->id, $ticket->mechanic_id);
+
+        // 2. Clicking Maintenance / Inspection again redirects to edit the saved draft
+        $reopenResponse = $this->actingAs($this->contractorUser)
+            ->get("/repairs/create?machine={$this->machine->ma_thiet_bi}&type=maintenance");
+        $reopenResponse->assertRedirect("/repairs/{$ticket->id}/edit");
+
+        // 3. Edit page shows saved content and both Save Draft + Complete buttons
+        $editPage = $this->actingAs($this->contractorUser)
+            ->get("/repairs/{$ticket->id}/edit");
+        $editPage->assertOk();
+        $editPage->assertSee('Đang kiểm tra vệ sinh');
+        $editPage->assertSee('name="submit_action" value="save"', false);
+        $editPage->assertSee(__('messages.save_ticket_btn'));
+
+        // 4. Saving draft again still keeps ended_at null
+        $resaveResponse = $this->actingAs($this->contractorUser)
+            ->put("/repairs/{$ticket->id}", [
+                'nguyen_nhan' => 'Bảo dưỡng hàng tháng',
+                'noi_dung_sua_chua' => 'Đã tra dầu, đang kiểm tra thêm',
+                'started_at' => $startedAt,
+                'submit_action' => 'save',
+            ]);
+        $resaveResponse->assertRedirect("/m/{$this->machine->ma_thiet_bi}");
+
+        $ticket->refresh();
+        $this->assertEquals('saved_maintenance', $ticket->status);
+        $this->assertNull($ticket->ended_at);
+        $this->assertEquals('Đã tra dầu, đang kiểm tra thêm', $ticket->noi_dung_sua_chua);
+
+        // 5. Completing the ticket sets ended_at and marks as submitted
+        $completeResponse = $this->actingAs($this->contractorUser)
+            ->put("/repairs/{$ticket->id}", [
+                'nguyen_nhan' => 'Bảo dưỡng hàng tháng',
+                'noi_dung_sua_chua' => 'Đã hoàn tất bảo dưỡng',
+                'started_at' => $startedAt,
+                'submit_action' => 'complete',
+            ]);
+        $completeResponse->assertRedirect("/m/{$this->machine->ma_thiet_bi}");
+
+        $ticket->refresh();
+        $this->assertEquals('submitted', $ticket->status);
+        $this->assertNotNull($ticket->ended_at);
+        $this->assertEquals('Đã hoàn tất bảo dưỡng', $ticket->noi_dung_sua_chua);
+    }
 }

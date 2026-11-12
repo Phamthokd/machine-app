@@ -77,5 +77,37 @@ class RepairTicket extends Model
     {
         return $this->approval_status === 'approved' || $this->approval_status === null;
     }
+
+    /**
+     * Check whether this ticket is a temporarily saved maintenance/inspection draft.
+     */
+    public function isSavedMaintenance(): bool
+    {
+        return $this->status === 'saved_maintenance';
+    }
+
+    /**
+     * Check whether this ticket is still open (pending request or saved draft).
+     */
+    public function isPendingOrSaved(): bool
+    {
+        return in_array($this->status, ['pending', 'saved_maintenance'], true);
+    }
+
+    /**
+     * Check whether the given user can resume and complete this saved draft ticket.
+     */
+    public function canBeResumedBy(?User $user): bool
+    {
+        if (!$user || !$this->isSavedMaintenance() || !empty($this->ended_at)) {
+            return false;
+        }
+
+        if (!$user->hasAnyRole(['admin', 'warehouse', 'repair_tech', 'contractor', 'bok'])) {
+            return false;
+        }
+
+        return $this->mechanic_id === $user->id || $user->isAdminUser();
+    }
 }
 

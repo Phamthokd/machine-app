@@ -24,12 +24,17 @@ class RepairTicketController extends Controller
         }
         // Prevent duplicate creation if machine is already pending
         if (auth()->check() && $type !== 'bok') {
-            $hasPending = RepairTicket::where('machine_id', $machine->id)
+            $pendingTicket = RepairTicket::where('machine_id', $machine->id)
                 ->whereNull('ended_at')
                 ->where('type', '!=', 'bok')
-                ->exists();
+                ->latest('id')
+                ->first();
 
-            if ($hasPending) {
+            if ($pendingTicket) {
+                if ($type === 'maintenance' && $pendingTicket->canBeResumedBy(auth()->user())) {
+                    return redirect("/repairs/{$pendingTicket->id}/edit");
+                }
+
                 return redirect("/m/{$machine->ma_thiet_bi}")
                     ->with('error', 'Máy này đã được báo trước đó. Vui lòng hoàn tất phiếu báo cũ trước khi tạo báo lỗi mới!');
             }
@@ -69,11 +74,17 @@ class RepairTicketController extends Controller
         $isTechnician = auth()->user()->hasAnyRole(['admin', 'warehouse', 'repair_tech']);
         $isSupervisor = auth()->user()->hasRole('supervisor');
         $isReporter = !$isTechnician && !$isContractor && !$isBok;
+        $isMaintenanceFlow = $request->input('is_maintenance_flow') === '1'
+            || $request->input('type') === 'maintenance'
+            || $request->input('prefill') === 'daily_inspection';
+        $isSavingDraft = !$isReporter
+            && $isMaintenanceFlow
+            && $request->input('submit_action') === 'save';
 
         $rules = [
             'machine_id'    => ['required', 'exists:machines,id'],
             'department_id' => ['required', 'exists:departments,id'],
-            'nguyen_nhan'   => ['required', 'string'],
+            'nguyen_nhan'   => [$isSavingDraft ? 'nullable' : 'required', 'string'],
             'started_at'    => ['required', 'date'],
             'images'        => ['nullable', 'array'],
             'images.*'      => ['image', 'max:10240'],
@@ -89,26 +100,39 @@ class RepairTicketController extends Controller
             // Contractor: specific validation (handled safely by hidden N/A values in form, but good to be explicit)
             $rules['ma_hang'] = ['nullable'];
             $rules['cong_doan'] = ['nullable'];
-            $rules['noi_dung_sua_chua'] = ['required', 'string'];
+            $rules['noi_dung_sua_chua'] = [$isSavingDraft ? 'nullable' : 'required', 'string'];
             $rules['endline_qc_name'] = ['nullable'];
             $rules['nguoi_ho_tro'] = ['nullable', 'string', 'max:255'];
         } elseif ($isBok || $request->input('type') === 'bok') {
             // BOK validation rules
             $rules['ma_hang'] = ['nullable'];
             $rules['cong_doan'] = ['nullable'];
-            $rules['noi_dung_sua_chua'] = [$isBok ? 'required' : 'nullable', 'string'];
+            $rules['noi_dung_sua_chua'] = [($isBok && !$isSavingDraft) ? 'required' : 'nullable', 'string'];
             $rules['endline_qc_name'] = ['nullable'];
         } else {
             // Standard validation
-            $rules['ma_hang'] = ['required', 'string', 'max:255'];
-            $rules['cong_doan'] = ['required', 'string', 'max:255'];
-            $rules['noi_dung_sua_chua'] = ['required', 'string'];
+            $rules['ma_hang'] = [$isSavingDraft ? 'nullable' : 'required', 'string', 'max:255'];
+            $rules['cong_doan'] = [$isSavingDraft ? 'nullable' : 'required', 'string', 'max:255'];
+            $rules['noi_dung_sua_chua'] = [$isSavingDraft ? 'nullable' : 'required', 'string'];
             $rules['endline_qc_name'] = ['nullable', 'string', 'max:255'];
             $rules['inline_qc_name'] = ['nullable', 'string', 'max:255'];
             $rules['qa_supervisor_name'] = ['nullable', 'string', 'max:255'];
         }
 
         $validated = $request->validate($rules);
+
+        if ($isSavingDraft) {
+            $defaultIssue = $request->input('prefill') === 'daily_inspection'
+                ? 'Kiểm tra hàng ngày'
+                : 'Bảo dưỡng hàng tháng';
+            $this->applyDraftDefaults(
+                $validated,
+                $defaultIssue,
+                __('messages.maintenance_label'),
+                __('messages.maintenance_label'),
+                !$isContractor && !$isBok && $request->input('type') !== 'bok'
+            );
+        }
 
         $validated['created_by'] = auth()->id();
         $validated['code'] = 'RM-' . now()->format('Ymd') . '-' . str_pad((string) random_int(1, 9999), 4, '0', STR_PAD_LEFT);
@@ -181,6 +205,9 @@ class RepairTicketController extends Controller
             if ($isSupervisor && $validated['type'] === 'contractor' && $request->input('needs_approval') == '1') {
                 $validated['approval_status'] = 'pending_approval';
             }
+        } elseif ($isSavingDraft) {
+            $validated['status'] = 'saved_maintenance';
+            $validated['ended_at'] = null;
         } else {
             $validated['status'] = 'submitted'; // Or completed
             $validated['ended_at'] = now();
@@ -215,8 +242,13 @@ class RepairTicketController extends Controller
                 ->with('success', "Đã gửi báo hỏng: {$ticket->code}. Đang chờ thợ máy tiếp nhận.");
         }
 
+        if ($isSavingDraft) {
+            return redirect("/m/{$machine->ma_thiet_bi}")
+                ->with('success', "Đã lưu tạm phiếu: {$ticket->code}");
+        }
+
         return redirect("/m/{$machine->ma_thiet_bi}")
-            ->with('success', "Đã tạo phiếu sửa: {$ticket->code}");
+            ->with('success', "Đã hoàn thành phiếu sửa: {$ticket->code}");
     }
     public function index(Request $request)
     {
@@ -322,7 +354,7 @@ class RepairTicketController extends Controller
     {
         $query = RepairTicket::with(['machine.department', 'department', 'createdBy', 'mechanic'])
             ->where('type', 'mechanic')
-            ->where('status', '!=', 'pending');
+            ->whereNotIn('status', ['pending', 'saved_maintenance']);
 
         // Apply filters
         if ($request->filled('department_id')) {
@@ -763,11 +795,19 @@ class RepairTicketController extends Controller
             }
         }
 
+        $wasSavedMaintenance = $repair->isSavedMaintenance();
+        $isSavingDraft = $wasSavedMaintenance
+            && $repair->canBeResumedBy(auth()->user())
+            && $request->input('submit_action') === 'save';
+
+        $textRule = $isSavingDraft ? ['nullable', 'string'] : ['required', 'string'];
+        $shortTextRule = $isSavingDraft ? ['nullable', 'string', 'max:255'] : ['required', 'string', 'max:255'];
+
         $rules = [
-            'ma_hang' => ['required', 'string', 'max:255'],
-            'cong_doan' => ['required', 'string', 'max:255'],
-            'nguyen_nhan' => ['required', 'string'],
-            'noi_dung_sua_chua' => ['required', 'string'],
+            'ma_hang' => $shortTextRule,
+            'cong_doan' => $shortTextRule,
+            'nguyen_nhan' => $textRule,
+            'noi_dung_sua_chua' => $textRule,
             'started_at' => ['required', 'date'],
             'ended_at' => ['nullable', 'date', 'after_or_equal:started_at'],
             'endline_qc_name' => ['nullable', 'string', 'max:255'],
@@ -779,8 +819,8 @@ class RepairTicketController extends Controller
         if ($repair->type == 'contractor') {
             // Simplified rules for contractor
             $rules = [
-                'nguyen_nhan' => ['required', 'string'],
-                'noi_dung_sua_chua' => ['required', 'string'],
+                'nguyen_nhan' => $textRule,
+                'noi_dung_sua_chua' => $textRule,
                 'started_at' => ['required', 'date'],
                 'ended_at' => ['nullable', 'date', 'after_or_equal:started_at'],
                 'nguoi_ho_tro' => ['nullable', 'string', 'max:255'],
@@ -789,8 +829,8 @@ class RepairTicketController extends Controller
         } elseif ($repair->type == 'bok') {
             // Simplified rules for bok
             $rules = [
-                'nguyen_nhan' => ['required', 'string'],
-                'noi_dung_sua_chua' => ['required', 'string'],
+                'nguyen_nhan' => $textRule,
+                'noi_dung_sua_chua' => $textRule,
                 'started_at' => ['required', 'date'],
                 'ended_at' => ['nullable', 'date', 'after_or_equal:started_at'],
                 'images.*' => ['nullable', 'image', 'max:10240'],
@@ -799,9 +839,23 @@ class RepairTicketController extends Controller
 
         $validated = $request->validate($rules);
 
-        $validated['status'] = 'submitted';
-        $validated['ended_at'] = now();
-        $validated['mechanic_id'] = auth()->id();
+        if ($isSavingDraft) {
+            $this->applyDraftDefaults(
+                $validated,
+                $repair->nguyen_nhan ?: 'Bảo dưỡng hàng tháng',
+                $repair->ma_hang ?: __('messages.maintenance_label'),
+                $repair->cong_doan ?: __('messages.maintenance_label'),
+                !in_array($repair->type, ['contractor', 'bok'], true)
+            );
+
+            $validated['status'] = 'saved_maintenance';
+            $validated['ended_at'] = null;
+            $validated['mechanic_id'] = $repair->mechanic_id ?: auth()->id();
+        } else {
+            $validated['status'] = 'submitted';
+            $validated['ended_at'] = now();
+            $validated['mechanic_id'] = auth()->id();
+        }
 
         // Handle image uploading & removing
         $existingImages = $repair->images ?? [];
@@ -825,11 +879,23 @@ class RepairTicketController extends Controller
 
         $repair->update($validated);
 
+        if ($isSavingDraft) {
+            $repair->load('machine');
+            $redirectUrl = $repair->machine ? "/m/{$repair->machine->ma_thiet_bi}" : '/repair-requests';
+            return redirect($redirectUrl)->with('success', "Đã lưu tạm phiếu: {$repair->code}");
+        }
+
         // Notify team leader (ticket creator) if they have the team_leader role
         $creator = User::find($repair->created_by);
         if ($creator && $creator->hasRole('team_leader')) {
             $repair->load('machine');
             $creator->notify(new RepairCompletedNotification($repair));
+        }
+
+        if ($wasSavedMaintenance) {
+            $repair->load('machine');
+            $redirectUrl = $repair->machine ? "/m/{$repair->machine->ma_thiet_bi}" : '/repair-requests';
+            return redirect($redirectUrl)->with('success', "Đã hoàn thành phiếu sửa: {$repair->code}");
         }
 
         return redirect('/repair-requests')->with('success', "Đã hoàn thành phiếu sửa: {$repair->code}");
@@ -934,7 +1000,7 @@ class RepairTicketController extends Controller
     public function requestsIndex(Request $request)
     {
         $query = RepairTicket::with(['machine.department', 'createdBy', 'mechanic'])
-            ->where('status', 'pending')
+            ->whereIn('status', ['pending', 'saved_maintenance'])
             ->where(function ($q) {
                 // Ẩn phiếu đang chờ phê duyệt khỏi danh sách yêu cầu bình thường
                 // Chỉ hiển thị phiếu không cần duyệt hoặc đã được duyệt
@@ -1113,5 +1179,32 @@ class RepairTicketController extends Controller
         $repair->delete();
 
         return back()->with('success', __('messages.reject_success', ['code' => $code]));
+    }
+
+    /**
+     * Populate fallback values when temporarily saving a maintenance/inspection draft.
+     */
+    private function applyDraftDefaults(
+        array &$validated,
+        string $defaultIssue,
+        string $defaultCode,
+        string $defaultStage,
+        bool $includeMechanicFields
+    ): void {
+        $validated['nguyen_nhan'] = trim((string) ($validated['nguyen_nhan'] ?? '')) !== ''
+            ? $validated['nguyen_nhan']
+            : $defaultIssue;
+        $validated['noi_dung_sua_chua'] = trim((string) ($validated['noi_dung_sua_chua'] ?? '')) !== ''
+            ? $validated['noi_dung_sua_chua']
+            : 'N/A';
+
+        if ($includeMechanicFields) {
+            $validated['ma_hang'] = trim((string) ($validated['ma_hang'] ?? '')) !== ''
+                ? $validated['ma_hang']
+                : $defaultCode;
+            $validated['cong_doan'] = trim((string) ($validated['cong_doan'] ?? '')) !== ''
+                ? $validated['cong_doan']
+                : $defaultStage;
+        }
     }
 }

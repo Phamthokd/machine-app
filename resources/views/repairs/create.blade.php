@@ -297,11 +297,14 @@
     <h4 class="mb-0 fw-bold">{{ __('messages.create_ticket') }}</h4>
 </div>
 @php
+$isMaintenanceFlow = request('type') === 'maintenance'
+    || request('prefill') === 'daily_inspection'
+    || old('is_maintenance_flow') === '1';
 $prefillValue = '';
-if (request('prefill') === 'daily_inspection') {
-$prefillValue = 'Kiểm tra hàng ngày';
-} elseif (request('type') === 'maintenance') {
-$prefillValue = 'Bảo dưỡng hàng tháng';
+if (request('prefill') === 'daily_inspection' || old('prefill') === 'daily_inspection') {
+    $prefillValue = 'Kiểm tra hàng ngày';
+} elseif ($isMaintenanceFlow) {
+    $prefillValue = 'Bảo dưỡng hàng tháng';
 }
 @endphp
 
@@ -309,6 +312,8 @@ $prefillValue = 'Bảo dưỡng hàng tháng';
     @csrf
     <input type="hidden" name="machine_id" value="{{ $machine->id }}">
     <input type="hidden" name="department_id" value="{{ $machine->department->id }}">
+    <input type="hidden" name="is_maintenance_flow" value="{{ $isMaintenanceFlow ? '1' : '0' }}">
+    <input type="hidden" name="prefill" value="{{ request('prefill', old('prefill')) }}">
     {{-- needs_approval: đọc từ URL (truyền từ trang máy khi supervisor chọn) --}}
     <input type="hidden" name="needs_approval" id="needsApprovalInput" value="{{ request('needs_approval', '0') }}">
 
@@ -430,7 +435,7 @@ $prefillValue = 'Bảo dưỡng hàng tháng';
         @else
         <!-- Standard Form for Repair Tech / Admin / BOK -->
         <input type="hidden" name="type" id="repair_type_input" value="{{ request('type', auth()->user()->hasRole('bok') ? 'bok' : 'mechanic') }}">
-        @if(request('type') == 'maintenance')
+        @if($isMaintenanceFlow)
         <input type="hidden" name="ma_hang" value="{{ __('messages.maintenance_label') }}">
         <input type="hidden" name="cong_doan" value="{{ __('messages.maintenance_label') }}">
         <input type="hidden" name="nguyen_nhan" value="{{ $prefillValue ?: __('messages.maintenance_label') }}">
@@ -554,23 +559,30 @@ $prefillValue = 'Bảo dưỡng hàng tháng';
     <!-- Spacer to ensure content isn't hidden behind footer -->
     <div class="footer-spacer"></div>
 
+    @php
+        $canCompleteDirectly = auth()->user()->hasAnyRole(['admin', 'warehouse', 'repair_tech', 'contractor', 'bok']);
+    @endphp
     <!-- Submit Button -->
     <div class="fixed-bottom container p-3 bg-white border-top" style="max-width: 600px;">
+        @if(!$canCompleteDirectly)
         <button type="submit" class="btn btn-primary w-100 py-3 rounded-pill fw-bold shadow-lg d-flex align-items-center justify-content-center gap-2">
-            @if(!auth()->user()->hasAnyRole(['admin', 'warehouse', 'repair_tech', 'contractor']))
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
             </svg>
             {{ __('messages.send_request_btn') }}
-            @else
+        </button>
+        @elseif($isMaintenanceFlow)
+        @include('repairs._maintenance_submit_buttons')
+        @else
+        <button type="submit" name="submit_action" value="complete" class="btn btn-primary w-100 py-3 rounded-pill fw-bold shadow-lg d-flex align-items-center justify-content-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
                 <polyline points="17 21 17 13 7 13 7 21" />
                 <polyline points="7 3 7 8 15 8" />
             </svg>
             {{ __('messages.save_ticket_btn') }}
-            @endif
         </button>
+        @endif
     </div>
 
 </form>

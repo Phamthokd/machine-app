@@ -2,17 +2,31 @@
 @section('title', __('messages.complete_repair_ticket'))
 
 @section('content')
+@php
+    $isSavedMaintenance = $repair->isSavedMaintenance();
+    $backUrl = ($isSavedMaintenance && $machine) ? '/m/' . $machine->ma_thiet_bi : '/repair-requests';
+@endphp
 <div class="container-fluid px-0">
     <div class="mb-4">
-        <a href="/repair-requests" class="text-decoration-none text-secondary d-flex align-items-center gap-1 mb-2">
+        <a href="{{ $backUrl }}" class="text-decoration-none text-secondary d-flex align-items-center gap-1 mb-2">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="m15 18-6-6 6-6" />
             </svg>
             {{ __('messages.back') }}
         </a>
-        <h3 class="fw-bold mb-1">{{ __('messages.accept_repair') }}</h3>
+        <h3 class="fw-bold mb-1">{{ $isSavedMaintenance ? __('messages.complete_repair_ticket') : __('messages.accept_repair') }}</h3>
         <p class="text-secondary mb-0">{{ __('messages.complete_repair_info') }} #{{ $repair->code }}</p>
     </div>
+
+    @if($isSavedMaintenance)
+    <div class="alert alert-warning border-0 shadow-sm rounded-4 mb-4 d-flex align-items-center gap-3">
+        <span class="fs-4">📝</span>
+        <div>
+            <div class="fw-bold">{{ __('messages.saved_draft_banner_title') }}</div>
+            <div class="small text-muted">{{ __('messages.saved_draft_banner_desc') }}</div>
+        </div>
+    </div>
+    @endif
 
     <!-- Machine Info Card -->
     <div class="card border-0 shadow-sm rounded-4 mb-4 bg-dark text-white overflow-hidden">
@@ -63,13 +77,13 @@
             <!-- CONTRACTOR FORM -->
             <div class="mb-3">
                 <label class="form-label">{{ __('messages.damage_cause') }} <span class="text-danger">*</span></label>
-                <textarea class="form-control" name="nguyen_nhan" required>{{ old('nguyen_nhan', $repair->nguyen_nhan) }}</textarea>
+                <textarea class="form-control" name="nguyen_nhan" required>{{ old('nguyen_nhan', $repair->nguyen_nhan === 'N/A' ? '' : $repair->nguyen_nhan) }}</textarea>
                 <div class="form-text">{{ __('messages.contractor_cause_hint') }}</div>
             </div>
 
             <div class="mb-3">
                 <label class="form-label">{{ __('messages.repair_content') }} <span class="text-danger">*</span></label>
-                <textarea class="form-control" name="noi_dung_sua_chua" placeholder="{{ __('messages.contractor_repair_hint') }}" required>{{ old('noi_dung_sua_chua') }}</textarea>
+                <textarea class="form-control" name="noi_dung_sua_chua" placeholder="{{ __('messages.contractor_repair_hint') }}" required>{{ old('noi_dung_sua_chua', $repair->noi_dung_sua_chua === 'N/A' ? '' : $repair->noi_dung_sua_chua) }}</textarea>
             </div>
 
             <div class="mb-3">
@@ -179,13 +193,13 @@
 
             <div class="mb-3">
                 <label class="form-label">{{ __('messages.damage_cause') }} <span class="text-danger">*</span></label>
-                <textarea class="form-control" name="nguyen_nhan" required>{{ old('nguyen_nhan', $repair->nguyen_nhan) }}</textarea>
+                <textarea class="form-control" name="nguyen_nhan" required>{{ old('nguyen_nhan', $repair->nguyen_nhan === 'N/A' ? '' : $repair->nguyen_nhan) }}</textarea>
                 <div class="form-text">{{ __('messages.mechanic_cause_hint') }}</div>
             </div>
 
             <div class="mb-3">
                 <label class="form-label">{{ __('messages.repair_content') }} <span class="text-danger">*</span></label>
-                <textarea class="form-control" name="noi_dung_sua_chua" placeholder="{{ __('messages.mechanic_repair_hint') }}" required>{{ old('noi_dung_sua_chua') }}</textarea>
+                <textarea class="form-control" name="noi_dung_sua_chua" placeholder="{{ __('messages.mechanic_repair_hint') }}" required>{{ old('noi_dung_sua_chua', $repair->noi_dung_sua_chua === 'N/A' ? '' : $repair->noi_dung_sua_chua) }}</textarea>
             </div>
             @endif
         </div>
@@ -215,16 +229,21 @@
             </div>
 
             @if($repair->type != 'contractor' && $repair->type != 'bok')
+            @php
+                $selectedEndlineQc = old('endline_qc_name', $repair->endline_qc_name);
+                $selectedInlineQc = old('inline_qc_name', $repair->inline_qc_name);
+                $selectedQa = old('qa_supervisor_name', $repair->qa_supervisor_name);
+            @endphp
             <!-- Static QC Fields (Only for Mechanics) -->
             <div class="mb-3">
                 <label class="form-label">{{ __('messages.endline_qc_triumph') }}</label>
                 <span class="badge bg-light text-secondary fw-normal">{{ __('messages.optional') }}</span>
                 <select class="form-select" name="endline_qc_name">
                     <option value="">{{ __('messages.select_endline_qc') }}</option>
-                    <option value="Ánh" @selected(old('endline_qc_name')=='Ánh' )>Ánh</option>
-                    <option value="Thuỷ" @selected(old('endline_qc_name')=='Thuỷ' )>Thuỷ</option>
-                    <option value="Vân Anh" @selected(old('endline_qc_name')=='Vân Anh' )>Vân Anh</option>
-                    <option value="Thanh" @selected(old('endline_qc_name')=='Thanh' )>Thanh</option>
+                    <option value="Ánh" @selected($selectedEndlineQc == 'Ánh')>Ánh</option>
+                    <option value="Thuỷ" @selected($selectedEndlineQc == 'Thuỷ')>Thuỷ</option>
+                    <option value="Vân Anh" @selected($selectedEndlineQc == 'Vân Anh')>Vân Anh</option>
+                    <option value="Thanh" @selected($selectedEndlineQc == 'Thanh')>Thanh</option>
                 </select>
             </div>
 
@@ -235,8 +254,8 @@
                 </div>
                 <select class="form-select" name="inline_qc_name">
                     <option value="">{{ __('messages.select_inline_qc') }}</option>
-                    <option value="Sinh" @selected(old('inline_qc_name')=='Sinh' )>Sinh</option>
-                    <option value="Chiêm" @selected(old('inline_qc_name')=='Chiêm' )>Chiêm</option>
+                    <option value="Sinh" @selected($selectedInlineQc == 'Sinh')>Sinh</option>
+                    <option value="Chiêm" @selected($selectedInlineQc == 'Chiêm')>Chiêm</option>
                 </select>
             </div>
 
@@ -246,8 +265,8 @@
                     <span class="badge bg-light text-secondary fw-normal">{{ __('messages.optional') }}</span>
                 </div>
                 <select class="form-select" name="qa_supervisor_name">
-                    <option value="" selected>{{ __('messages.select_qa') }}</option>
-                    <option value="Liza">Liza</option>
+                    <option value="" @selected(empty($selectedQa))>{{ __('messages.select_qa') }}</option>
+                    <option value="Liza" @selected($selectedQa == 'Liza')>Liza</option>
                 </select>
             </div>
             @endif
@@ -258,14 +277,18 @@
 
         <!-- Submit Button -->
         <div class="fixed-bottom container p-3 bg-white border-top" style="max-width: 600px;">
-            <button type="submit" class="btn btn-primary w-100 py-3 rounded-pill fw-bold shadow-lg d-flex align-items-center justify-content-center gap-2">
+            @if($isSavedMaintenance && $repair->canBeResumedBy(auth()->user()))
+            @include('repairs._maintenance_submit_buttons')
+            @else
+            <button type="submit" name="submit_action" value="complete" class="btn btn-primary w-100 py-3 rounded-pill fw-bold shadow-lg d-flex align-items-center justify-content-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
                     <polyline points="17 21 17 13 7 13 7 21" />
                     <polyline points="7 3 7 8 15 8" />
                 </svg>
-                {{ mb_strtoupper(__('messages.complete_ticket')) }}
+                {{ $isSavedMaintenance ? __('messages.save_ticket_btn') : mb_strtoupper(__('messages.complete_ticket')) }}
             </button>
+            @endif
         </div>
     </form>
 </div>

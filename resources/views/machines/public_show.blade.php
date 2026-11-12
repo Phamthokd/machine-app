@@ -360,7 +360,7 @@
                             <div class="d-flex justify-content-between">
                                 <span class="timeline-date">{{ $r->created_at->format('d/m/Y H:i') }}</span>
                                 <span class="badge {{ $isDone ? 'bg-success-subtle text-success' : 'bg-warning-subtle text-warning' }} rounded-pill" style="font-size: 0.7rem;">
-                                    {{ $isDone ? __('messages.status_done') : __('messages.status_repairing') }}
+                                    {{ $isDone ? __('messages.status_done') : ($r->isSavedMaintenance() ? __('messages.status_saved_draft') : __('messages.status_repairing')) }}
                                 </span>
                             </div>
                             <div class="timeline-title">{{ $r->nguyen_nhan }}</div>
@@ -375,6 +375,12 @@
                                     </a></object>
                                 </div>
                                 @endif
+                            @elseif($r->canBeResumedBy(auth()->user()))
+                                <div class="mt-2 text-end">
+                                    <object><a href="/repairs/{{ $r->id }}/edit" class="btn btn-sm btn-warning text-dark fw-bold" style="font-size: 0.75rem; border-radius: 6px; padding: 2px 8px;">
+                                        {{ __('messages.resume_complete_ticket_btn') }}
+                                    </a></object>
+                                </div>
                             @endif
                         </div>
                     </a>
@@ -396,15 +402,25 @@
         $hasPendingNonBok = $machine->repairTickets->contains(function ($t) {
             return empty($t->ended_at) && $t->type !== 'bok';
         });
+        $mySavedMaintenanceTicket = $machine->repairTickets->first(function ($t) {
+            return $t->canBeResumedBy(auth()->user());
+        });
         $canCreateBok = \App\Support\FeatureAccess::allows(auth()->user(), 'repairs.create_bok');
     @endphp
 
     @if($hasPendingNonBok && !$canCreateBok)
         <div class="floating-action">
+            @if($mySavedMaintenanceTicket)
+            <a href="/repairs/{{ $mySavedMaintenanceTicket->id }}/edit" class="btn-create-ticket tap shadow-lg text-decoration-none" style="background: #f59e0b; color: #1e293b;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                {{ __('messages.resume_complete_ticket_btn') }}
+            </a>
+            @else
             <button class="btn-create-ticket shadow-lg" style="background: #fbbf24; color: #78350f; cursor: not-allowed; border: 1px solid #f59e0b; width: 100%; padding: 16px; border-radius: 16px; font-weight: 700; font-size: 1rem; display: flex; align-items: center; justify-content: center; gap: 8px;" disabled>
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                 {{ __('messages.reported_waiting_repair') }}
             </button>
+            @endif
         </div>
     @else
         <div class="floating-action">

@@ -72,10 +72,17 @@
             <div class="text-secondary small ms-5">{{ __('messages.ticket_details') }}</div>
         </div>
 
-        @if($repair->status == 'pending')
-        <div class="badge bg-warning text-dark border border-warning-subtle px-3 py-2 rounded-pill fw-medium shadow-sm">
-            <span class="d-inline-block bg-white rounded-circle me-2" style="width: 8px; height: 8px;"></span>
-            {{ __('messages.status_pending') }}
+        @if($repair->isPendingOrSaved())
+        <div class="d-flex align-items-center gap-2">
+            <div class="badge bg-warning text-dark border border-warning-subtle px-3 py-2 rounded-pill fw-medium shadow-sm">
+                <span class="d-inline-block bg-white rounded-circle me-2" style="width: 8px; height: 8px;"></span>
+                {{ $repair->isSavedMaintenance() ? __('messages.status_saved_draft') : __('messages.status_pending') }}
+            </div>
+            @if($repair->canBeResumedBy(auth()->user()))
+            <a href="/repairs/{{ $repair->id }}/edit" class="btn btn-primary btn-sm rounded-pill fw-bold shadow-sm d-flex align-items-center gap-1 tap">
+                {{ __('messages.resume_complete_ticket_btn') }}
+            </a>
+            @endif
         </div>
         @else
         <div class="d-flex align-items-center gap-2">
