@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slide Hướng Dẫn Quy Trình Tuyển Dụng & Phỏng Vấn Ứng Viên</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --primary-light: #eff6ff;
+            --success: #16a34a;
+            --warning: #d97706;
+            --danger: #dc2626;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --bg-slide: #ffffff;
+            --border-color: #e2e8f0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: #0f172a;
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        /* Top Header */
+        header {
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            padding: 12px 28px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 50;
+        }
+
+        .brand-box {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-badge {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+        }
+
+        .brand-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .brand-subtitle {
+            font-size: 0.75rem;
+            color: #94a3b8;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-top {
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+            padding: 6px 14px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+        }
+
+        .btn-top:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Slide Stage Container */
+        .stage {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            position: relative;
+        }
+
+        .slide-deck {
+            position: relative;
+            width: 100%;
+            max-width: 1120px;
+            height: 640px;
+            background: var(--bg-slide);
+            border-radius: 24px;
+            box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Single Slide */
+        .slide {
+            position: absolute;
+            inset: 0;
+            padding: 44px 56px;
+            display: flex;
+            flex-direction: column;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateX(40px) scale(0.98);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .slide.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(0) scale(1);
+            z-index: 10;
+        }
+
+        .slide.prev {
+            transform: translateX(-40px) scale(0.98);
+        }
+
+        /* Slide Inner Layouts */
+        .slide-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 999px;
+            background: #eff6ff;
+            color: #1d4ed8;
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            width: fit-content;
+            margin-bottom: 12px;
+        }
+
+        .slide-title {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #0f172a;
+            line-height: 1.25;
+            margin-bottom: 8px;
+            letter-spacing: -0.03em;
+        }
+
+        .slide-desc {
+            font-size: 1rem;
+            color: #64748b;
+            margin-bottom: 24px;
+            max-width: 860px;
+            line-height: 1.5;
+        }
+
+        .slide-content {
+            flex: 1;
+            display: flex;
+            gap: 24px;
+            min-height: 0;
+        }
+
+        /* Cards & Grid inside slide */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+            width: 100%;
+        }
+
+        .cards-grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            width: 100%;
+        }
+
+        .step-card {
+            background: #f8fafc;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 22px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.2s ease;
+        }
+
+        .step-card:hover {
+            border-color: #cbd5e1;
+            background: #f1f5f9;
+            transform: translateY(-2px);
+        }
+
+        .step-card.highlight {
+            background: #eff6ff;
+            border-color: #bfdbfe;
+        }
+
+        .card-num {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: #2563eb;
+            color: #ffffff;
+            font-weight: 800;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 14px;
+        }
+
+        .card-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-desc {
+            font-size: 0.88rem;
+            color: #475569;
+            line-height: 1.55;
+            flex: 1;
+        }
+
+        .card-footer {
+            margin-top: 14px;
+            padding-top: 12px;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Pill status styles */
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 3px 9px;
+            border-radius: 6px;
+        }
+
+        .status-pill.new { background: #e0f2fe; color: #0369a1; border: 1px solid #7dd3fc; }
+        .status-pill.routed { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
+        .status-pill.forwarded { background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; }
+        .status-pill.app-locked { background: #dcfce7; color: #14532d; border: 1.5px solid #4ade80; }
+        .status-pill.app-draft { background: #f0fdf4; color: #15803d; border: 1px dashed #86efac; }
+        .status-pill.rej-locked { background: #ffe4e6; color: #9f1239; border: 1.5px solid #f87171; }
+        .status-pill.rej-draft { background: #fff1f2; color: #be123c; border: 1px dashed #fca5a5; }
+
+        /* Cover Slide */
+        .cover-slide {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+        }
+
+        .cover-icon {
+            font-size: 4rem;
+            margin-bottom: 16px;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .cover-title {
+            font-size: 2.75rem;
+            font-weight: 800;
+            color: #0f172a;
+            letter-spacing: -0.04em;
+            margin-bottom: 14px;
+            line-height: 1.2;
+        }
+
+        .cover-subtitle {
+            font-size: 1.2rem;
+            color: #64748b;
+            max-width: 680px;
+            margin-bottom: 32px;
+            line-height: 1.5;
+        }
+
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            background: #f8fafc;
+            border: 1.5px solid #e2e8f0;
+            padding: 16px 28px;
+            border-radius: 999px;
+            flex-wrap: wrap;
+        }
+
+        .flow-node {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: #1e293b;
+        }
+
+        .flow-arrow {
+            color: #94a3b8;
+            font-weight: 800;
+        }
+
+        /* Bottom Controls Bar */
+        .controls-bar {
+            background: #ffffff;
+            border-top: 1px solid var(--border-color);
+            padding: 14px 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 20;
+        }
+
+        .progress-box {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex: 1;
+            max-width: 420px;
+        }
+
+        .progress-track {
+            flex: 1;
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            width: 12.5%;
+            background: linear-gradient(90deg, #3b82f6, #2563eb);
+            border-radius: 999px;
+            transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .slide-counter {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: #475569;
+            min-width: 55px;
+        }
+
+        .nav-buttons {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-nav {
+            background: #f1f5f9;
+            color: #1e293b;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            padding: 8px 18px;
+            font-size: 0.88rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.15s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-nav:hover:not(:disabled) {
+            background: #e2e8f0;
+            color: #0f172a;
+        }
+
+        .btn-nav.primary {
+            background: #2563eb;
+            color: #ffffff;
+            border-color: #1d4ed8;
+        }
+
+        .btn-nav.primary:hover:not(:disabled) {
+            background: #1d4ed8;
+        }
+
+        .btn-nav:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        /* Keyboard hint badge */
+        .kbd-hint {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.72rem;
+            color: #94a3b8;
+            background: rgba(255, 255, 255, 0.08);
+            padding: 4px 10px;
+            border-radius: 6px;
+        }
+
+        kbd {
+            background: rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            padding: 1px 5px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.75rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .cards-grid, .cards-grid-2 {
+                grid-template-columns: 1fr;
+            }
+            .stage { padding: 12px; }
+            .slide { padding: 24px; }
+            .slide-title { font-size: 1.5rem; }
+            .cover-title { font-size: 1.8rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header>
+        <div class="brand-box">
+            <div class="brand-badge">⚡</div>
+            <div>
+                <div class="brand-title">MachineApp — HR & Candidate System</div>
+                <div class="brand-subtitle">Cẩm nang hướng dẫn sử dụng quy trình tuyển dụng & phê duyệt</div>
+            </div>
+        </div>
+        <div class="header-actions">
+            <div class="kbd-hint">Phím tắt: <kbd>←</kbd> <kbd>→</kbd> hoặc <kbd>Space</kbd></div>
+            <a href="/candidates" class="btn-top">📋 Về Danh sách</a>
+            <button onclick="toggleFullscreen()" class="btn-top" id="fsBtn">⛶ Toàn màn hình</button>
+            <button onclick="window.print()" class="btn-top">🖨️ In Slide</button>
+        </div>
+    </header>
+
+    <!-- Stage Container -->
+    <div class="stage">
+        <div class="slide-deck">
+
+            <!-- SLIDE 1: COVER -->
+            <div class="slide active" data-slide="1">
+                <div class="cover-slide">
+                    <div class="cover-icon">👥</div>
+                    <div class="slide-tag">Quy Trình Chuẩn Hóa</div>
+                    <h1 class="cover-title">HƯỚNG DẪN QUY TRÌNH<br>TUYỂN DỤNG & PHÊ DUYỆT ỨNG VIÊN</h1>
+                    <p class="cover-subtitle">
+                        Tài liệu trực quan hướng dẫn toàn diện từ khâu ứng viên quét mã QR nộp hồ sơ, HR phân công, đến Quản lý / Chủ quản đánh giá & phê duyệt chính thức.
+                    </p>
+                    <div class="flow-diagram">
+                        <div class="flow-node">📱 1. Quét QR / Nộp đơn</div>
+                        <div class="flow-arrow">➔</div>
+                        <div class="flow-node">💼 2. HR Tiếp nhận & Phân công</div>
+                        <div class="flow-arrow">➔</div>
+                        <div class="flow-node">✏️ 3. Quản lý / Chủ quản Đánh giá</div>
+                        <div class="flow-arrow">➔</div>
+                        <div class="flow-node">📤 4. Chuyển tiếp (nếu cần)</div>
+                        <div class="flow-arrow">➔</div>
+                        <div class="flow-node">🔒 5. Duyệt & Khóa phiếu</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 2: BƯỚC 1 -->
+            <div class="slide" data-slide="2">
+                <div class="slide-tag">Bước 1 / 6</div>
+                <h2 class="slide-title">📱 Ứng viên Nộp Phiếu Ứng Tuyển</h2>
+                <p class="slide-desc">Ứng viên tự ứng tuyển nhanh chóng qua điện thoại bằng cách quét mã QR hoặc được HR hỗ trợ nhập trên hệ thống.</p>
+                <div class="slide-content">
+                    <div class="cards-grid">
+                        <div class="step-card">
+                            <div class="card-num">1.1</div>
+                            <div class="card-title">Quét Mã QR Tuyển Dụng</div>
+                            <div class="card-desc">
+                                Quét mã QR dán tại phòng bảo vệ, lễ tân hoặc bảng thông báo để mở ngay biểu mẫu ứng tuyển trên điện thoại di động mà không cần cài đặt ứng dụng.
+                            </div>
+                            <div class="card-footer">
+                                <span class="status-pill new">🔗 /qr-phong-van.html</span>
+                            </div>
+                        </div>
+
+                        <div class="step-card">
+                            <div class="card-num">1.2</div>
+                            <div class="card-title">Điền Thông Tin Cá Nhân</div>
+                            <div class="card-desc">
+                                Cung cấp thông tin bắt buộc: Họ tên, Giới tính, Ngày sinh, CCCD (12 số), Số điện thoại (10 số), Vị trí & Bộ phận mong muốn, cùng kinh nghiệm làm việc đã có.
+                            </div>
+                            <div class="card-footer">
+                                <span class="status-pill new">📸 Tải ảnh chân dung 3x4</span>
+                            </div>
+                        </div>
+
+                        <div class="step-card highlight">
+                            <div class="card-num">1.3</div>
+                            <div class="card-title">Ghi Nhận Hồ Sơ Mới</div>
+                            <div class="card-desc">
+                                Sau khi ứng viên nhấn nút nộp, phiếu sẽ được lưu vào hệ thống và gắn trạng thái khởi tạo. HR sẽ nhận được thông báo để bắt đầu xử lý.
+                            </div>
+                            <div class="card-footer">
+                                <span class="status-pill new">🆕 Mới nộp — Chờ chuyển</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 3: BƯỚC 2 -->
+            <div class="slide" data-slide="3">
+                <div class="slide-tag">Bước 2 / 6</div>
+                <h2 class="slide-title">💼 HR Tiếp Nhận, Sơ Tuyển & Phân Công</h2>
+                <p class="slide-desc">Bộ phận Nhân sự (HR) thẩm định sơ bộ, bổ sung nhận xét, chụp ảnh hồ sơ và phân công cho Quản lý / Chủ quản chuyên trách.</p>
+                <div class="slide-content">
+                    <div class="cards-grid">
+                        <div class="step-card">
+                            <div class="card-num">2.1</div>
+                            <div class="card-title">Kiểm Tra Hồ Sơ Ứng Viên</div>
+                            <div class="card-desc">
+                                HR vào mục <strong>Ứng viên</strong> (`/candidates`), tra cứu thông tin ứng viên mới nộp. Có thể dùng bộ lọc trạng thái <strong>Mới nộp</strong> để xem nhanh.
+                            </div>
+                            <div class="card-footer">
+                                <span class="status-pill new">Lọc trạng thái: "Mới nộp"</span>
+                            </div>
+                        </div>
+
+                        <div class="step-card">
+                            <div class="card-num">2.2</div>
+                            <div class="card-title">Nhận Xét Sơ Bộ & Ảnh Đính Kèm</div>
+                            <div class="card-desc">
+                                HR có thể nhập nhận xét phỏng vấn vòng 1 và chụp/tải ảnh hồ sơ trực tiếp (CMND/CCCD, bằng cấp, ảnh chân dung thực tế) vào ô <em>Nhận xét của HR</em>.
+                            </div>
+                            <div class="card-footer">
+                                <span class="status-pill routed">📝 Nhận xét & Ảnh HR</span>
+                            </div>
+                        </div>
+
+                        <div class="step-card highlight">
+                            <div class="card-num">2.3</div>
+                            <div class="card-title">Phân Công Quản Lý / Chủ Quản</div>
+                            <div class="card-desc">
+                                Tích chọn một hoặc nhiều <strong>Quản lý cao cấp</strong> hoặc <strong>Chủ quản</strong> phù hợp với chuyên môn của ứng viên rồi nhấn <strong>Chuyển đơn</strong>.
+                            </div>
+                            <div class="card-footer">
+                                <span class="status-pill routed">⏳ Đã chuyển Quản lý</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 4: BƯỚC 3 -->
+            <div class="slide" data-slide="4">
+                <div class="slide-tag">Bước 3 / 6</div>
+                <h2 class="slide-title">✏️ Quản Lý / Chủ Quản Đánh Giá Chuyên Môn</h2>
+                <p class="slide-desc">Cán bộ quản lý được phân công vào xem chi tiết hồ sơ, đánh giá năng lực thực tế và đưa ra đề xuất tiếp nhận.</p>
+                <div class="slide-content">
+                    <div class="cards-grid-2">
+                        <div class="step-card">
+                            <div class="card-num">3.1</div>
+                            <div class="card-title">Bảo Mật Phân Quyền Hồ Sơ</div>
+                            <div class="card-desc">
+                                • Chủ quản và Quản lý cao cấp <strong>chỉ nhìn thấy đúng những ứng viên</strong> được HR phân công cho mình.<br>
+                                • Tránh lộ thông tin lương và hồ sơ ứng viên giữa các bộ phận khác nhau.
+                            </div>
+                            <div class="card-footer">
+                                <span class="status-pill routed">🔒 Phân quyền nghiêm ngặt</span>
+                            </div>
+                        </div>
+
+                        <div class="step-card highlight">
+                            <div class="card-num">3.2</div>
+                            <div class="card-title">Điền Phiếu Đánh Giá Chuyên Môn</div>
+                            <div class="card-desc">
+                                • <strong>Nội dung nhận xét:</strong> Đánh giá tay nghề, kinh nghiệm, thái độ.<br>
+                                • <strong>Kết quả:</strong> ✅ Đồng ý tuyển / ❌ Không tuyển / ⏳ Chờ xem xét.<br>
+                                • <strong>Thông tin tuyển dụng:</strong> Lương đề xuất, Ngày vào làm, Bộ phận, và <strong>Thời gian thử việc</strong> (0 ngày, 3 ngày, 6 ngày, 30 ngày, 60 ngày, 180 ngày hoặc Tự nhập).
+                            </div>
+                            <div class="card-footer">
+                                <span class="status-pill app-draft">📝 Đề xuất (Chưa duyệt)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 5: BƯỚC 4 -->
+            <div class="slide" data-slide="5">
+                <div class="slide-tag">Bước 4 / 6</div>
+                <h2 class="slide-title">📤 Chuyển Tiếp Hồ Sơ Liên Phòng Ban</h2>
+                <p class="slide-desc">Tính năng chuyển giao hồ sơ giữa các Quản lý / Chủ quản khi cần xin thêm ý kiến hoặc trình duyệt lên cấp cao hơn.</p>
+                <div class="slide-content">
+                    <div class="cards-grid">
+                        <div class="step-card">
+                            <div class="card-num">4.1</div>
+                            <div class="card-title">Nút "Gửi Phiếu Đánh Giá"</div>
+                            <div class="card-desc">
+                                Khi Chủ quản muốn chuyển phiếu lên Ban Giám đốc hoặc Quản lý phòng ban khác để lấy ý kiến thẩm định chéo, nhấn nút <strong>📤 Gửi phiếu</strong>.
+                            </div>
+                            <div class="card-footer">
+                                <span class="status-pill forwarded">Nút: 📤 Gửi phiếu</span>
+                            </div>
+                        </div>
+
+                        <div class="step-card">
+                            <div class="card-num">4.2</div>
+                            <div class="card-title">Tự Động Lưu Nhận Xét Hiện Tại</div>
+                            <div class="card-desc">
+                                Modal chuyển tiếp cung cấp tùy chọn tự động lưu lại toàn bộ nhận xét và đề xuất hiện tại của bạn trước khi bàn giao sang cho cán bộ tiếp theo.
+                            </div>
+                            <div class="card-footer">
+                                <span class="status-pill forwarded">Đồng bộ bản nháp</span>
+                            </div>
+                        </div>
+
+                        <div class="step-card highlight">
+                            <div class="card-num">4.3</div>
+                            <div class="card-title">Hiển Thị Đầy Đủ Cán Bộ Thụ Lý</div>
+                            <div class="card-desc">
+                                Thẻ ứng viên sẽ hiển thị trạng thái chuyển tiếp kèm danh sách tên những người đang thụ lý (Ví dụ: <em>Đang duyệt bởi: chuquan, Tracy, QI</em>).
+                            </div>
+                            <div class="card-footer">
+                                <span class="status-pill forwarded">📤 Đã chuyển tiếp Quản lý khác</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 6: BƯỚC 5 -->
+            <div class="slide" data-slide="6">
+                <div class="slide-tag">Bước 5 / 6</div>
+                <h2 class="slide-title">🔒 Phê Duyệt Chính Thức & Khóa Phiếu</h2>
+                <p class="slide-desc">Phân định rõ ràng giữa giai đoạn Thảo luận / Bản nháp và Quyết định phê duyệt tuyển dụng cuối cùng.</p>
+                <div class="slide-content">
+                    <div class="cards-grid-2">
+                        <div class="step-card">
+                            <div class="card-num">💾</div>
+                            <div class="card-title">Lưu Nhận Xét (Bản Nháp / Chưa Duyệt)</div>
+                            <div class="card-desc">
+                                Nhấn <strong>Lưu nhận xét</strong>:<br>
+                                • Lưu lại ý kiến và thông tin đề xuất nhưng <strong>chưa khóa phiếu</strong>.<br>
+                                • Cán bộ đánh giá vẫn có thể quay lại chỉnh sửa lương, ngày làm việc, thử việc khi có thương lượng mới.<br>
+                                • Trạng thái: <strong>Đề xuất Đồng ý tuyển (Chưa duyệt)</strong> hoặc <strong>Đề xuất Không tuyển (Chưa duyệt)</strong>.
+                            </div>
+                            <div class="card-footer">
+                                <span class="status-pill app-draft">📝 Viền đứt nét (Chưa duyệt)</span>
+                            </div>
+                        </div>
+
+                        <div class="step-card highlight">
+                            <div class="card-num">✅</div>
+                            <div class="card-title">Phê Duyệt Chính Thức (Khóa Phiếu)</div>
+                            <div class="card-desc">
+                                Nhấn <strong>Duyệt</strong>:<br>
+                                • Quyết định tuyển dụng chính thức có hiệu lực.<br>
+                                • Phiếu đánh giá tự động <strong>khóa lại (`is_locked = true`)</strong> nhằm chống sửa đổi dữ liệu.<br>
+                                • Chỉ tài khoản Admin mới có quyền hạ/mở khóa phiếu khi có yêu cầu đặc biệt.<br>
+                                • Trạng thái: <strong>Đồng ý tuyển (Đã duyệt)</strong> hoặc <strong>Không tuyển (Đã duyệt)</strong>.
+                            </div>
+                            <div class="card-footer">
+                                <span class="status-pill app-locked">✅ Viền đậm (Đã duyệt & Khóa)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 7: BƯỚC 6 -->
+            <div class="slide" data-slide="7">
+                <div class="slide-tag">Bước 6 / 6</div>
+                <h2 class="slide-title">📊 Tra Cứu, Lọc Trạng Thái & In Phiếu</h2>
+                <p class="slide-desc">Công cụ hỗ trợ HR và Ban Giám đốc quản lý tập trung, thống kê và in biểu mẫu phỏng vấn chuẩn A4.</p>
+                <div class="slide-content">
+                    <div class="cards-grid">
+                        <div class="step-card">
+                            <div class="card-num">6.1</div>
+                            <div class="card-title">Bộ Lọc Trạng Thái Thông Minh</div>
+                            <div class="card-desc">
+                                Dropdown lọc trực tiếp theo 7 trạng thái chi tiết, kết hợp tìm kiếm theo Tên, Số điện thoại, Vị trí và Khoảng thời gian nộp hồ sơ.
+                            </div>
+                            <div class="card-footer">
+                                <span class="status-pill app-locked">Lọc theo 7 trạng thái</span>
+                            </div>
+                        </div>
+
+                        <div class="step-card">
+                            <div class="card-num">6.2</div>
+                            <div class="card-title">In Phiếu Phỏng Vấn Chuẩn A4</div>
+                            <div class="card-desc">
+                                Nút <strong>🖨️ In phiếu</strong> kết xuất mẫu in tiêu chuẩn A4 gồm lý lịch, ảnh chân dung, đánh giá chuyên môn và chữ ký xác nhận của các cấp quản lý.
+                            </div>
+                            <div class="card-footer">
+                                <span class="status-pill app-locked">Chuẩn khổ A4 lưu trữ</span>
+                            </div>
+                        </div>
+
+                        <div class="step-card highlight">
+                            <div class="card-num">6.3</div>
+                            <div class="card-title">Hỗ Trợ Đa Ngôn Ngữ (VN - CN - EN)</div>
+                            <div class="card-desc">
+                                Nút chuyển đổi ngôn ngữ linh hoạt trên thanh Menu giúp chuyên gia, quản lý người nước ngoài (Đài Loan, Trung Quốc, chuyên gia tiếng Anh) thao tác dễ dàng.
+                            </div>
+                            <div class="card-footer">
+                                <span class="status-pill app-locked">🇻🇳 VN | 🇨🇳 CN | 🇬🇧 EN</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 8: BẢNG TỔNG HỢP TRẠNG THÁI -->
+            <div class="slide" data-slide="8">
+                <div class="slide-tag">Tổng Hợp</div>
+                <h2 class="slide-title">🏷️ Ý Nghĩa Màu Sắc & Trạng Thái Phiếu</h2>
+                <p class="slide-desc">Bảng tra cứu nhanh giúp nhận biết tiến trình tuyển dụng của từng hồ sơ thông qua màu sắc và biểu tượng trên màn hình.</p>
+                <div class="slide-content">
+                    <div style="width:100%; overflow-y:auto; border-radius:12px; border:1px solid #e2e8f0; background:white;">
+                        <table style="width:100%; border-collapse:collapse; font-size:0.86rem; text-align:left;">
+                            <thead>
+                                <tr style="background:#f8fafc; border-bottom:2px solid #e2e8f0; color:#475569;">
+                                    <th style="padding:10px 14px;">Huy hiệu / Badge</th>
+                                    <th style="padding:10px 14px;">Màu sắc thẻ</th>
+                                    <th style="padding:10px 14px;">Ý nghĩa nghiệp vụ</th>
+                                    <th style="padding:10px 14px;">Hành động tiếp theo</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr style="border-bottom:1px solid #f1f5f9;">
+                                    <td style="padding:10px 14px;"><span class="status-pill new">🆕 Mới nộp — Chờ chuyển</span></td>
+                                    <td style="padding:10px 14px;">Viền xanh lam nhạt</td>
+                                    <td style="padding:10px 14px;">Ứng viên mới nộp phiếu, chưa chuyển Quản lý.</td>
+                                    <td style="padding:10px 14px;">HR xem xét & phân công người phỏng vấn.</td>
+                                </tr>
+                                <tr style="border-bottom:1px solid #f1f5f9;">
+                                    <td style="padding:10px 14px;"><span class="status-pill routed">⏳ Đã chuyển Quản lý</span></td>
+                                    <td style="padding:10px 14px;">Viền vàng cam ấm</td>
+                                    <td style="padding:10px 14px;">Đã chuyển cho 1 Quản lý/Chủ quản, đang chờ đánh giá.</td>
+                                    <td style="padding:10px 14px;">Quản lý hẹn phỏng vấn & nhận xét.</td>
+                                </tr>
+                                <tr style="border-bottom:1px solid #f1f5f9;">
+                                    <td style="padding:10px 14px;"><span class="status-pill forwarded">📤 Đã chuyển tiếp Quản lý khác</span></td>
+                                    <td style="padding:10px 14px;">Viền xanh dương</td>
+                                    <td style="padding:10px 14px;">Đang luân chuyển qua nhiều Quản lý xin ý kiến.</td>
+                                    <td style="padding:10px 14px;">Quản lý tiếp theo xem xét & duyệt.</td>
+                                </tr>
+                                <tr style="border-bottom:1px solid #f1f5f9;">
+                                    <td style="padding:10px 14px;"><span class="status-pill app-draft">📝 Đề xuất Đồng ý tuyển (Chưa duyệt)</span></td>
+                                    <td style="padding:10px 14px;">Viền xanh lá đứt nét</td>
+                                    <td style="padding:10px 14px;">Đã chọn đồng ý nhưng chỉ lưu nháp, chưa duyệt chính thức.</td>
+                                    <td style="padding:10px 14px;">Xác nhận mức lương/ngày làm rồi bấm Duyệt.</td>
+                                </tr>
+                                <tr style="border-bottom:1px solid #f1f5f9;">
+                                    <td style="padding:10px 14px;"><span class="status-pill app-locked">✅ Đồng ý tuyển (Đã duyệt)</span></td>
+                                    <td style="padding:10px 14px;">Viền xanh lá đậm liền</td>
+                                    <td style="padding:10px 14px;">Đã phê duyệt chính thức & khóa phiếu. Trúng tuyển.</td>
+                                    <td style="padding:10px 14px;">HR làm thủ tục nhận việc & gửi thông báo.</td>
+                                </tr>
+                                <tr style="border-bottom:1px solid #f1f5f9;">
+                                    <td style="padding:10px 14px;"><span class="status-pill rej-draft">📝 Đề xuất Không tuyển (Chưa duyệt)</span></td>
+                                    <td style="padding:10px 14px;">Viền đỏ đứt nét</td>
+                                    <td style="padding:10px 14px;">Đề xuất không tiếp nhận nhưng chưa khóa quyết định.</td>
+                                    <td style="padding:10px 14px;">Cân nhắc chuyển vị trí khác hoặc bấm Duyệt từ chối.</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:10px 14px;"><span class="status-pill rej-locked">❌ Không tuyển (Đã duyệt)</span></td>
+                                    <td style="padding:10px 14px;">Viền đỏ hồng đậm</td>
+                                    <td style="padding:10px 14px;">Đã duyệt chính thức không tiếp nhận ứng viên.</td>
+                                    <td style="padding:10px 14px;">Lưu trữ hồ sơ và kết thúc quy trình.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Bottom Controls Bar -->
+    <div class="controls-bar">
+        <div class="progress-box">
+            <span class="slide-counter" id="slideCounter">Slide 1 / 8</span>
+            <div class="progress-track">
+                <div class="progress-bar-fill" id="progressBar"></div>
+            </div>
+        </div>
+
+        <div class="nav-buttons">
+            <button class="btn-nav" id="prevBtn" onclick="prevSlide()">← Trước</button>
+            <button class="btn-nav primary" id="nextBtn" onclick="nextSlide()">Tiếp theo →</button>
+        </div>
+    </div>
+
+    <script>
+        let currentSlide = 1;
+        const totalSlides = 8;
+
+        const slides = document.querySelectorAll('.slide');
+        const progressBar = document.getElementById('progressBar');
+        const slideCounter = document.getElementById('slideCounter');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+
+        function updateSlide(newIndex) {
+            if (newIndex < 1 || newIndex > totalSlides) return;
+
+            slides.forEach((s) => {
+                const idx = parseInt(s.getAttribute('data-slide'));
+                s.classList.remove('active', 'prev');
+                if (idx === newIndex) {
+                    s.classList.add('active');
+                } else if (idx < newIndex) {
+                    s.classList.add('prev');
+                }
+            });
+
+            currentSlide = newIndex;
+
+            // Update Progress Bar & Counter
+            const percent = (currentSlide / totalSlides) * 100;
+            progressBar.style.width = percent + '%';
+            slideCounter.textContent = `Slide ${currentSlide} / ${totalSlides}`;
+
+            // Button state
+            prevBtn.disabled = (currentSlide === 1);
+            if (currentSlide === totalSlides) {
+                nextBtn.textContent = 'Hoàn tất ✓';
+            } else {
+                nextBtn.textContent = 'Tiếp theo →';
+            }
+        }
+
+        function nextSlide() {
+            if (currentSlide < totalSlides) {
+                updateSlide(currentSlide + 1);
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlide > 1) {
+                updateSlide(currentSlide - 1);
+            }
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+                e.preventDefault();
+                nextSlide();
+            } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+                e.preventDefault();
+                prevSlide();
+            }
+        });
+
+        // Fullscreen toggle
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {});
+                document.getElementById('fsBtn').textContent = '⛶ Thoát toàn màn hình';
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                    document.getElementById('fsBtn').textContent = '⛶ Toàn màn hình';
+                }
+            }
+        }
+
+        document.addEventListener('fullscreenchange', () => {
+            const fsBtn = document.getElementById('fsBtn');
+            if (document.fullscreenElement) {
+                fsBtn.textContent = '⛶ Thoát toàn màn hình';
+            } else {
+                fsBtn.textContent = '⛶ Toàn màn hình';
+            }
+        });
+
+        // Init
+        updateSlide(1);
+    </script>
+</body>
+</html>
+

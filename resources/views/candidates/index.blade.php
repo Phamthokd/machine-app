@@ -99,6 +99,9 @@
         <p class="text-muted small mb-0">{{ __('messages.candidates_subtitle') }}</p>
     </div>
     <div class="d-flex gap-2 flex-wrap">
+        <a href="/slide-huong-dan.html" target="_blank" class="btn btn-outline-info text-dark rounded-3 fw-bold px-3 d-flex align-items-center gap-2" style="background:#f0f9ff; border-color:#7dd3fc;">
+            📖 Slide Hướng Dẫn
+        </a>
         <a href="/qr-phong-van.html" target="_blank" class="btn btn-outline-primary rounded-3 fw-bold px-3 d-flex align-items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
             🖨️ In Mã QR Tuyển Dụng
