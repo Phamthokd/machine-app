@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">MachineApp</string>
+    <!-- Thay đổi URL website của hệ thống tại đây -->
+    <string name="web_url">https://vivagarment.com.vn</string>
+    <string name="error_no_connection">Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại Wifi/4G của bạn.</string>
+    <string name="btn_retry">Thử lại</string>
+    <string name="press_again_to_exit">Nhấn lần nữa để thoát ứng dụng</string>
+</resources>
+
