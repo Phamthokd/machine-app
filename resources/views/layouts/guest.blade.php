@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ config('app.name', 'Machine App') }}</title>
+    <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
 
     <!-- Bootstrap 5 & Google Fonts -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -89,10 +90,8 @@
 
     <div class="login-card">
         <div class="login-header">
-            <div class="brand-logo shadow-sm">
-                <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
-                </svg>
+            <div class="d-flex justify-content-center mb-3">
+                <img src="{{ asset('images/viva-logo.png') }}" alt="Logo" class="rounded-4 shadow" style="width: 72px; height: 72px; object-fit: cover;">
             </div>
             <h4 class="fw-bold mb-1 text-dark">Welcome Back!</h4>
             <div class="text-secondary small">Vui lòng đăng nhập để tiếp tục</div>

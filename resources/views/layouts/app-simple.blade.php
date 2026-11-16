@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="csrf-token" content="{{ csrf_token() }}">
   <title>@yield('title','Machine App')</title>
+  <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
 
   <!-- Bootstrap 5 & Google Fonts -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -175,11 +176,7 @@
 
       <!-- Brand -->
       <a class="navbar-brand" href="/dashboard">
-        <div class="brand-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
-          </svg>
-        </div>
+        <img src="{{ asset('images/viva-logo.png') }}" alt="Logo" width="32" height="32" class="rounded shadow-sm" style="object-fit: cover;">
         MachineApp
       </a>
 
