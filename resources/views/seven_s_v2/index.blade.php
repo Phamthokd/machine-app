@@ -1,8 +1,8 @@
-@extends('layouts.app-simple')
+@extends('layouts.app-simple', ['maxWidth' => '100%'])
 @section('title', 'Đánh giá 7S 2.0')
 
 @section('content')
-<div class="container-fluid px-0 px-md-3 py-3">
+<div class="container-fluid px-2 px-md-4 py-2">
 
   {{-- Header & Action --}}
   <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
