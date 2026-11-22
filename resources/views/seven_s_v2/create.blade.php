@@ -2,7 +2,7 @@
 @section('title', 'Tạo đợt đánh giá 7S 2.0')
 
 @section('content')
-<div class="container-fluid px-2 px-md-4 py-3" style="max-width: 1200px;">
+<div class="container-fluid px-2 px-md-4 py-2">
 
   {{-- Back & Title --}}
   <div class="d-flex align-items-center justify-content-between mb-4">

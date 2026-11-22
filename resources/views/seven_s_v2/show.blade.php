@@ -2,7 +2,7 @@
 @section('title', 'Chi tiết đánh giá 7S 2.0 #' . $record->id)
 
 @section('content')
-<div class="container-fluid px-2 px-md-4 py-3" style="max-width: 1400px;">
+<div class="container-fluid px-2 px-md-4 py-2">
 
   {{-- Header & Navigation --}}
   <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
