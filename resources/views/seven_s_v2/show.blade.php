@@ -111,7 +111,7 @@
             <div class="d-flex align-items-center gap-2">
               <span class="badge bg-dark rounded-pill px-2.5 py-1">#{{ $index + 1 }}</span>
               @if($issue->severity === 'heavy')
-                <span class="badge bg-danger fs-7 px-2.5 py-1.5 rounded-pill shadow-sm">Lỗi nặng (-2 điểm)</span>
+                <span class="badge bg-danger text-white fs-7 px-2.5 py-1.5 rounded-pill shadow-sm">Lỗi nặng (-2 điểm)</span>
               @else
                 <span class="badge bg-warning text-dark fs-7 px-2.5 py-1.5 rounded-pill shadow-sm">Lỗi nhẹ (-1 điểm)</span>
               @endif

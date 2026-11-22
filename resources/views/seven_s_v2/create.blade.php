@@ -63,11 +63,11 @@
         </div>
 
         <div class="d-flex align-items-center gap-2">
-          <span class="badge bg-warning bg-opacity-20 text-dark border border-warning px-3 py-2 rounded-pill">
-            Lỗi nhẹ: <span id="displayLightCount" class="fw-bold">0</span> (-1đ)
+          <span class="badge bg-warning text-dark border border-warning px-3 py-2 rounded-pill fw-bold shadow-sm">
+            Lỗi nhẹ: <span id="displayLightCount">0</span> (-1đ)
           </span>
-          <span class="badge bg-danger bg-opacity-20 text-danger border border-danger px-3 py-2 rounded-pill">
-            Lỗi nặng: <span id="displayHeavyCount" class="fw-bold">0</span> (-2đ)
+          <span class="badge bg-danger text-white border border-danger px-3 py-2 rounded-pill fw-bold shadow-sm">
+            Lỗi nặng: <span id="displayHeavyCount">0</span> (-2đ)
           </span>
         </div>
       </div>

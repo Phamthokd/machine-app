@@ -149,14 +149,14 @@
                     Đạt chuẩn (0 lỗi)
                   </span>
                 @else
-                  <div class="d-flex gap-1.5">
+                  <div class="d-flex gap-1.5 flex-wrap">
                     @if($rec->light_fault_count > 0)
-                      <span class="badge bg-warning bg-opacity-20 text-dark border border-warning border-opacity-50 px-2 py-1">
+                      <span class="badge bg-warning text-dark border border-warning px-2.5 py-1 fw-bold shadow-sm">
                         {{ $rec->light_fault_count }} lỗi nhẹ
                       </span>
                     @endif
                     @if($rec->heavy_fault_count > 0)
-                      <span class="badge bg-danger bg-opacity-20 text-danger border border-danger border-opacity-50 px-2 py-1">
+                      <span class="badge bg-danger text-white border border-danger px-2.5 py-1 fw-bold shadow-sm">
                         {{ $rec->heavy_fault_count }} lỗi nặng
                       </span>
                     @endif
