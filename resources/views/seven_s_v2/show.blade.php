@@ -29,7 +29,7 @@
         <span>{{ __('messages.7s_v2_btn_print') }}</span>
       </a>
 
-      @if(auth()->user()->isAdminUser() || auth()->id() === $record->inspector_id)
+      @if(auth()->user() && auth()->user()->isAdminUser())
         <form action="{{ route('seven-s-v2.destroy', $record->id) }}" method="POST" onsubmit="return confirm('{{ __('messages.7s_v2_delete_confirm') }}')">
           @csrf
           @method('DELETE')

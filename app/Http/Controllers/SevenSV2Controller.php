@@ -270,15 +270,15 @@ class SevenSV2Controller extends Controller
     }
 
     /**
-     * Xóa phiếu kiểm tra 7S 2.0
+     * Xóa phiếu kiểm tra 7S 2.0 (Chỉ Admin)
      */
     public function destroy($id)
     {
         $record = SevenSV2Record::findOrFail($id);
         $user = auth()->user();
 
-        if (!$user->isAdminUser() && $user->id !== $record->inspector_id) {
-            abort(403, 'Bạn không có quyền xóa đợt kiểm tra này.');
+        if (!$user || !$user->isAdminUser()) {
+            abort(403, 'Chỉ tài khoản Quản trị viên (Admin) mới có quyền xóa phiếu kiểm tra 7S 2.0.');
         }
 
         $record->delete();

@@ -190,9 +190,20 @@
                 @endif
               </td>
               <td class="text-end pe-3">
-                <a href="{{ route('seven-s-v2.show', $rec->id) }}" class="btn btn-sm btn-outline-primary rounded-3 px-2.5">
-                  {{ __('messages.7s_v2_btn_detail') }}
-                </a>
+                <div class="d-inline-flex align-items-center gap-1.5">
+                  <a href="{{ route('seven-s-v2.show', $rec->id) }}" class="btn btn-sm btn-outline-primary rounded-3 px-2.5">
+                    {{ __('messages.7s_v2_btn_detail') }}
+                  </a>
+                  @if(auth()->user() && auth()->user()->isAdminUser())
+                    <form action="{{ route('seven-s-v2.destroy', $rec->id) }}" method="POST" class="d-inline m-0" onsubmit="return confirm('{{ __('messages.7s_v2_delete_confirm') }}')">
+                      @csrf
+                      @method('DELETE')
+                      <button type="submit" class="btn btn-sm btn-outline-danger rounded-3 p-1.5 d-inline-flex align-items-center justify-content-center" style="width: 31px; height: 31px;" title="{{ __('messages.7s_v2_btn_delete') }}">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                      </button>
+                    </form>
+                  @endif
+                </div>
               </td>
             </tr>
           @empty
