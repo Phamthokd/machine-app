@@ -149,6 +149,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/seven-s/{record}/review-improvements', [\App\Http\Controllers\SevenSController::class, 'reviewImprovements'])->name('seven-s.review_improvements');
         Route::get('/seven-s/{id}/export', [\App\Http\Controllers\SevenSController::class, 'exportDetail'])->name('seven-s.export_detail')->whereNumber('id');
         Route::get('/seven-s/{id}', [\App\Http\Controllers\SevenSController::class, 'show'])->name('seven-s.show')->whereNumber('id');
+
+        // --- Đánh giá 7S 2.0 ---
+        Route::get('/seven-s-v2', [\App\Http\Controllers\SevenSV2Controller::class, 'index'])->name('seven-s-v2.index');
+        Route::get('/seven-s-v2/create', [\App\Http\Controllers\SevenSV2Controller::class, 'create'])->name('seven-s-v2.create');
+        Route::post('/seven-s-v2', [\App\Http\Controllers\SevenSV2Controller::class, 'store'])->name('seven-s-v2.store');
+        Route::get('/seven-s-v2/{id}', [\App\Http\Controllers\SevenSV2Controller::class, 'show'])->name('seven-s-v2.show')->whereNumber('id');
+        Route::delete('/seven-s-v2/{id}', [\App\Http\Controllers\SevenSV2Controller::class, 'destroy'])->name('seven-s-v2.destroy')->whereNumber('id');
+        Route::post('/seven-s-v2/issues/{issue}/improve', [\App\Http\Controllers\SevenSV2Controller::class, 'storeImprovement'])->name('seven-s-v2.improve');
+        Route::post('/seven-s-v2/issues/{issue}/verify', [\App\Http\Controllers\SevenSV2Controller::class, 'verifyImprovement'])->name('seven-s-v2.verify');
     });
 
 

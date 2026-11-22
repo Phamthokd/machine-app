@@ -176,7 +176,12 @@
         <h2 class="h3 mb-1 fw-bold text-dark">{{ __('messages.7s_inspection') }}</h2>
         <div class="text-muted small">{{ __('messages.7s_manage_subtitle') ?? 'Quản lý các đợt kiểm tra và đánh giá 7S các bộ phận' }}</div>
     </div>
-    <button type="button" id="exportSelectedBtn" class="btn-export text-decoration-none">
+    <div class="d-flex align-items-center gap-2">
+        <a href="{{ route('seven-s-v2.index') }}" class="btn btn-primary d-flex align-items-center gap-2 rounded-3 shadow-sm px-3 py-2 fw-semibold">
+            <span class="badge bg-danger rounded-pill px-2">2.0</span>
+            <span>Chuyển sang 7S 2.0 Mới</span>
+        </a>
+        <button type="button" id="exportSelectedBtn" class="btn-export text-decoration-none">
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
             <polyline points="7 10 12 15 17 10" />

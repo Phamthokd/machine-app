@@ -23,6 +23,8 @@ class FeatureAccess
             'audits.manage' => self::allows($user, 'audits.access') && !$user->hasManagedDepartments(),
             'seven_s.access' => $user->hasRole('admin') || $user->hasRole('7s') || $user->hasRole('senior_manager') || $user->can('seven_s.access'),
             'seven_s.manage' => self::allows($user, 'seven_s.access') && !$user->hasManagedDepartments(),
+            'seven_s_v2.access' => self::allows($user, 'seven_s.access') || $user->can('seven_s_v2.access'),
+            'seven_s_v2.manage' => self::allows($user, 'seven_s.manage') || $user->can('seven_s_v2.manage'),
             'environment_reports.access' => $user->hasAnyRole(['admin', 'environment']) || $user->can('environment_reports.access'),
             'repairs.manage' => $user->hasAnyRole(['admin', 'warehouse', 'repair_tech', 'contractor', 'team_leader', 'supervisor', 'senior_manager', 'bok']) || $user->can('repairs.manage'),
             'repairs.view' => $user->hasAnyRole(['admin', 'warehouse', 'repair_tech', 'contractor', 'team_leader', 'audit', '7s', 'supervisor', 'senior_manager', 'bok']) || $user->can('repairs.view'),
