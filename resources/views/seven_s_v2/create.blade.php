@@ -1,5 +1,5 @@
 @extends('layouts.app-simple', ['maxWidth' => '100%'])
-@section('title', 'Tạo đợt đánh giá 7S 2.0')
+@section('title', __('messages.7s_v2_create_title'))
 
 @section('content')
 <div class="container-fluid px-2 px-md-4 py-2">
@@ -11,15 +11,15 @@
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>
       </a>
       <div>
-        <h4 class="fw-bold mb-0 text-dark">Đánh giá 7S 2.0</h4>
-        <div class="text-muted small">Người đánh giá: <strong>{{ auth()->user()->name }}</strong> &bull; Ngày: {{ now()->format('d/m/Y') }}</div>
+        <h4 class="fw-bold mb-0 text-dark">{{ __('messages.7s_v2_title') }}</h4>
+        <div class="text-muted small">{{ __('messages.7s_v2_inspector_label') }}: <strong>{{ auth()->user()->name }}</strong> &bull; {{ __('messages.7s_v2_date_label') }}: {{ now()->format('d/m/Y') }}</div>
       </div>
     </div>
   </div>
 
   @if(isset($errors) && $errors->any())
     <div class="alert alert-danger rounded-4 shadow-sm mb-4">
-      <div class="fw-bold mb-1">Vui lòng kiểm tra lại thông tin:</div>
+      <div class="fw-bold mb-1">{{ __('messages.7s_v2_validation_errors') }}</div>
       <ul class="mb-0 ps-3">
         @foreach($errors->all() as $err)
           <li>{{ $err }}</li>
@@ -35,18 +35,18 @@
     <div class="card border-0 shadow-sm rounded-4 mb-4">
       <div class="card-body p-4">
         <label class="form-label fw-bold text-dark fs-6 mb-2">
-          1. Lựa chọn bộ phận kiểm tra <span class="text-danger">*</span>
+          {{ __('messages.7s_v2_step_1_dept') }} <span class="text-danger">*</span>
         </label>
         <select name="department" id="departmentSelect" class="form-select form-select-lg rounded-3 fw-semibold" required>
-          <option value="" disabled selected>-- Chọn bộ phận cần đánh giá 7S --</option>
+          <option value="" disabled selected>{{ __('messages.7s_v2_select_dept_placeholder') }}</option>
           @foreach($departments as $dept)
             <option value="{{ $dept }}" {{ (old('department', $selectedDept) == $dept) ? 'selected' : '' }}>
-              {{ $dept }}
+              {{ \Illuminate\Support\Facades\Lang::has('messages.' . $dept) ? __('messages.' . $dept) : $dept }}
             </option>
           @endforeach
         </select>
         <div class="form-text mt-1 text-muted">
-          Người kiểm tra tiến hành quan sát thực tế tại bộ phận này và ghi nhận các lỗi vi phạm 7S (nếu có).
+          {{ __('messages.7s_v2_dept_hint') }}
         </div>
       </div>
     </div>
@@ -57,17 +57,17 @@
         <div class="d-flex align-items-center gap-2">
           <span class="fs-5">📊</span>
           <div>
-            <div class="small text-secondary fw-semibold">Tổng điểm phạt:</div>
-            <div id="displayTotalPenalty" class="fs-4 fw-bold text-success">0 điểm</div>
+            <div class="small text-secondary fw-semibold">{{ __('messages.7s_v2_total_penalty_bar') }}</div>
+            <div id="displayTotalPenalty" class="fs-4 fw-bold text-success">{{ __('messages.7s_v2_points_count', ['points' => 0]) }}</div>
           </div>
         </div>
 
         <div class="d-flex align-items-center gap-2">
           <span class="badge bg-warning text-dark border border-warning px-3 py-2 rounded-pill fw-bold shadow-sm">
-            Lỗi nhẹ: <span id="displayLightCount">0</span> (-1đ)
+            {{ __('messages.7s_v2_light_label') }}: <span id="displayLightCount">0</span> (-1đ)
           </span>
           <span class="badge bg-danger text-white border border-danger px-3 py-2 rounded-pill fw-bold shadow-sm">
-            Lỗi nặng: <span id="displayHeavyCount">0</span> (-2đ)
+            {{ __('messages.7s_v2_heavy_label') }}: <span id="displayHeavyCount">0</span> (-2đ)
           </span>
         </div>
       </div>
@@ -77,12 +77,12 @@
     <div class="card border-0 shadow-sm rounded-4 mb-4">
       <div class="card-header bg-white border-0 p-4 pb-0 d-flex justify-content-between align-items-center">
         <div>
-          <h5 class="fw-bold mb-1 text-dark">2. Ghi nhận lỗi vi phạm 7S</h5>
-          <div class="text-muted small">Nếu bộ phận có lỗi, hãy thêm nội dung lỗi và chọn mức phạt tương ứng.</div>
+          <h5 class="fw-bold mb-1 text-dark">{{ __('messages.7s_v2_step_2_issues') }}</h5>
+          <div class="text-muted small">{{ __('messages.7s_v2_step_2_hint') }}</div>
         </div>
         <button type="button" id="btnAddIssue" class="btn btn-primary d-flex align-items-center gap-1.5 shadow-sm rounded-3 fw-semibold px-3 py-2">
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg>
-          <span>Thêm lỗi vi phạm</span>
+          <span>{{ __('messages.7s_v2_btn_add_issue') }}</span>
         </button>
       </div>
 
@@ -90,12 +90,12 @@
         {{-- Empty State when no issues --}}
         <div id="emptyIssueState" class="text-center py-5 border border-dashed rounded-4 bg-light">
           <div class="mb-2 fs-1">✨</div>
-          <div class="fw-bold text-dark fs-6">Hiện tại chưa ghi nhận lỗi nào</div>
+          <div class="fw-bold text-dark fs-6">{{ __('messages.7s_v2_empty_issues_title') }}</div>
           <div class="text-muted small max-w-sm mx-auto mt-1 mb-3">
-            Nếu bộ phận được kiểm tra hoàn toàn sạch sẽ, ngăn nắp và đạt chuẩn 7S, bạn có thể lưu phiếu ngay với kết quả <strong>0 điểm trừ</strong>.
+            {!! __('messages.7s_v2_empty_issues_desc') !!}
           </div>
           <button type="button" class="btn btn-outline-primary btn-sm rounded-3 px-3 fw-medium" onclick="document.getElementById('btnAddIssue').click()">
-            + Phát hiện lỗi vi phạm? Bấm vào đây
+            {{ __('messages.7s_v2_btn_click_to_add') }}
           </button>
         </div>
 
@@ -107,16 +107,16 @@
     {{-- Ghi chú chung --}}
     <div class="card border-0 shadow-sm rounded-4 mb-4">
       <div class="card-body p-4">
-        <label class="form-label fw-bold text-dark mb-1">3. Ghi chú chung đợt kiểm tra (Tùy chọn)</label>
-        <textarea name="general_note" class="form-control rounded-3" rows="2" placeholder="Nhập nhận xét tổng quan về tinh thần 7S của bộ phận...">{{ old('general_note') }}</textarea>
+        <label class="form-label fw-bold text-dark mb-1">{{ __('messages.7s_v2_step_3_general_note') }}</label>
+        <textarea name="general_note" class="form-control rounded-3" rows="2" placeholder="{{ __('messages.7s_v2_general_note_placeholder') }}">{{ old('general_note') }}</textarea>
       </div>
     </div>
 
     {{-- Action Buttons --}}
     <div class="d-flex justify-content-between align-items-center mb-5">
-      <a href="{{ route('seven-s-v2.index') }}" class="btn btn-light border px-4 py-2.5 rounded-3 fw-medium">Hủy bỏ</a>
+      <a href="{{ route('seven-s-v2.index') }}" class="btn btn-light border px-4 py-2.5 rounded-3 fw-medium">{{ __('messages.7s_v2_btn_cancel') }}</a>
       <button type="submit" class="btn btn-primary btn-lg px-5 py-2.5 rounded-3 fw-bold shadow">
-        Lưu & Hoàn thành đánh giá
+        {{ __('messages.7s_v2_btn_submit') }}
       </button>
     </div>
 
@@ -128,31 +128,31 @@
   <div class="card border border-2 issue-card rounded-4 shadow-sm p-3 position-relative" data-index="__INDEX__">
     <div class="d-flex justify-content-between align-items-center pb-2 mb-3 border-bottom">
       <div class="d-flex align-items-center gap-2">
-        <span class="badge bg-dark rounded-pill px-2.5 py-1">Lỗi #<span class="issue-number">1</span></span>
-        <span class="text-muted small">Chọn mức phạt bên dưới</span>
+        <span class="badge bg-dark rounded-pill px-2.5 py-1">{{ __('messages.7s_v2_issue_tag') }}<span class="issue-number">1</span></span>
+        <span class="text-muted small">{{ __('messages.7s_v2_issue_select_severity_hint') }}</span>
       </div>
-      <button type="button" class="btn btn-link text-danger p-0 text-decoration-none btn-remove-issue" title="Xóa lỗi này">
+      <button type="button" class="btn btn-link text-danger p-0 text-decoration-none btn-remove-issue" title="{{ __('messages.7s_v2_btn_remove_issue') }}">
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-        <span class="small fw-semibold ms-1">Xóa</span>
+        <span class="small fw-semibold ms-1">{{ __('messages.7s_v2_btn_remove_issue') }}</span>
       </button>
     </div>
 
     {{-- Severity Selection --}}
     <div class="mb-3">
-      <label class="form-label small fw-bold text-dark mb-1.5">Mức độ lỗi & Điểm trừ <span class="text-danger">*</span></label>
+      <label class="form-label small fw-bold text-dark mb-1.5">{{ __('messages.7s_v2_issue_severity_label') }} <span class="text-danger">*</span></label>
       <div class="d-flex gap-3">
         <label class="severity-option flex-fill border rounded-3 p-2.5 d-flex align-items-center gap-2 cursor-pointer bg-light">
           <input type="radio" name="issues[__INDEX__][severity]" value="light" class="form-check-input severity-radio" checked>
           <div>
-            <div class="fw-bold text-warning-emphasis small">Lỗi nhẹ (-1 điểm)</div>
-            <div class="text-muted" style="font-size:0.75rem;">Vi phạm mức độ nhỏ, dễ khắc phục ngay</div>
+            <div class="fw-bold text-warning-emphasis small">{{ __('messages.7s_v2_severity_light_title') }}</div>
+            <div class="text-muted" style="font-size:0.75rem;">{{ __('messages.7s_v2_severity_light_desc') }}</div>
           </div>
         </label>
         <label class="severity-option flex-fill border rounded-3 p-2.5 d-flex align-items-center gap-2 cursor-pointer bg-light">
           <input type="radio" name="issues[__INDEX__][severity]" value="heavy" class="form-check-input severity-radio">
           <div>
-            <div class="fw-bold text-danger small">Lỗi nặng (-2 điểm)</div>
-            <div class="text-muted" style="font-size:0.75rem;">Vi phạm nghiêm trọng, mất an toàn, tái phạm</div>
+            <div class="fw-bold text-danger small">{{ __('messages.7s_v2_severity_heavy_title') }}</div>
+            <div class="text-muted" style="font-size:0.75rem;">{{ __('messages.7s_v2_severity_heavy_desc') }}</div>
           </div>
         </label>
       </div>
@@ -160,18 +160,18 @@
 
     {{-- Issue Content --}}
     <div class="mb-3">
-      <label class="form-label small fw-bold text-dark mb-1">Nội dung lỗi vi phạm <span class="text-danger">*</span></label>
-      <textarea name="issues[__INDEX__][content]" class="form-control rounded-3" rows="2" placeholder="Mô tả cụ thể lỗi phát hiện được (VD: Để dầu máy chảy ra sàn chuyền 3, rác thải chưa gom...)" required></textarea>
+      <label class="form-label small fw-bold text-dark mb-1">{{ __('messages.7s_v2_issue_content_label') }} <span class="text-danger">*</span></label>
+      <textarea name="issues[__INDEX__][content]" class="form-control rounded-3" rows="2" placeholder="{{ __('messages.7s_v2_issue_content_placeholder') }}" required></textarea>
     </div>
 
     {{-- Location & Photos --}}
     <div class="row g-2 mb-1">
       <div class="col-12 col-md-6">
-        <label class="form-label small fw-semibold text-secondary mb-1">Vị trí cụ thể (Tùy chọn)</label>
-        <input type="text" name="issues[__INDEX__][location_detail]" class="form-control form-control-sm rounded-3" placeholder="VD: Bàn kiểm hàng số 2, Cửa kho A...">
+        <label class="form-label small fw-semibold text-secondary mb-1">{{ __('messages.7s_v2_location_label') }}</label>
+        <input type="text" name="issues[__INDEX__][location_detail]" class="form-control form-control-sm rounded-3" placeholder="{{ __('messages.7s_v2_location_placeholder') }}">
       </div>
       <div class="col-12 col-md-6">
-        <label class="form-label small fw-semibold text-secondary mb-1">Ảnh chụp hiện trường vi phạm</label>
+        <label class="form-label small fw-semibold text-secondary mb-1">{{ __('messages.7s_v2_photos_label') }}</label>
         <input type="file" name="issues[__INDEX__][images][]" multiple accept="image/*" class="form-control form-control-sm rounded-3 input-issue-images">
       </div>
     </div>
@@ -195,6 +195,7 @@
   const emptyIssueState = document.getElementById('emptyIssueState');
   const btnAddIssue = document.getElementById('btnAddIssue');
   const templateHtml = document.getElementById('issueTemplate').innerHTML;
+  const pointsTemplate = @json(__('messages.7s_v2_points_count', ['points' => ':p:']));
 
   function updateSummary() {
     const cards = document.querySelectorAll('.issue-card');
@@ -225,11 +226,12 @@
     document.getElementById('displayHeavyCount').textContent = heavy;
     const penaltyEl = document.getElementById('displayTotalPenalty');
 
+    const formattedPoints = pointsTemplate.replace(':p:', totalPenalty);
     if (totalPenalty < 0) {
-      penaltyEl.textContent = `${totalPenalty} điểm`;
+      penaltyEl.textContent = formattedPoints;
       penaltyEl.className = 'fs-4 fw-bold text-danger';
     } else {
-      penaltyEl.textContent = '0 điểm';
+      penaltyEl.textContent = pointsTemplate.replace(':p:', 0);
       penaltyEl.className = 'fs-4 fw-bold text-success';
     }
 

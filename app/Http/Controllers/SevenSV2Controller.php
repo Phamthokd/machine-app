@@ -183,7 +183,7 @@ class SevenSV2Controller extends Controller
         }
 
         return redirect()->route('seven-s-v2.show', $record->id)
-            ->with('success', 'Đã lưu đợt kiểm tra 7S 2.0 thành công! Tổng điểm trừ: ' . $totalPenalty . ' điểm.');
+            ->with('success', __('messages.7s_v2_store_success', ['points' => $totalPenalty]));
     }
 
     /**
@@ -233,7 +233,7 @@ class SevenSV2Controller extends Controller
             'status'                 => 'improved', // Chờ nghiệm thu
         ]);
 
-        return back()->with('success', 'Đã gửi báo cáo khắc phục thành công! Đang chờ người đánh giá nghiệm thu.');
+        return back()->with('success', __('messages.7s_v2_improve_success'));
     }
 
     /**
@@ -255,7 +255,7 @@ class SevenSV2Controller extends Controller
                 'verified_at'      => now(),
                 'rejection_reason' => null,
             ]);
-            $msg = 'Đã nghiệm thu ĐẠT cho lỗi này.';
+            $msg = __('messages.7s_v2_verify_ok_msg');
         } else {
             $issue->update([
                 'status'           => 'rejected',
@@ -263,7 +263,7 @@ class SevenSV2Controller extends Controller
                 'verified_at'      => now(),
                 'rejection_reason' => $request->input('rejection_reason'),
             ]);
-            $msg = 'Đã từ chối và yêu cầu bộ phận khắc phục lại.';
+            $msg = __('messages.7s_v2_verify_reject_msg');
         }
 
         return back()->with('success', $msg);
@@ -283,6 +283,6 @@ class SevenSV2Controller extends Controller
 
         $record->delete();
 
-        return redirect()->route('seven-s-v2.index')->with('success', 'Đã xóa đợt kiểm tra 7S 2.0.');
+        return redirect()->route('seven-s-v2.index')->with('success', __('messages.7s_v2_delete_success'));
     }
 }

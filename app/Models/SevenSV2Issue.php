@@ -59,16 +59,16 @@ class SevenSV2Issue extends Model
 
     public function getSeverityTextAttribute(): string
     {
-        return $this->severity === 'heavy' ? 'Lỗi nặng (-2 điểm)' : 'Lỗi nhẹ (-1 điểm)';
+        return $this->severity === 'heavy' ? __('messages.7s_v2_heavy_fault_score') : __('messages.7s_v2_light_fault_score');
     }
 
     public function getStatusBadgeAttribute(): array
     {
         return match ($this->status) {
-            'improved' => ['text' => 'Chờ nghiệm thu', 'class' => 'bg-info text-white'],
-            'verified' => ['text' => 'Đã nghiệm thu đạt', 'class' => 'bg-success text-white'],
-            'rejected' => ['text' => 'Chưa đạt (Yêu cầu làm lại)', 'class' => 'bg-danger text-white'],
-            default    => ['text' => 'Chưa khắc phục', 'class' => 'bg-warning text-dark'],
+            'improved' => ['text' => __('messages.7s_v2_status_improved'), 'class' => 'bg-info text-white'],
+            'verified' => ['text' => __('messages.7s_v2_status_verified'), 'class' => 'bg-success text-white'],
+            'rejected' => ['text' => __('messages.7s_v2_status_rejected'), 'class' => 'bg-danger text-white'],
+            default    => ['text' => __('messages.7s_v2_status_pending'), 'class' => 'bg-warning text-dark'],
         };
     }
 }
