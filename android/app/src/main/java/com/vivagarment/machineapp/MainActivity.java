@@ -122,6 +122,14 @@ public class MainActivity extends AppCompatActivity {
         String defaultUa = settings.getUserAgentString();
         settings.setUserAgentString(defaultUa + " VivaApp/1.0.0");
 
+        // Provide JavaScript interface for web app to detect native app
+        webView.addJavascriptInterface(new Object() {
+            @android.webkit.JavascriptInterface
+            public boolean isApp() {
+                return true;
+            }
+        }, "VivaAppInterface");
+
         // WebChromeClient: Handles progress, camera permission for QR, file chooser
         webView.setWebChromeClient(new WebChromeClient() {
             @Override
