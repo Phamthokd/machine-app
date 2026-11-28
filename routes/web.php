@@ -202,6 +202,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // CANDIDATES: Admin + Senior Manager + Supervisor + HR + candidates.create
     Route::middleware(['role_or_permission:admin|senior_manager|supervisor|hr|candidates.create'])->group(function () {
         Route::get('/candidates', [CandidateController::class, 'index'])->name('candidates.index');
+        Route::get('/candidates/export', [CandidateController::class, 'export'])->name('candidates.export');
         Route::get('/candidates/create', [CandidateController::class, 'create'])->name('candidates.create');
         Route::post('/candidates', [CandidateController::class, 'store'])->name('candidates.store');
         Route::get('/candidates/{id}/edit', [CandidateController::class, 'edit'])->name('candidates.edit')->whereNumber('id');

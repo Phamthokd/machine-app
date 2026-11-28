@@ -111,6 +111,75 @@
     </div>
   </div>
 
+  {{-- Chart / Report Section --}}
+  <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden">
+    <div class="card-header bg-white border-0 py-3 px-3.5 d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2">
+      <div>
+        <div class="d-flex align-items-center gap-2">
+          <span class="badge bg-primary bg-opacity-10 text-primary p-2 rounded-3">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M18 20V10m-6 10V4m-6 16v-6"/></svg>
+          </span>
+          <h5 class="fw-bold mb-0 text-dark">{{ __('messages.7s_v2_chart_title') }}</h5>
+        </div>
+        <div class="text-muted small mt-1">
+          {{ __('messages.7s_v2_chart_subtitle') }}
+          @if(request('start_date') || request('end_date'))
+            <span class="badge bg-light text-secondary border ms-1">
+              {{ request('start_date') ? \Carbon\Carbon::parse(request('start_date'))->format('d/m/Y') : '...' }}
+              →
+              {{ request('end_date') ? \Carbon\Carbon::parse(request('end_date'))->format('d/m/Y') : '...' }}
+            </span>
+          @endif
+        </div>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <div class="btn-group btn-group-sm" role="group" id="chartTypeToggle">
+          <button type="button" class="btn btn-outline-primary active fw-medium px-3" data-mode="penalty">
+            {{ __('messages.7s_v2_chart_view_penalty') }}
+          </button>
+          <button type="button" class="btn btn-outline-primary fw-medium px-3" data-mode="faults">
+            {{ __('messages.7s_v2_chart_view_faults') }}
+          </button>
+        </div>
+        <button class="btn btn-light btn-sm border rounded-3 text-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#chartCollapse" aria-expanded="true" aria-controls="chartCollapse" title="{{ __('messages.7s_v2_chart_toggle') }}">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="collapse show" id="chartCollapse">
+      <div class="card-body pt-1 pb-3 px-3 px-md-4">
+        @if(count($chartData) > 0)
+          <div style="position: relative; height: 340px; width: 100%;">
+            <canvas id="sevenSBarChart"></canvas>
+          </div>
+          <div class="row g-2 mt-3 pt-2 border-top">
+            <div class="col-12 col-md-4 text-center text-md-start">
+              <span class="small text-muted">{{ __('messages.7s_v2_chart_stat_total_depts') }}:</span>
+              <strong class="text-dark ms-1">{{ count($chartData) }}</strong>
+            </div>
+            <div class="col-12 col-md-4 text-center">
+              <span class="small text-muted">{{ __('messages.7s_v2_chart_stat_max_penalty') }}:</span>
+              <strong class="text-danger ms-1">
+                {{ $chartData->first()['department'] ?? '' }} (-{{ $chartData->first()['total_penalty'] ?? 0 }}đ)
+              </strong>
+            </div>
+            <div class="col-12 col-md-4 text-center text-md-end">
+              <span class="small text-muted">{{ __('messages.7s_v2_chart_stat_clean_depts') }}:</span>
+              <strong class="text-success ms-1">
+                {{ $chartData->where('total_penalty', 0)->count() }}
+              </strong>
+            </div>
+          </div>
+        @else
+          <div class="text-center py-4 text-muted">
+            <div class="small">{{ __('messages.7s_v2_chart_no_data') }}</div>
+          </div>
+        @endif
+      </div>
+    </div>
+  </div>
+
   {{-- Record List Table --}}
   <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
     <div class="table-responsive">
@@ -229,4 +298,162 @@
   </div>
 
 </div>
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const chartCanvas = document.getElementById('sevenSBarChart');
+  if (!chartCanvas) return;
+
+  const rawData = @json($chartData ?? []);
+  if (!rawData || rawData.length === 0) return;
+
+  const labels = rawData.map(d => d.department);
+  const penalties = rawData.map(d => d.total_penalty);
+  const lightFaults = rawData.map(d => d.light_faults);
+  const heavyFaults = rawData.map(d => d.heavy_faults);
+  const inspections = rawData.map(d => d.inspections);
+
+  let currentMode = 'penalty';
+
+  // Config data for Penalty Mode
+  const penaltyDataConfig = {
+    labels: labels,
+    datasets: [{
+      label: '{{ __("messages.7s_v2_chart_dataset_penalty") }} (-đ)',
+      data: penalties,
+      backgroundColor: 'rgba(239, 68, 68, 0.85)',
+      borderColor: 'rgb(220, 38, 38)',
+      borderWidth: 1.5,
+      borderRadius: 6,
+      barPercentage: 0.6,
+      categoryPercentage: 0.7,
+    }]
+  };
+
+  // Config data for Faults Breakdown Mode
+  const faultsDataConfig = {
+    labels: labels,
+    datasets: [
+      {
+        label: '{{ __("messages.7s_v2_chart_dataset_light") }} (-1đ)',
+        data: lightFaults,
+        backgroundColor: 'rgba(245, 158, 11, 0.85)',
+        borderColor: 'rgb(217, 119, 6)',
+        borderWidth: 1.5,
+        borderRadius: 6,
+      },
+      {
+        label: '{{ __("messages.7s_v2_chart_dataset_heavy") }} (-2đ)',
+        data: heavyFaults,
+        backgroundColor: 'rgba(220, 38, 38, 0.85)',
+        borderColor: 'rgb(185, 28, 28)',
+        borderWidth: 1.5,
+        borderRadius: 6,
+      }
+    ]
+  };
+
+  const chart = new Chart(chartCanvas, {
+    type: 'bar',
+    data: penaltyDataConfig,
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: true,
+          position: 'top',
+          labels: {
+            boxWidth: 14,
+            usePointStyle: true,
+            pointStyle: 'rectRounded',
+            font: {
+              family: "'Inter', sans-serif",
+              size: 12,
+              weight: '500'
+            }
+          }
+        },
+        tooltip: {
+          backgroundColor: 'rgba(15, 23, 42, 0.9)',
+          padding: 12,
+          cornerRadius: 8,
+          titleFont: { size: 13, weight: '700' },
+          bodyFont: { size: 12 },
+          callbacks: {
+            label: function(context) {
+              const idx = context.dataIndex;
+              const val = context.raw || 0;
+              if (currentMode === 'penalty') {
+                return ` ${context.dataset.label}: -${val}đ (${inspections[idx]} đợt kiểm tra)`;
+              } else {
+                return ` ${context.dataset.label}: ${val} lỗi`;
+              }
+            },
+            afterBody: function(contexts) {
+              if (contexts.length > 0 && currentMode === 'penalty') {
+                const idx = contexts[0].dataIndex;
+                return [
+                  `• Lỗi nhẹ: ${lightFaults[idx]} lỗi`,
+                  `• Lỗi nặng: ${heavyFaults[idx]} lỗi`
+                ];
+              }
+              return [];
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: {
+            font: { family: "'Inter', sans-serif", size: 11, weight: '500' },
+            color: '#475569',
+            maxRotation: 30,
+            minRotation: 0,
+          }
+        },
+        y: {
+          beginAtZero: true,
+          grid: { color: 'rgba(226, 232, 240, 0.6)' },
+          ticks: {
+            precision: 0,
+            font: { family: "'Inter', sans-serif", size: 11 },
+            color: '#64748b',
+            callback: function(value) {
+              return currentMode === 'penalty' ? (value > 0 ? '-' + value : '0') : value;
+            }
+          }
+        }
+      }
+    }
+  });
+
+  // Toggle between Penalty Points vs Faults Breakdown
+  const toggleButtons = document.querySelectorAll('#chartTypeToggle button');
+  toggleButtons.forEach(btn => {
+    btn.addEventListener('click', function () {
+      toggleButtons.forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+
+      const mode = this.getAttribute('data-mode');
+      currentMode = mode;
+
+      if (mode === 'faults') {
+        chart.data = faultsDataConfig;
+        chart.options.scales.x.stacked = true;
+        chart.options.scales.y.stacked = true;
+      } else {
+        chart.data = penaltyDataConfig;
+        chart.options.scales.x.stacked = false;
+        chart.options.scales.y.stacked = false;
+      }
+      chart.update();
+    });
+  });
+});
+</script>
+@endpush
 @endsection

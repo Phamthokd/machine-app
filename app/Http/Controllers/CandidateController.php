@@ -31,10 +31,10 @@ class CandidateController extends Controller
 
     // ─── Protected (admin / senior_manager) ──────────────────────────────────
 
-    public function index(Request $request)
+    private function buildCandidateQuery(Request $request)
     {
         $user = auth()->user();
-        $query = Candidate::with('seniorManagers')->latest();
+        $query = Candidate::with(['seniorManagers', 'submitter'])->latest();
 
         // Scope to assigned candidates for senior_manager and supervisor
         if ($user->hasAnyRole(['senior_manager', 'supervisor'])) {
@@ -122,9 +122,281 @@ class CandidateController extends Controller
             }
         }
 
+        return $query;
+    }
+
+    public function index(Request $request)
+    {
+        $query = $this->buildCandidateQuery($request);
+
+        // Tính toán thống kê báo cáo trạng thái theo bộ lọc hiện tại
+        $statsQuery = clone $query;
+        $allFiltered = $statsQuery->get();
+
+        $statusCounts = [
+            'new'             => 0,
+            'routed'          => 0,
+            'forwarded'       => 0,
+            'approved_draft'  => 0,
+            'approved_locked' => 0,
+            'rejected_draft'  => 0,
+            'rejected_locked' => 0,
+        ];
+
+        foreach ($allFiltered as $c) {
+            $st = $c->overall_review_status;
+            if (isset($statusCounts[$st])) {
+                $statusCounts[$st]++;
+            } else {
+                $statusCounts[$st] = 1;
+            }
+        }
+
+        $totalCount = $allFiltered->count();
+        $totalApproved = $statusCounts['approved_locked'] + $statusCounts['approved_draft'];
+        $totalRejected = $statusCounts['rejected_locked'] + $statusCounts['rejected_draft'];
+        $totalPendingReview = $statusCounts['new'] + $statusCounts['routed'] + $statusCounts['forwarded'];
+
+        $stats = [
+            'total'               => $totalCount,
+            'total_approved'      => $totalApproved,
+            'total_rejected'      => $totalRejected,
+            'total_pending'       => $totalPendingReview,
+            'status_counts'       => $statusCounts,
+            'approval_rate'       => $totalCount > 0 ? round(($totalApproved / $totalCount) * 100, 1) : 0,
+        ];
+
         $candidates = $query->paginate(20)->withQueryString();
 
-        return view('candidates.index', compact('candidates'));
+        return view('candidates.index', compact('candidates', 'stats'));
+    }
+
+    /**
+     * Xuất file Excel tổng hợp các báo cáo ứng viên theo bộ lọc
+     */
+    public function export(Request $request)
+    {
+        $query = $this->buildCandidateQuery($request);
+        $candidates = $query->get();
+
+        $headers = [
+            'Mã phiếu',
+            'Ngày ứng tuyển',
+            'Họ và tên',
+            'Giới tính',
+            'Ngày sinh',
+            'Số CCCD',
+            'Số điện thoại',
+            'Địa chỉ',
+            'Trình độ văn hóa',
+            'Kỹ năng ngoại ngữ',
+            'Bộ phận ứng tuyển',
+            'Vị trí ứng tuyển',
+            'Mức lương mong muốn',
+            'Tình trạng hôn nhân',
+            'Người giới thiệu',
+            'Trạng thái phê duyệt',
+            'Quản lý xem xét / phê duyệt',
+            'Bộ phận tiếp nhận (Được duyệt)',
+            'Mức lương chính thức (Được duyệt)',
+            'Ngày bắt đầu đi làm',
+            'Thời gian thử việc',
+            'Đánh giá / Ghi chú của quản lý',
+            'Ghi chú của HR',
+        ];
+
+        $renderRow = function ($c) {
+            $managersList = $c->seniorManagers->pluck('name')->join(', ');
+            
+            // Tìm thông tin phê duyệt từ Quản lý (nếu có)
+            $approvedManager = $c->seniorManagers->first(fn($u) => $u->pivot->review_result === 'approved');
+            $activeManager = $approvedManager ?? $c->seniorManagers->first();
+            
+            $assignedDept = $activeManager ? ($activeManager->pivot->assigned_department ?? '') : '';
+            $approvedSalary = $activeManager ? ($activeManager->pivot->proposed_salary ?? '') : '';
+            $startDate = $activeManager && $activeManager->pivot->start_date ? \Carbon\Carbon::parse($activeManager->pivot->start_date)->format('d/m/Y') : '';
+            $probation = $activeManager ? ($activeManager->pivot->probation_period ?? '') : '';
+            $managerNotes = $activeManager ? ($activeManager->pivot->review_note ?? '') : '';
+
+            $cells = [
+                '#UV-' . str_pad($c->id, 5, '0', STR_PAD_LEFT),
+                $c->created_at ? $c->created_at->format('d/m/Y H:i') : '',
+                $c->full_name,
+                $c->gender === 'male' ? 'Nam' : 'Nữ',
+                $c->dob ? $c->dob->format('d/m/Y') : '',
+                $c->id_number,
+                $c->phone,
+                $c->address,
+                $c->education,
+                $c->language_skills,
+                $c->department_applied,
+                $c->position_applied,
+                $c->expected_salary,
+                $c->marital_status === 'married' ? 'Đã kết hôn' : ($c->marital_status === 'divorced' ? 'Đã ly hôn' : 'Độc thân'),
+                $c->referral_name ? ($c->referral_name . ' (' . ($c->referral_department ?? '') . ')') : 'Tự ứng tuyển',
+                $c->status_label,
+                $managersList,
+                $assignedDept,
+                $approvedSalary,
+                $startDate,
+                $probation,
+                $managerNotes,
+                $c->hr_notes ?? '',
+            ];
+
+            $xml = "    <Row ss:Height=\"20\">\n";
+            foreach ($cells as $cell) {
+                $type = 'String';
+                $safe = htmlspecialchars((string)$cell, ENT_XML1, 'UTF-8');
+                $xml .= "     <Cell><Data ss:Type=\"{$type}\">{$safe}</Data></Cell>\n";
+            }
+            $xml .= "    </Row>\n";
+            return $xml;
+        };
+
+        // Tính toán số liệu thống kê tóm tắt
+        $statusCounts = [
+            'new'             => 0,
+            'routed'          => 0,
+            'forwarded'       => 0,
+            'approved_draft'  => 0,
+            'approved_locked' => 0,
+            'rejected_draft'  => 0,
+            'rejected_locked' => 0,
+        ];
+        foreach ($candidates as $c) {
+            $st = $c->overall_review_status;
+            if (isset($statusCounts[$st])) {
+                $statusCounts[$st]++;
+            } else {
+                $statusCounts[$st] = 1;
+            }
+        }
+        $totalApproved = $statusCounts['approved_locked'] + $statusCounts['approved_draft'];
+        $totalRejected = $statusCounts['rejected_locked'] + $statusCounts['rejected_draft'];
+        $totalPending = $statusCounts['new'] + $statusCounts['routed'] + $statusCounts['forwarded'];
+
+        $fileName = 'bao-cao-ung-vien-' . now()->format('Ymd-His') . '.xls';
+
+        return response()->streamDownload(function () use ($candidates, $headers, $renderRow, $statusCounts, $totalApproved, $totalRejected, $totalPending) {
+            $output = fopen('php://output', 'w');
+
+            $preamble = '<?xml version="1.0"?>' . "\n";
+            $preamble .= '<?mso-application progid="Excel.Sheet"?>' . "\n";
+            $preamble .= '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" ' . "\n";
+            $preamble .= ' xmlns:o="urn:schemas-microsoft-com:office:office" ' . "\n";
+            $preamble .= ' xmlns:x="urn:schemas-microsoft-com:office:excel" ' . "\n";
+            $preamble .= ' xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet" ' . "\n";
+            $preamble .= ' xmlns:html="http://www.w3.org/TR/REC-html40">' . "\n";
+
+            // Style definitions
+            $preamble .= " <Styles>\n";
+            $preamble .= "  <Style ss:ID=\"Default\" ss:Name=\"Normal\">\n";
+            $preamble .= "   <Alignment ss:Vertical=\"Center\"/>\n";
+            $preamble .= "   <Font ss:FontName=\"Calibri\" ss:Size=\"11\"/>\n";
+            $preamble .= "  </Style>\n";
+            $preamble .= "  <Style ss:ID=\"HeaderStyle\">\n";
+            $preamble .= "   <Alignment ss:Horizontal=\"Center\" ss:Vertical=\"Center\" ss:WrapText=\"1\"/>\n";
+            $preamble .= "   <Borders>\n";
+            $preamble .= "    <Border ss:Position=\"Bottom\" ss:LineStyle=\"Continuous\" ss:Weight=\"1\" ss:Color=\"#cbd5e1\"/>\n";
+            $preamble .= "   </Borders>\n";
+            $preamble .= "   <Font ss:FontName=\"Calibri\" ss:Size=\"11\" ss:Bold=\"1\" ss:Color=\"#0f172a\"/>\n";
+            $preamble .= "   <Interior ss:Color=\"#e2e8f0\" ss:Pattern=\"Solid\"/>\n";
+            $preamble .= "  </Style>\n";
+            $preamble .= "  <Style ss:ID=\"TitleStyle\">\n";
+            $preamble .= "   <Alignment ss:Horizontal=\"Left\" ss:Vertical=\"Center\"/>\n";
+            $preamble .= "   <Font ss:FontName=\"Calibri\" ss:Size=\"14\" ss:Bold=\"1\" ss:Color=\"#1e3a8a\"/>\n";
+            $preamble .= "  </Style>\n";
+            $preamble .= "  <Style ss:ID=\"StatLabel\">\n";
+            $preamble .= "   <Font ss:FontName=\"Calibri\" ss:Size=\"11\" ss:Bold=\"1\" ss:Color=\"#334155\"/>\n";
+            $preamble .= "   <Interior ss:Color=\"#f1f5f9\" ss:Pattern=\"Solid\"/>\n";
+            $preamble .= "  </Style>\n";
+            $preamble .= "  <Style ss:ID=\"StatVal\">\n";
+            $preamble .= "   <Alignment ss:Horizontal=\"Center\" ss:Vertical=\"Center\"/>\n";
+            $preamble .= "   <Font ss:FontName=\"Calibri\" ss:Size=\"11\" ss:Bold=\"1\" ss:Color=\"#0f172a\"/>\n";
+            $preamble .= "  </Style>\n";
+            $preamble .= " </Styles>\n";
+
+            fwrite($output, $preamble);
+
+            // Worksheet 1: Danh sách ứng viên
+            fwrite($output, " <Worksheet ss:Name=\"Danh sách ứng viên\">\n");
+            fwrite($output, "  <Table>\n");
+
+            // Title Row
+            fwrite($output, "   <Row ss:Height=\"28\">\n");
+            fwrite($output, "    <Cell ss:StyleID=\"TitleStyle\"><Data ss:Type=\"String\">BÁO CÁO TỔNG HỢP PHIẾU PHỎNG VẤN ỨNG VIÊN</Data></Cell>\n");
+            fwrite($output, "   </Row>\n");
+
+            // Subtitle Row
+            $dateRange = 'Thời gian xuất: ' . now()->format('d/m/Y H:i:s') . ' | Tổng cộng: ' . count($candidates) . ' hồ sơ';
+            fwrite($output, "   <Row ss:Height=\"20\">\n");
+            fwrite($output, "    <Cell><Data ss:Type=\"String\">{$dateRange}</Data></Cell>\n");
+            fwrite($output, "   </Row>\n");
+            fwrite($output, "   <Row ss:Height=\"10\"></Row>\n");
+
+            // Table Header Row
+            fwrite($output, "   <Row ss:Height=\"26\">\n");
+            foreach ($headers as $h) {
+                fwrite($output, "    <Cell ss:StyleID=\"HeaderStyle\"><Data ss:Type=\"String\">{$h}</Data></Cell>\n");
+            }
+            fwrite($output, "   </Row>\n");
+
+            // Data Rows
+            foreach ($candidates as $c) {
+                fwrite($output, $renderRow($c));
+            }
+            fwrite($output, "  </Table>\n");
+            fwrite($output, " </Worksheet>\n");
+
+            // Worksheet 2: Thống kê trạng thái (Summary Sheet)
+            fwrite($output, " <Worksheet ss:Name=\"Thống kê trạng thái\">\n");
+            fwrite($output, "  <Table>\n");
+            fwrite($output, "   <Row ss:Height=\"26\">\n");
+            fwrite($output, "    <Cell ss:StyleID=\"TitleStyle\"><Data ss:Type=\"String\">BẢNG THỐNG KÊ TỔNG HỢP TRẠNG THÁI</Data></Cell>\n");
+            fwrite($output, "   </Row>\n");
+            fwrite($output, "   <Row ss:Height=\"10\"></Row>\n");
+
+            fwrite($output, "   <Row ss:Height=\"22\">\n");
+            fwrite($output, "    <Cell ss:StyleID=\"HeaderStyle\"><Data ss:Type=\"String\">Trạng thái</Data></Cell>\n");
+            fwrite($output, "    <Cell ss:StyleID=\"HeaderStyle\"><Data ss:Type=\"String\">Số lượng hồ sơ</Data></Cell>\n");
+            fwrite($output, "    <Cell ss:StyleID=\"HeaderStyle\"><Data ss:Type=\"String\">Tỷ lệ (%)</Data></Cell>\n");
+            fwrite($output, "   </Row>\n");
+
+            $total = max(count($candidates), 1);
+            $summaryItems = [
+                ['Mới nộp — Chờ chuyển', $statusCounts['new']],
+                ['Đã chuyển Quản lý', $statusCounts['routed']],
+                ['Đã chuyển tiếp Quản lý khác', $statusCounts['forwarded']],
+                ['Đề xuất Đồng ý tuyển (Bản nháp)', $statusCounts['approved_draft']],
+                ['Đồng ý tuyển (Đã duyệt chính thức)', $statusCounts['approved_locked']],
+                ['Đề xuất Không tuyển (Bản nháp)', $statusCounts['rejected_draft']],
+                ['Không tuyển (Đã duyệt chính thức)', $statusCounts['rejected_locked']],
+                ['--- TỔNG DUYỆT ĐỒNG Ý TUYỂN ---', $totalApproved],
+                ['--- TỔNG TỪ CHỐI TUYỂN ---', $totalRejected],
+                ['--- TỔNG ĐANG XỬ LÝ / CHỜ DUYỆT ---', $totalPending],
+                ['=== TỔNG CỘNG HỒ SƠ ===', count($candidates)],
+            ];
+
+            foreach ($summaryItems as $item) {
+                $pct = round(($item[1] / $total) * 100, 1) . '%';
+                $isSpecial = str_contains($item[0], '---') || str_contains($item[0], '===');
+                $styleAttr = $isSpecial ? ' ss:StyleID="StatLabel"' : '';
+                fwrite($output, "   <Row ss:Height=\"20\">\n");
+                fwrite($output, "    <Cell{$styleAttr}><Data ss:Type=\"String\">{$item[0]}</Data></Cell>\n");
+                fwrite($output, "    <Cell ss:StyleID=\"StatVal\"><Data ss:Type=\"Number\">{$item[1]}</Data></Cell>\n");
+                fwrite($output, "    <Cell ss:StyleID=\"StatVal\"><Data ss:Type=\"String\">{$pct}</Data></Cell>\n");
+                fwrite($output, "   </Row>\n");
+            }
+
+            fwrite($output, "  </Table>\n");
+            fwrite($output, " </Worksheet>\n");
+
+            fwrite($output, "</Workbook>");
+            fclose($output);
+        }, $fileName, [
+            'Content-Type' => 'application/vnd.ms-excel',
+        ]);
     }
 
     public function create()

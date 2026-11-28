@@ -94,9 +94,27 @@ class SevenSV2Controller extends Controller
                 ->count(),
         ];
 
+        // Dữ liệu báo cáo biểu đồ theo bộ phận trong khoảng thời gian đã lọc
+        $chartData = $allMatched->groupBy('department')->map(function ($depts, $deptName) {
+            $totalPenalty = $depts->sum('total_penalty_points');
+            $lightCount = $depts->sum('light_fault_count');
+            $heavyCount = $depts->sum('heavy_fault_count');
+            $inspections = $depts->count();
+
+            return [
+                'department'    => $deptName,
+                'total_penalty' => abs($totalPenalty), // Trị tuyệt đối số điểm trừ để hiển thị cột rõ ràng
+                'penalty_raw'   => $totalPenalty,
+                'light_faults'  => $lightCount,
+                'heavy_faults'  => $heavyCount,
+                'total_faults'  => $lightCount + $heavyCount,
+                'inspections'   => $inspections,
+            ];
+        })->sortByDesc('total_penalty')->values();
+
         $records = $query->paginate(15)->withQueryString();
 
-        return view('seven_s_v2.index', compact('records', 'departments', 'stats'));
+        return view('seven_s_v2.index', compact('records', 'departments', 'stats', 'chartData'));
     }
 
     /**
