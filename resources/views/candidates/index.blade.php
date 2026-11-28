@@ -1,4 +1,4 @@
-@extends('layouts.app-simple', ['maxWidth' => '1100px'])
+@extends('layouts.app-simple', ['maxWidth' => '100%'])
 @section('title', __('messages.candidates'))
 
 @section('content')
